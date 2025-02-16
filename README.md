@@ -10,17 +10,20 @@ Contains all the dotfiles that I use in my development environment.
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
 - fzf - `sudo apt install fzf`
 - ripgrep - `sudo apt install ripgrep`
+- lazygit - `brew install lazygit`
 - tmux - `sudo apt install tmux`
 - tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
 - stow - `sudo apt install stow`
 
 ## Usage
 
-- `stow ~/.dotfiles`
-- `cp ~/.dotfiles/zsh/.* ~/`
-- `cp ~/.dotfiles/git/.* ~/`
-- `tmux source-file ~/.tmux.conf`
-- `chsh -s /bin/zsh`
+```sh
+stow .
+cp ./zsh/.* ~/
+cp ./git/.* ~/
+tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
+chsh -s /bin/zsh
+```
 
 ## Note for WSL
 
