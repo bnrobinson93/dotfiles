@@ -31,9 +31,9 @@ format = '[ \($state( $progress_current of $progress_total)\)]($style)'
 style = 'bold teal'
 
 [git_branch]
-symbol = ""
+symbol = " "
 style = 'sky'
-format = """on [$symbol $branch(:$remote_branch)]($style)"""
+format = """on [$symbol$branch(:$remote_branch)]($style)"""
 
 [git_metrics]
 disabled = true
