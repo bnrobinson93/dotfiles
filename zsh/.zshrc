@@ -7,9 +7,9 @@ fi;
 
 # Autostart tmux
 # export TERM=xterm-256color
-if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ] && ! pstree -s $$ | grep -wqE 'code|language-server'; then
-  exec tmux
-fi
+#if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ] && ! pstree -s $$ | grep -wqE 'code|language-server'; then
+#  exec tmux
+#fi
 
 # Created by Zap installer
 [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ] && \
@@ -20,6 +20,8 @@ plug "zsh-users/zsh-autosuggestions"
 #plug "zap-zsh/zap-prompt"
 plug "zsh-users/zsh-syntax-highlighting"
 plug 'none9632/zsh-sudo'
+plug 'lukechilds/zsh-nvm'
+NVM_AUTO_USE=true
 
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 # Tab autocomplete is case-insensitive
@@ -205,4 +207,6 @@ zstyle :compinstall filename '/home/brad/.zshrc'
 export PATH="/home/brad/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
-source /home/brad/.config/op/plugins.sh
+if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
+  source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
+fi
