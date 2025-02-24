@@ -5,6 +5,7 @@ $git_state\
 $git_metrics\
 $git_status\
 $line_break\
+$nodejs\
 $jobs\
 $character"""
 # format_right = """$all"""
@@ -38,16 +39,19 @@ format = """on [$symbol $branch(:$remote_branch)]($style)"""
 disabled = true
 
 [git_status]
-ahead = "[ ](bold flamingo)"
-behind = "[ ](bold blue)"
-conflicted = '[ ](bold red)'
-untracked = "[ ](bold yellow)"
-staged = "[ ](bold green)"
-modified = "[ ](bold peach)"
-stashed = "[󰦤 ](bold lavender)"
-deleted = ''
-renamed = "[󰳟 ](bold rose)"
+ahead = "[ ](flamingo)"
+behind = "[ ](blue)"
+conflicted = '[ ](red)'
+untracked = "[ ](yellow)"
+staged = "[ ](green)"
+modified = "[ ](peach)"
+stashed = "[󰓏 ](lavender)"
+deleted = '[ ](red)'
+renamed = "[󰳟 ](rose)"
 format = '([ $all_status$ahead_behind]($style) )'
+
+[nodejs]
+format = "[$symbol($version )]($style)"
 
 [jobs]
 style = "surface2"
