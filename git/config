@@ -1,7 +1,7 @@
 [user]
 	name = Brad Robinson
 	email = brad.robinson@virtru.com
-	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOkFqD8hgwmjKyNZ1xLNd5JJou/DAqoQaIV+8oo1c9nL
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDKsmcUtNTWAR5Voj2VSV1iiqAH3/OboWLX7ZMdtVZ9W
 [push]
   default = simple
 [alias]
