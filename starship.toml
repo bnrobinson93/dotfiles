@@ -39,16 +39,16 @@ format = """on [$symbol $branch(:$remote_branch)]($style)"""
 disabled = true
 
 [git_status]
+conflicted = '[󰀨 ](red)'
 ahead = "[󰳡 ](flamingo)"
 behind = "[󰳛 ](blue)"
-conflicted = '[󰀨 ](red)'
-untracked = "[󰋗 ](yellow)"
-staged = "[󰐗 ](green)"
-modified = "[󰛿 ](peach)"
-stashed = "[󰓏 ](lavender)"
-deleted = '[󰅙 ](red)'
-renamed = "[󰳟 ](rose)"
 diverged = "[󰵚 ](orange)"
+untracked = "[󰋗 ](yellow)"
+stashed = "[󰓏 ](lavender)"
+modified = "[󰛿 ](peach)"
+staged = "[󰐗 ](green)"
+renamed = "[󰁙 ](rose)"
+deleted = '[󰅙 ](red)'
 format = '([ $all_status$ahead_behind]($style) )'
 
 [nodejs]
