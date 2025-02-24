@@ -1,6 +1,7 @@
 [user]
 	name = Brad Robinson
 	email = brad.robinson@virtru.com
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOkFqD8hgwmjKyNZ1xLNd5JJou/DAqoQaIV+8oo1c9nL
 [push]
   default = simple
 [alias]
@@ -13,3 +14,6 @@
 	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 [gpg]
 	program = gpg2
+	format = ssh
+[commit]
+	gpgsign = true
