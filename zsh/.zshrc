@@ -21,7 +21,10 @@ plug "zsh-users/zsh-autosuggestions"
 plug "zsh-users/zsh-syntax-highlighting"
 plug 'none9632/zsh-sudo'
 plug 'lukechilds/zsh-nvm'
-NVM_AUTO_USE=true
+export NVM_LAZY_LOAD_EXTRA_COMMANDS=('tmux')
+export NVM_LAZY_LOAD=true
+export NVM_COMPLETION=true
+export NVM_AUTO_USE=true
 
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 # Tab autocomplete is case-insensitive
