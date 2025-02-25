@@ -7,8 +7,11 @@ vim.opt.guicursor = ''
 vim.opt.cursorline = true
 vim.opt.mouse = 'nv'
 
-vim.opt.foldmethod = 'manual'
-vim.opt.foldcolumn = '1'
+-- Folds
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
 vim.opt.fillchars = {
   foldopen = '',
   foldclose = '',
@@ -65,19 +68,6 @@ vim.g.mapleader = ' '
 
 -- for javascript, set the @ alias to .
 vim.cmd [[ set includeexpr=tr(v:fname,'@','.') ]]
-
--- Remember folds
-vim.opt.foldmethod = 'manual'
-vim.api.nvim_create_autocmd({ 'BufWinLeave' }, {
-  pattern = { '*.*' },
-  desc = 'save view (folds), when closing file',
-  command = 'mkview',
-})
-vim.api.nvim_create_autocmd({ 'BufWinEnter' }, {
-  pattern = { '*.*' },
-  desc = 'load view (folds), when opening file',
-  command = 'silent! loadview',
-})
 
 if vim.fn.has 'nvim-0.10' == 1 then
   vim.opt.smoothscroll = true
