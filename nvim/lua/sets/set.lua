@@ -7,6 +7,8 @@ vim.opt.guicursor = ''
 vim.opt.cursorline = true
 vim.opt.mouse = 'nv'
 
+vim.opt.foldmethod = 'manual'
+vim.opt.foldcolumn = '1'
 vim.opt.fillchars = {
   foldopen = '',
   foldclose = '',
@@ -79,10 +81,7 @@ vim.api.nvim_create_autocmd({ 'BufWinEnter' }, {
 
 if vim.fn.has 'nvim-0.10' == 1 then
   vim.opt.smoothscroll = true
-  vim.opt.foldmethod = 'expr'
   vim.opt.foldtext = ''
-else
-  vim.opt.foldmethod = 'indent'
 end
 
 -- Fix markdown indentation settings
