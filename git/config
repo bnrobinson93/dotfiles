@@ -10,6 +10,7 @@
   c = commit -m
 [core]
   autocrlf = true
+	excludesfile = /Users/brad.robinson/.gitignore
 [gpg "ssh"]
 	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
 [gpg]
