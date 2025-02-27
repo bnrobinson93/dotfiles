@@ -77,6 +77,8 @@ export MANPATH="/usr/local/man:$MANPATH"
  else
    export EDITOR='nvim'
 fi
+# Fix Ctrl+A and Ctrl+E from emacs instead of vi
+bindkey -e
 
 prompt_context() {
   if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
@@ -165,12 +167,12 @@ if type "kubectl" >/dev/null 2>&1; then
 fi
 
 # Homebrew
-if test -d /home/linuxbrew >/dev/null 2>&1; then
+if [[ -d ~/.linuxbrew || -d /opt/homebrew ]]; then
   brew () {
       if [[ -z $BREW_COMPLETE ]]
       then
         test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)" 
-        test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
         BREW_COMPLETE=1 
       fi
       command brew $*
@@ -208,7 +210,7 @@ zstyle :compinstall filename '/home/brad/.zshrc'
 # End of lines added by compinstall
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/home/brad/.rd/bin:$PATH"
+export PATH="/Users/brad.robinson/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
 if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
