@@ -30,6 +30,16 @@ return {
       markdown = { 'prettierd', 'prettier', stop_after_first = true },
       lua = { 'stylua' },
     },
+    default_format_opts = {
+      lsp_format = 'fallback',
+    },
+    formatters = {
+      prettierd = {
+        env = {
+          PRETTIERD_DEFAULT_CONFIG = vim.fn.stdpath 'config' .. '/utils/linter-config/prettier.json',
+        },
+      },
+    },
     format_on_save = {
       async = false,
       lsp_callback = true,
