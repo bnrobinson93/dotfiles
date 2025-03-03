@@ -9,9 +9,10 @@ return {
     warn_no_results = true,
   },
   keys = {
-    { '<leader>tt', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', desc = 'Toggle buffer diagnostics' },
-    { '<leader>td', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Toggle trouble' },
+    { '<leader>td', '<cmd>Trouble diagnostics toggle filter.buf=0<cr>', desc = 'Toggle buffer diagnostics' },
+    { '<leader>tD', '<cmd>Trouble diagnostics toggle<cr>', desc = 'Toggle trouble' },
     { '<leader>tq', '<cmd>Trouble qflist toggle<cr>', desc = 'Toggle trouble quickfix' },
+    { '<leader>tt', '<cmd>Trouble todo<cr>', desc = 'Toggle trouble todo list' },
     -- { '[d', '<cmd>Trouble diagnostics next focus=false<cr><cmd>Trouble close<cr>', desc = 'Next trouble' },
     -- { ']d', '<cmd>Trouble diagnostics prev focus=false<cr><cmd>Trouble close<cr>', desc = 'Prev trouble' },
   },
