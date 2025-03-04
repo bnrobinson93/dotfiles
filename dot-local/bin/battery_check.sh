@@ -2,17 +2,16 @@
 
 if [[ "$(uname)" == "Darwin" ]]; then
     if [[ $(pmset -g ps | head -1) =~ "Battery Power" ]]; then
-        echo "battery"
+        echo -n "battery"
     else
-        echo "AC"
+        echo -n "AC"
     fi
 elif [[ "$(uname)" == "Linux" ]]; then
     if [[ $(cat /sys/class/power_supply/BAT*/status 2>/dev/null) == "Discharging" ]]; then
-        echo "battery"
+        echo -n "battery"
     else
-        echo "AC"
+        echo -n "AC"
     fi
 else
-    echo "unknown"
+    echo -n "unknown"
 fi
-
