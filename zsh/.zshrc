@@ -216,3 +216,15 @@ export PATH="/Users/brad.robinson/.rd/bin:$PATH"
 if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
   source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
 fi
+
+if [[ -d "$HOME/.cargo" ]]; then
+    . "$HOME/.cargo/env"
+fi
+
+# pnpm
+export PNPM_HOME="$HOME/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
