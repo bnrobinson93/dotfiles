@@ -36,7 +36,6 @@ vim.keymap.set('n', '<leader>k', '<cmd>lnext<CR>zz')
 vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 
 vim.keymap.set('n', '<leader>w', '<cmd>set wrap!<CR>')
-vim.keymap.set('v', '<-/>', '<cmd>Comentary<CR>')
 vim.keymap.set('n', '<leader>l', '<cmd>set relativenumber!<CR>')
 
 vim.keymap.set('n', '<leader>s', [[:s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
