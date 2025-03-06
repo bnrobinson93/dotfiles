@@ -40,10 +40,5 @@ return {
         },
       },
     },
-    format_on_save = {
-      async = false,
-      lsp_callback = true,
-      timeout_ms = 500,
-    },
   },
 }
