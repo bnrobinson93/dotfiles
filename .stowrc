@@ -1,6 +1,7 @@
 --target=~/.config
 --dotfiles
 --ignore=dot-local
+--ignore=gitmux
 --ignore=.stowrc
 --ignore=DS_Store
 --ignore=README.md
