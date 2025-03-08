@@ -14,14 +14,15 @@ Contains all the dotfiles that I use in my development environment.
 - tmux - `sudo apt install tmux`
 - tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
 - stow - `sudo apt install stow`
+- Gitmux - `brew tap arl/arl && brew install gitmux`
 
 ## Usage
 
 ```sh
 stow .
 stow -t ~/.local -S dot-local --dotfiles
+stow -t ~/ -S gitmux --dotfiles
 cp ./zsh/.* ~/
-cp ./git/.* ~/
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 chsh -s /bin/zsh
 ```
