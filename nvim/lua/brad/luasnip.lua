@@ -29,8 +29,8 @@ return {
     require('luasnip').filetype_extend('lua', { 'lua', 'luadoc' })
     require('luasnip').filetype_extend('javascript', { 'javascript' })
     require('luasnip').filetype_extend('typescript', { 'typescript' })
-    require('luasnip').filetype_extend('javascriptreact', { 'javascript', 'react', 'jsdoc', 'react-es7', 'next' })
-    require('luasnip').filetype_extend('typescriptreact', { 'typescript', 'react-ts', 'tsdoc', 'next-ts' })
+    require('luasnip').filetype_extend('javascriptreact', { 'react', 'jsdoc', 'react-es7', 'next' })
+    require('luasnip').filetype_extend('typescriptreact', { 'react-ts', 'tsdoc', 'next-ts' })
     require('luasnip.loaders.from_vscode').lazy_load()
     require('luasnip.loaders.from_vscode').lazy_load { paths = snippet_paths }
   end,
