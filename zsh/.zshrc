@@ -75,6 +75,7 @@ export MANPATH="/usr/local/man:$MANPATH"
    export EDITOR='nvim'
 fi
 # Fix Ctrl+A and Ctrl+E from emacs instead of vi
+set -o emacs
 # create a zkbd compatible hash;
 # to add other keys to this hash, see: man 5 terminfo
 typeset -g -A key
