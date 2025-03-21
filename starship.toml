@@ -5,6 +5,8 @@ $git_state\
 $git_metrics\
 $git_status\
 $line_break\
+$package\
+$go\
 $nodejs\
 $jobs\
 $character"""
@@ -53,6 +55,9 @@ format = '([ $all_status$ahead_behind]($style) )'
 
 [nodejs]
 format = "[$symbol($version )]($style)"
+
+[package]
+format = "[📦 $version ](flamingo)"
 
 [jobs]
 style = "surface2"
