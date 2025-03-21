@@ -2,10 +2,13 @@
 	name = Brad Robinson
 [push]
   default = simple
+[pull]
+  rebase = false
 [alias]
   l = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --branches
   s = status --short
   c = commit -m
+  ac = !git add -A && commit --allow-empty -m
 [core]
   autocrlf = input
   excludesfile = ~/.gitignore
