@@ -4,25 +4,25 @@ Contains all the dotfiles that I use in my development environment.
 
 ## Requirements
 
--   git - `sudo apt install git`
--   zsh - `sudo apt install zsh`
--   starship - `curl -sS https://starship.rs/install.sh | sh `
--   neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
--   fzf - `sudo apt install fzf`
--   ripgrep - `sudo apt install ripgrep`
--   lazygit - `brew install lazygit`
--   tmux - `sudo apt install tmux`
--   tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
--   stow - `sudo apt install stow`
--   Gitmux - `brew tap arl/arl && brew install gitmux`
+- git - `sudo apt install git`
+- zsh - `sudo apt install zsh`
+- starship - `curl -sS https://starship.rs/install.sh | sh `
+- neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
+- fzf - `sudo apt install fzf`
+- ripgrep - `sudo apt install ripgrep`
+- lazygit - `brew install lazygit`
+- tmux - `sudo apt install tmux`
+- tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
+- stow - `sudo apt install stow`
+- Gitmux - `brew tap arl/arl && brew install gitmux`
 
 ## Usage
 
 ```sh
 stow .
 stow -t ~/.local -S dot-local --dotfiles
-stow gitmux -t ~ --dotfiles
 cp ./zsh/.* ~/
+cp ./gitmux/.gitmux.conf ~/
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 chsh -s /bin/zsh
 ```

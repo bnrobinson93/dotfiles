@@ -136,6 +136,11 @@ function ignore {
     done
 }
 
+if type "vivid" >/dev/null 2>&1; then
+    export LS_COLORS="$(vivid generate catppuccin-mocha)"
+    export EZA_COLORS="$(vivid generate catppuccin-mocha)"
+fi
+
 #unalias la
 function la {
   if type "eza" >/dev/null 2>&1; then
