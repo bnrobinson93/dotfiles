@@ -141,6 +141,10 @@ if type "vivid" >/dev/null 2>&1; then
     export EZA_COLORS="$(vivid generate catppuccin-mocha)"
 fi
 
+if type "op" >/dev/null 2>&1; then
+  source <(op completion zsh)
+fi
+
 #unalias la
 function la {
   if type "eza" >/dev/null 2>&1; then
