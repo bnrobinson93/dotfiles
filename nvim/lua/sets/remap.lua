@@ -27,6 +27,8 @@ vim.keymap.set('n', '<leader>f', function()
   vim.lsp.buf.format()
 end)
 
+vim.keymap.set('n', '<C-t>', '<cmd>tabnew<CR>')
+
 -- vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
 vim.cmd [[ command W write ]]
 
