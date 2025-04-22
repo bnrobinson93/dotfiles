@@ -1,3 +1,138 @@
+local created_temp_file = false
+
+local function get_vite_aliases()
+  local possible_configs = {
+    '/vite.config.js',
+    '/vite.config.ts',
+    '/vite.config.mjs',
+  }
+
+  local config_path
+  for _, path in ipairs(possible_configs) do
+    local full_path = vim.fn.getcwd() .. path
+    if vim.fn.filereadable(full_path) == 1 then
+      config_path = full_path
+      break
+    end
+  end
+
+  if not config_path then
+    vim.notify('No vite config found', vim.log.levels.WARN)
+    return nil
+  end
+
+  -- For TypeScript configs, we need to use ts-node
+  local is_typescript = config_path:match '%.ts$'
+  local node_command = is_typescript and 'ts-node --esm' or 'node'
+
+  local cmd = string.format(
+    [[
+    %s --input-type=module -e "
+      import { fileURLToPath } from 'url';
+      import { dirname, relative } from 'path';
+      
+      (async () => {
+        try {
+          const path = '%s';
+          global.__dirname = dirname(fileURLToPath(import.meta.url));
+          const config = await import(path);
+          const resolvedConfig = typeof config.default === 'function' 
+            ? await config.default({ 
+                mode: 'development',
+                command: 'serve'
+              }) 
+            : config.default;
+          const aliases = resolvedConfig?.resolve?.alias || {};
+          // Convert absolute paths to relative
+          const relativePaths = {};
+          for (const [key, value] of Object.entries(aliases)) {
+            relativePaths[key] = value.replace('%s/', '');
+          }
+          process.stdout.write(JSON.stringify(relativePaths));
+        } catch (error) {
+          console.error(error);
+          process.exit(1);
+        }
+      })();
+    "
+  ]],
+    node_command,
+    config_path:gsub('\\', '/'),
+    vim.fn.getcwd():gsub('\\', '/')
+  )
+
+  local handle = io.popen(cmd)
+  if not handle then
+    vim.notify('Failed to execute node command', vim.log.levels.WARN)
+    return nil
+  end
+
+  local result = handle:read '*a'
+  handle:close()
+
+  if result and result ~= '' then
+    local ok, aliases = pcall(vim.json.decode, result)
+    if ok then
+      return aliases
+    end
+    vim.notify('Failed to parse JSON: ' .. result, vim.log.levels.WARN)
+  else
+    vim.notify('No output from vite config', vim.log.levels.WARN)
+  end
+
+  return nil
+end
+
+local function create_temp_jsconfig(aliases)
+  if not aliases then
+    return
+  end
+
+  local jsconfig = {
+    compilerOptions = {
+      baseUrl = '.',
+      jsx = 'react',
+      paths = vim.empty_dict(),
+    },
+  }
+
+  -- Convert Vite aliases to jsconfig paths format
+  for alias, path in pairs(aliases) do
+    local clean_alias = alias .. (alias:match '/%*$' and '' or '/*')
+    local clean_path = path .. (path:match '/%*$' and '' or '/*')
+    jsconfig.compilerOptions.paths[clean_alias] = { clean_path }
+  end
+
+  -- Write temporary jsconfig
+  local temp_jsconfig = vim.fn.getcwd() .. '/jsconfig.json'
+
+  -- Use vim.json.encode with indent
+  local content = vim.fn.json_encode(jsconfig)
+
+  local file = io.open(temp_jsconfig, 'w')
+  if file then
+    file:write(content)
+    file:close()
+    created_temp_file = true
+    return temp_jsconfig
+  else
+    vim.notify('Failed to create temp jsconfig', vim.log.levels.ERROR)
+  end
+
+  return nil
+end
+
+vim.api.nvim_create_autocmd('VimLeavePre', {
+  callback = function()
+    if created_temp_file then
+      local temp_jsconfig = vim.fn.getcwd() .. '/jsconfig.json'
+      if vim.fn.filereadable(temp_jsconfig) == 1 then
+        vim.fn.delete(temp_jsconfig)
+      end
+    end
+  end,
+})
+
 return {
   'williamboman/mason-lspconfig.nvim',
   event = { 'BufReadPre', 'BufNewFile' },
@@ -43,11 +178,38 @@ return {
         ['vtsls'] = function()
           local lspconfig = require 'lspconfig'
           lspconfig.configs = require('vtsls').lspconfig
+
+          local has_jsconfig = vim.fn.filereadable(vim.fn.getcwd() .. '/jsconfig.json') == 1
+          local has_tsconfig = vim.fn.filereadable(vim.fn.getcwd() .. '/tsconfig.json') == 1
+
+          local temp_jsconfig = nil
+          if not has_jsconfig and not has_tsconfig then
+            local aliases = get_vite_aliases()
+            temp_jsconfig = create_temp_jsconfig(aliases)
+          end
+
           lspconfig.vtsls.setup {
             refactor_auto_rename = true,
             experimental = {
               completion = { enableServerSideFuzzyMatch = false, entriesLimit = 10, includePackageJsonAutoImports = 'off' },
             },
+            init_options = temp_jsconfig and {
+              preferences = {
+                importModuleSpecifierPreference = 'relative',
+              },
+            } or nil,
+            settings = temp_jsconfig and {
+              typescript = {
+                tsserver = {
+                  configFile = temp_jsconfig,
+                },
+              },
+              javascript = {
+                tsserver = {
+                  configFile = temp_jsconfig,
+                },
+              },
+            } or nil,
             typescript = {
               inlayHints = {
                 parameterNames = { enabled = 'literals' },
