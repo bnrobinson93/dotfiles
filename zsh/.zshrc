@@ -224,13 +224,18 @@ if [[ -d ~/.linuxbrew || -d /opt/homebrew ]]; then
   brew () {
       if [[ -z $BREW_COMPLETE ]]
       then
-        test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)" 
-        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
+        test -d ~/.linuxbrew && BREW="~/.linuxbrew" 
+        test -d /opt/homebrew && BREW="/opt/homebrew" 
+        eval $(${BREW_PREFIX}/bin/brew shellenv)
         BREW_COMPLETE=1 
       fi
       command brew $*
   }
   export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 fi
 
 # Fix issue with apt <thing>* not working
