@@ -1,7 +1,7 @@
 [user]
 	name = Brad Robinson
 [push]
-  default = simple
+	default = current
 [pull]
   rebase = true
 [alias]
