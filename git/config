@@ -9,6 +9,7 @@
   s = status --short
   c = commit -m
   ac = !git add -A && git commit --allow-empty -m
+	acp = "!acp() { git commit -a -m \"$1\" && git push ; } ; acp"
 [core]
   autocrlf = input
   excludesfile = ~/.gitignore
