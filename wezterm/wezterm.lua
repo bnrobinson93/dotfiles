@@ -28,15 +28,15 @@ end)
 
 return {
   enable_wayland = true,
-  window_background_opacity = 0.98,
-  macos_window_background_blur = 80,
+  window_background_opacity = 0.90,
+  macos_window_background_blur = 50,
   initial_cols = 120,
   initial_rows = 30,
   color_scheme = 'Catppuccin Mocha',
   allow_square_glyphs_to_overflow_width = 'Always',
   warn_about_missing_glyphs = false,
   font = wezterm.font_with_fallback { 'DankMono Nerd Font', 'Fira Code', 'JetBrains Mono' },
-  font_size = 15,
+  font_size = 17,
   hide_tab_bar_if_only_one_tab = true,
   -- window_decorations = 'INTEGRATED_BUTTONS|RESIZE',
   window_decorations = 'TITLE|RESIZE',

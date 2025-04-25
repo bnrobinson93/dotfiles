@@ -25,7 +25,7 @@ return {
     { '<leader>pf', '<cmd>Telescope find_files<cr>', desc = 'Find files' },
     { '<leader>phf', '<cmd>Telescope find_files hidden=true<cr>', desc = 'Find files (hidden)' },
     { '<leader>ps', '<cmd>Telescope live_grep<cr>', desc = 'live_grep' },
-    { '<leader>phs', '<cmd>Telescope live_grep hidden=true<cr>', desc = 'live_grep (hidden)' },
+    { '<leader>phs', '<cmd>lua require("telescope.builtin").live_grep({ additional_args = { "--hidden" } })<CR>', desc = 'live_grep (hidden)' },
     {
       '<leader>pws',
       '<cmd>Telescope grep_string<cr>',

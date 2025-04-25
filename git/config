@@ -1,14 +1,15 @@
 [user]
 	name = Brad Robinson
 [push]
-  default = simple
+	default = current
 [pull]
-  rebase = false
+  rebase = true
 [alias]
   l = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --branches
   s = status --short
   c = commit -m
-  ac = !git add -A && commit --allow-empty -m
+  ac = !git add -A && git commit --allow-empty -m
+	acp = "!acp() { git commit -a -m \"$1\" && git push ; } ; acp"
 [core]
   autocrlf = input
   excludesfile = ~/.gitignore
