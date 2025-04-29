@@ -165,25 +165,25 @@ function ll {
 
 function lt {
   if type "eza" >/dev/null 2>&1; then
-    eza -l -h -smod $* | tail -15
+    eza --color=always -l -h -smod $* | tail -15
   else
-    ls -larth $*
+    ls -larth --color=always $*
   fi
 }
 
 function lss {
   if type "eza" >/dev/null 2>&1; then
-    eza -l -h -smod $* | less -reXF
+    eza -l -h --color=always -smod $* | less -reXF
   else
-    ls -lrth $* | less -erXF
+    ls -lrth --color=always $* | less -erXF
   fi
 }
 
 function l {
   if type "eza" >/dev/null 2>&1; then
-    eza -lah -smod --icons --git $*
+    eza -lah --color=always -smod --icons --git $*
   else
-    ls -ltrha $*
+    ls -ltrha --color=always $*
   fi
 }
 
