@@ -313,25 +313,28 @@ return {
       function()
         vim.lsp.buf.hover { float = { border = 'rounded' } }
       end,
+      desc = '[K]eyword hover',
     },
     {
       '[d',
       function()
         vim.diagnostic.goto_prev()
       end,
+      desc = '[D]iagnostic Previous',
     },
     {
       ']d',
       function()
         vim.diagnostic.goto_next()
       end,
+      desc = '[D]iagnostic Next',
     },
     {
       '<F1>',
       function()
         vim.lsp.buf.signature_help()
       end,
-      desc = 'Signature [H]elp',
+      desc = 'Signature Help',
     },
     {
       '<leader>vws',
