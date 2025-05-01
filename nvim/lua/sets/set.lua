@@ -59,14 +59,28 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
     -- Set the diagnostics for this buffer
     vim.diagnostic.set(ns, bufnr, diagnostics)
 
-    -- Optionally update diagnostics when buffer changes
+    -- Update diagnostics with debouncing
+    local timer = vim.loop.new_timer()
     vim.api.nvim_create_autocmd('TextChanged', {
       buffer = bufnr,
       callback = function()
-        -- This will re-run the diagnostic detection when text changes
-        vim.schedule(function()
-          vim.cmd 'doautocmd BufRead'
-        end)
+        timer:start(
+          500,
+          0,
+          vim.schedule_wrap(function()
+            if vim.api.nvim_buf_is_valid(bufnr) then
+              update_diagnostics()
+            end
+          end)
+        )
+      end,
+    })
+
+    -- Clean up timer when buffer is deleted
+    vim.api.nvim_create_autocmd('BufDelete', {
+      buffer = bufnr,
+      callback = function()
+        timer:close()
       end,
     })
   end,
