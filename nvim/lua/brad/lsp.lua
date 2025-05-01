@@ -17,7 +17,6 @@ local function get_vite_aliases()
   end
 
   if not config_path then
-    vim.notify('No vite config found', vim.log.levels.WARN)
     return nil
   end
 
@@ -181,9 +180,10 @@ return {
 
           local has_jsconfig = vim.fn.filereadable(vim.fn.getcwd() .. '/jsconfig.json') == 1
           local has_tsconfig = vim.fn.filereadable(vim.fn.getcwd() .. '/tsconfig.json') == 1
+          local has_packagejson = vim.fn.filereadable(vim.fn.getcwd() .. '/package.json') == 1
 
           local temp_jsconfig = nil
-          if not has_jsconfig and not has_tsconfig then
+          if not has_jsconfig and not has_tsconfig and has_packagejson then
             local aliases = get_vite_aliases()
             temp_jsconfig = create_temp_jsconfig(aliases)
           end
