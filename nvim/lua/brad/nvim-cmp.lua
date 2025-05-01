@@ -54,7 +54,7 @@ return {
         completeopt = 'menu,menuone,noinsert,noselect',
       },
       experimental = {
-        ghost_text = true,
+        ghost_text = false,
       },
       window = {
         completion = cmp.config.window.bordered(),
@@ -63,7 +63,6 @@ return {
       mapping = cmp.mapping.preset.insert {
         ['<C-p>'] = cmp.mapping.select_prev_item(cmp_insert),
         ['<C-n>'] = cmp.mapping.select_next_item(cmp_insert),
-        ['<Tab>'] = cmp.mapping.confirm({ cmp_select, select = true }, { 'i', 'c' }),
         ['<C-y>'] = cmp.mapping.confirm({ cmp_select, select = true }, { 'i', 'c' }),
         ['<C-e>'] = cmp.mapping.abort(),
       },
