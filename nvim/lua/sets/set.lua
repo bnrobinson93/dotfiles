@@ -24,40 +24,42 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = { '*.yaml', '*.yml' },
   desc = 'Highlight trailing whitespace in YAML files',
   callback = function()
-    -- Add to diagnostics
     local bufnr = vim.api.nvim_get_current_buf()
-    local diagnostics = {}
+    local ns = vim.api.nvim_create_namespace 'YAML'
 
+    -- Set these options once
     vim.opt_local.list = true
     vim.opt_local.listchars:append 'trail:·'
     vim.cmd 'hi def link ExtraWhitespace DiffDelete'
+    vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
 
-    local pattern = '\\s\\+$'
-    vim.fn.matchadd('ExtraWhitespace', pattern)
+    -- Store reference to update_diagnostics in buffer scope
+    local update_diagnostics
+    update_diagnostics = function()
+      local diagnostics = {}
+      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-    -- Create a namespace for our diagnostics
-    local ns = vim.api.nvim_create_namespace 'YAML'
-
-    -- Find all instances of trailing whitespace
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    for i, line in ipairs(lines) do
-      local trailing = line:match '%s+$'
-      if trailing then
-        table.insert(diagnostics, {
-          bufnr = bufnr,
-          lnum = i - 1, -- 0-indexed
-          col = #line - #trailing,
-          end_lnum = i - 1,
-          end_col = #line,
-          severity = vim.diagnostic.severity.HINT,
-          message = 'Trailing whitespace detected',
-          source = 'YAML',
-        })
+      for i, line in ipairs(lines) do
+        local trailing = line:match '%s+$'
+        if trailing then
+          table.insert(diagnostics, {
+            bufnr = bufnr,
+            lnum = i - 1,
+            col = #line - #trailing,
+            end_lnum = i - 1,
+            end_col = #line,
+            severity = vim.diagnostic.severity.HINT,
+            message = 'Trailing whitespace detected',
+            source = 'YAML',
+          })
+        end
       end
+
+      vim.diagnostic.set(ns, bufnr, diagnostics)
     end
 
-    -- Set the diagnostics for this buffer
-    vim.diagnostic.set(ns, bufnr, diagnostics)
+    -- Initial check
+    update_diagnostics()
 
     -- Update diagnostics with debouncing
     local timer = vim.loop.new_timer()
