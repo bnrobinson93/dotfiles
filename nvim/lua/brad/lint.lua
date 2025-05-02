@@ -2,7 +2,8 @@ return {
   'mfussenegger/nvim-lint',
   config = function()
     require('lint').linters_by_ft = {
-      markdown = { 'vale' },
+      markdown = { 'vale', 'cspell' },
+      plaintext = { 'cspell' },
       typescript = { 'eslint_d' },
       typescriptreact = { 'eslint_d' },
       javascript = { 'eslint_d' },
@@ -14,7 +15,6 @@ return {
     vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
       callback = function()
         require('lint').try_lint()
-        require('lint').try_lint 'cspell'
       end,
     })
 
