@@ -24,10 +24,65 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = { '*.yaml', '*.yml' },
   desc = 'Highlight trailing whitespace in YAML files',
   callback = function()
-    vim.opt.list = true
-    vim.opt.listchars:append 'trail:·'
-    vim.cmd 'highlight ExtraWhitespace ctermbg=red guibg=red'
-    vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
+    -- Add to diagnostics
+    local bufnr = vim.api.nvim_get_current_buf()
+    local diagnostics = {}
+
+    vim.opt_local.list = true
+    vim.opt_local.listchars:append 'trail:·'
+    vim.cmd 'hi def link ExtraWhitespace DiffDelete'
+
+    local pattern = '\\s\\+$'
+    vim.fn.matchadd('ExtraWhitespace', pattern)
+
+    -- Create a namespace for our diagnostics
+    local ns = vim.api.nvim_create_namespace 'YAML'
+
+    -- Find all instances of trailing whitespace
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    for i, line in ipairs(lines) do
+      local trailing = line:match '%s+$'
+      if trailing then
+        table.insert(diagnostics, {
+          bufnr = bufnr,
+          lnum = i - 1, -- 0-indexed
+          col = #line - #trailing,
+          end_lnum = i - 1,
+          end_col = #line,
+          severity = vim.diagnostic.severity.HINT,
+          message = 'Trailing whitespace detected',
+          source = 'YAML',
+        })
+      end
+    end
+
+    -- Set the diagnostics for this buffer
+    vim.diagnostic.set(ns, bufnr, diagnostics)
+
+    -- Update diagnostics with debouncing
+    local timer = vim.loop.new_timer()
+    vim.api.nvim_create_autocmd('TextChanged', {
+      buffer = bufnr,
+      callback = function()
+        timer:start(
+          500,
+          0,
+          vim.schedule_wrap(function()
+            if vim.api.nvim_buf_is_valid(bufnr) then
+              update_diagnostics()
+            end
+          end)
+        )
+      end,
+    })
+
+    -- Clean up timer when buffer is deleted
+    vim.api.nvim_create_autocmd('BufDelete', {
+      buffer = bufnr,
+      callback = function()
+        timer:close()
+      end,
+    })
   end,
 })
 
