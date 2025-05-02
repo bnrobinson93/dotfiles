@@ -260,6 +260,11 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # Flatpak
 export PATH="$HOME/.local/bin:$PATH"
 
+# Go
+if type go >/dev/null; then 
+  export PATH="$(go env GOPATH)/bin:$PATH" 
+fi
+
 # auto-cpufreq
 which auto-cpufreq >/dev/null && eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
 
