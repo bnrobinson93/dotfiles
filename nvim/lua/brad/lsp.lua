@@ -155,7 +155,7 @@ return {
     }
     require('mason-lspconfig').setup {
       automatic_install = true,
-      ensure_installed = { 'vtsls', 'bashls', 'cssls', 'lua_ls', 'tailwindcss' },
+      ensure_installed = { 'vtsls', 'bashls', 'cssls', 'lua_ls', 'tailwindcss', 'gopls' },
       handlers = {
         function(name)
           require('lspconfig')[name].setup {}
