@@ -13,7 +13,7 @@ return {
     checked = {
       -- Replaces '[x]' of 'task_list_marker_checked'
       icon = '󰱒 ',
-      -- Highligh for the checked icon
+      -- Highlight for the checked icon
       highlight = 'RenderMarkdownChecked',
     },
     custom = {

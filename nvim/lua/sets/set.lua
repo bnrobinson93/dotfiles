@@ -119,3 +119,7 @@ end
 
 -- Fix markdown indentation settings
 vim.g.markdown_recommended_style = 0
+
+vim.opt.spelllang = 'en_us'
+vim.cmd [[ autocmd FileType markdown setlocal spell ]]
+vim.cmd [[ autocmd FileType text setlocal spell ]]
