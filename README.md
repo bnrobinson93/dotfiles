@@ -21,8 +21,8 @@ Contains all the dotfiles that I use in my development environment.
 ```sh
 stow .
 stow -t ~/.local -S dot-local --dotfiles
-cp ./zsh/.* ~/
-cp ./gitmux/.gitmux.conf ~/
+ln -s $PWD/zsh/.zshrc ~/.zshrc
+ln -s $PWD/gitmux/dot-gitmux.conf ~/.gitmux.conf
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 chsh -s /bin/zsh
 ```
