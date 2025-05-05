@@ -5,8 +5,6 @@ return {
     local lint = require 'lint'
 
     lint.linters_by_ft = {
-      markdown = { 'vale', 'cspell' },
-      plaintext = { 'cspell' },
       typescript = { 'eslint_d' },
       typescriptreact = { 'eslint_d' },
       javascript = { 'eslint_d' },
