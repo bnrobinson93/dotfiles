@@ -99,8 +99,8 @@ key[Shift-Tab]="${terminfo[kcbt]}"
 [[ -n "${key[Insert]}"    ]] && bindkey -- "${key[Insert]}"     overwrite-mode
 [[ -n "${key[Backspace]}" ]] && bindkey -- "${key[Backspace]}"  backward-delete-char
 [[ -n "${key[Delete]}"    ]] && bindkey -- "${key[Delete]}"     delete-char
-[[ -n "${key[Up]}"        ]] && bindkey -- "${key[Up]}"         up-line-or-history
-[[ -n "${key[Down]}"      ]] && bindkey -- "${key[Down]}"       down-line-or-history
+[[ -n "${key[Up]}"        ]] && bindkey -- "${key[Up]}"         history-beginning-search-backward
+[[ -n "${key[Down]}"      ]] && bindkey -- "${key[Down]}"       history-beginning-search-forward
 [[ -n "${key[Left]}"      ]] && bindkey -- "${key[Left]}"       backward-char
 [[ -n "${key[Right]}"     ]] && bindkey -- "${key[Right]}"      forward-char
 [[ -n "${key[PageUp]}"    ]] && bindkey -- "${key[PageUp]}"     beginning-of-buffer-or-history
@@ -150,7 +150,7 @@ function la {
   if type "eza" >/dev/null 2>&1; then
     eza -la -h -smod $*
   else
-    ls -larth $*
+    ls -larth --color=always $*
   fi
 }
 
@@ -159,13 +159,13 @@ function ll {
   if type "eza" >/dev/null 2>&1; then
     eza -l -h -smod $*
   else
-    ls -lrth $*
+    ls -lrth --color=always $*
   fi
 }
 
 function lt {
   if type "eza" >/dev/null 2>&1; then
-    eza --color=always -l -h -smod $* | tail -15
+    eza -l -h --color=always -smod $* | tail -15
   else
     ls -larth --color=always $*
   fi
@@ -220,13 +220,12 @@ if type "kubectl" >/dev/null 2>&1; then
 fi
 
 # Homebrew
-if [[ -d ~/.linuxbrew || -d /opt/homebrew ]]; then
+if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
   brew () {
       if [[ -z $BREW_COMPLETE ]]
       then
-        test -d ~/.linuxbrew && BREW="~/.linuxbrew" 
-        test -d /opt/homebrew && BREW="/opt/homebrew" 
-        eval $(${BREW_PREFIX}/bin/brew shellenv)
+        test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
+        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
         BREW_COMPLETE=1 
       fi
       command brew $*
