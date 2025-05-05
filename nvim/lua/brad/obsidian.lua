@@ -72,17 +72,6 @@ return {
       end
       return tostring(os.time()) .. '-' .. suffix
     end,
-    note_id_func = function(title)
-      local suffix = ''
-      if title ~= nil then
-        suffix = title:gsub(' ', '-'):gsub('[^A-Za-z0-9-]', ''):lower()
-      else
-        for _ = 1, 4 do
-          suffix = suffix .. string.char(math.random(65, 90))
-        end
-      end
-      return suffix
-    end,
     note_frontmatter_func = function(note)
       local now = os.date '%Y-%m-%dT%H:%M'
       local out = { updated = now, created = now }
