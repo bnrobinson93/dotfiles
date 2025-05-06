@@ -32,8 +32,8 @@ vim.keymap.set('n', '<C-t>', '<cmd>tabnew<CR>', { desc = 'Open new tab' })
 -- vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
 vim.cmd [[ command W write ]]
 
-vim.keymap.set('n', '<leader>k', '<cmd>cnext<CR>zz', { desc = 'Go to next quickfix location' })
-vim.keymap.set('n', '<leader>j', '<cmd>cprev<CR>zz', { desc = 'Go to previous quickfix location' })
+vim.keymap.set("n", "<leader>k", "<cmd>cnext<CR>zz", { desc = 'Go to next quickfix location'})
+vim.keymap.set("n", "<leader>j", "<cmd>cprev<CR>zz", { desc = 'Go to previous quickfix location'})
 -- vim.keymap.set('n', '<leader>K', '<cmd>lnext<CR>zz', { desc = 'Jump to next location' })
 -- vim.keymap.set('n', '<leader>J', '<cmd>lprev<CR>zz', { desc = 'Jump to previous location' })
 

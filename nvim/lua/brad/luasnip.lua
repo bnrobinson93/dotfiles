@@ -2,9 +2,9 @@ local function get_subdirectories(path)
   local subdirs = {}
   local files = vim.fn.readdir(path)
   for _, file in ipairs(files) do
-    if vim.fn.isdirectory(path .. '/' .. file) == 1 then
-      table.insert(subdirs, path .. '/' .. file)
-      local subsubdirs = get_subdirectories(path .. '/' .. file)
+    if vim.fn.isdirectory(path .. "/" .. file) == 1 then
+      table.insert(subdirs, path .. "/" .. file)
+      local subsubdirs = get_subdirectories(path .. "/" .. file)
       for _, subsubdir in ipairs(subsubdirs) do
         table.insert(subdirs, subsubdir)
       end
@@ -13,9 +13,9 @@ local function get_subdirectories(path)
   return subdirs
 end
 
-local snippet_paths = { vim.fn.stdpath 'config' .. '/snippets' }
+local snippet_paths = { vim.fn.stdpath("config") .. "/snippets" }
 
-local subdirs = get_subdirectories(vim.fn.stdpath 'config' .. '/snippets')
+local subdirs = get_subdirectories(vim.fn.stdpath("config") .. "/snippets")
 for _, subdir in ipairs(subdirs) do
   table.insert(snippet_paths, subdir)
 end
