@@ -4,20 +4,20 @@ return {
   ft = { 'markdown', 'Avante' },
   opts = {
     render_modes = { 'n' },
-    unchecked = {
-      -- Replaces '[ ]' of 'task_list_marker_unchecked'
-      icon = '󰄱 ',
-      -- Highlight for the unchecked icon
-      highlight = 'RenderMarkdownUnchecked',
+    checkbox = {
+      unchecked = { icon = ' ' },
+      checked = { icon = '󰄳 ', scope_highlight = '@markup.strikethrough' },
+      custom = {
+        todo = { raw = '[-]', rendered = '󰍷 ', highlight = 'DiagnosticError' },
+        important = { raw = '[!]', rendered = ' ', highlight = 'DiagnosticWarn' },
+        partial = { raw = '[~]', rendered = ' ', highlight = 'DiagnosticInfo' },
+        delayed = { raw = '[>]', rendered = '󰥔 ', highlight = 'DiagnosticWarn' },
+        partial_parent = { raw = '[/]', rendered = '󰁊 ', highlight = 'SpecialKey', scope_highlight = '@markup.strikethrough' },
+      },
     },
-    checked = {
-      -- Replaces '[x]' of 'task_list_marker_checked'
-      icon = '󰱒 ',
-      -- Highlight for the checked icon
-      highlight = 'RenderMarkdownChecked',
-    },
-    custom = {
-      todo = { raw = '[-]', rendered = '󰥔 ', highlight = 'RenderMarkdownTodo' },
+    pipe_table = {
+      enabled = true,
+      cell = 'trimmed',
     },
   },
 }
