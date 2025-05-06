@@ -112,5 +112,39 @@ return {
       },
     },
     vim.keymap.set('n', '<C-n>', createNoteWithDefaultTemplate, { desc = '[N]ew Note' }),
+    vim.keymap.set('i', '<F1>', function()
+      -- Get all lines in the current buffer
+      local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+      local max_footnote = 0
+
+      -- Find the maximum footnote number in the entire file
+      for _, line in ipairs(lines) do
+        for num in line:gmatch '%[%^(%d+)%]' do
+          max_footnote = math.max(max_footnote, tonumber(num))
+        end
+      end
+
+      -- Generate the next footnote number
+      local next_footnote = max_footnote + 1
+
+      -- Insert the footnote at cursor position
+      local footnote_text = '[^' .. next_footnote .. ']'
+      vim.api.nvim_put({ footnote_text }, 'c', true, true)
+
+      -- Get current cursor position
+      local cursor_pos = vim.api.nvim_win_get_cursor(0)
+      local para_end = cursor_pos[1]
+
+      -- Search forward for the end of paragraph (empty line or EOF)
+      while para_end < #lines and lines[para_end + 1] ~= '' do
+        para_end = para_end + 1
+      end
+
+      -- Insert the reference at the end of paragraph
+      vim.api.nvim_buf_set_lines(0, para_end, para_end, false, { '', '[^' .. next_footnote .. ']: ' })
+
+      -- Return to insert mode at the end
+      vim.cmd 'startinsert'
+    end, { buffer = true }),
   },
 }
