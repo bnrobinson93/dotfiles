@@ -4,9 +4,16 @@ return {
   {
     'preservim/vim-pencil', -- For writing
     ft = { 'markdown', 'mkd', 'text' },
+    init = function()
+      vim.g['pencil#wrapModeDefault'] = 'soft'
+    end,
     config = function()
-      vim.g['pincel#wrapModeDefault'] = 'soft'
-      vim.fn['pencil#init']()
+      vim.cmd [[
+        augroup pencil_setup
+          autocmd!
+          autocmd FileType markdown,text call pencil#init()
+        augroup END
+      ]]
     end,
   },
   {
