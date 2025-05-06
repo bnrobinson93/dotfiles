@@ -111,6 +111,6 @@ return {
         opts = { buffer = true, expr = true },
       },
     },
-    vim.keymap.set('n', '<C-n>', createNoteWithDefaultTemplate, { desc = 'Create [N]ote' }),
+    vim.keymap.set('n', '<C-n>', createNoteWithDefaultTemplate, { desc = '[N]ew Note' }),
   },
 }
