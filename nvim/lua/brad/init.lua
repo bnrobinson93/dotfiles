@@ -6,14 +6,11 @@ return {
     ft = { 'markdown', 'mkd', 'text' },
     init = function()
       vim.g['pencil#wrapModeDefault'] = 'soft'
+      vim.g['pencil#textwidth'] = 120
+      vim.opt.textwidth = 120
     end,
     config = function()
-      vim.cmd [[
-        augroup pencil_setup
-          autocmd!
-          autocmd FileType markdown,text call pencil#init()
-        augroup END
-      ]]
+      vim.cmd [[ call pencil#init() ]]
     end,
   },
   {
