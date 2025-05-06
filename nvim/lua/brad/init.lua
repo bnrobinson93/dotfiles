@@ -6,8 +6,7 @@ return {
     ft = { 'markdown', 'mkd', 'text' },
     init = function()
       vim.g['pencil#wrapModeDefault'] = 'soft'
-      vim.g['pencil#textwidth'] = 120
-      vim.opt.textwidth = 120
+      vim.opt.linebreak = true
     end,
     config = function()
       vim.cmd [[ call pencil#init() ]]
