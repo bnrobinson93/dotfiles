@@ -105,7 +105,8 @@ vim.opt.isfname:append '@-@'
 
 vim.opt.updatetime = 50
 
-vim.opt.colorcolumn = '80'
+vim.opt.colorcolumn = '80,120'
+vim.opt.textwidth = 120
 
 vim.g.mapleader = ' '
 
@@ -121,4 +122,4 @@ end
 vim.g.markdown_recommended_style = 0
 
 vim.opt.spelllang = 'en_us'
-vim.cmd [[ autocmd FileType markdown,mkd,text setlocal spell ]]
+vim.cmd [[ autocmd FileType markdown,mkd,text,COMMIT_EDITMSG setlocal spell ]]

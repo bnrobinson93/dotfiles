@@ -1,23 +1,24 @@
 return {
   'MeanderingProgrammer/render-markdown.nvim',
   dependencies = { 'nvim-treesitter/nvim-treesitter' },
-  ft = { 'markdown', 'Avante' },
+  ft = { 'markdown', 'Avante', 'vimwiki', 'help' },
   opts = {
-    render_modes = { 'n' },
-    unchecked = {
-      -- Replaces '[ ]' of 'task_list_marker_unchecked'
-      icon = '󰄱 ',
-      -- Highlight for the unchecked icon
-      highlight = 'RenderMarkdownUnchecked',
+    render_modes = { 'n', 'c', 't' },
+    checkbox = {
+      unchecked = { icon = ' ' },
+      checked = { icon = '󰄳 ', scope_highlight = '@markup.strikethrough' },
+      custom = {
+        todo = { raw = '[-]', rendered = '󰍷 ', highlight = 'DiagnosticSignError' },
+        important = { raw = '[!]', rendered = ' ', highlight = 'DiagnosticSignWarn' },
+        partial = { raw = '[~]', rendered = ' ', highlight = 'DiagnosticSignHint' },
+        delayed = { raw = '[>]', rendered = '󰥔 ', highlight = 'DiagnosticSignWarn' },
+        partial_parent = { raw = '[/]', rendered = '󰁊 ', highlight = 'DiagnosticDepricated', scope_highlight = '@markup.strikethrough' },
+      },
     },
-    checked = {
-      -- Replaces '[x]' of 'task_list_marker_checked'
-      icon = '󰱒 ',
-      -- Highlight for the checked icon
-      highlight = 'RenderMarkdownChecked',
-    },
-    custom = {
-      todo = { raw = '[-]', rendered = '󰥔 ', highlight = 'RenderMarkdownTodo' },
+    pipe_table = {
+      enabled = true,
+      cell = 'trimmed',
+      preset = 'round',
     },
   },
 }

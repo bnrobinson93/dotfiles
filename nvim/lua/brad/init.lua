@@ -4,9 +4,12 @@ return {
   {
     'preservim/vim-pencil', -- For writing
     ft = { 'markdown', 'mkd', 'text' },
+    init = function()
+      vim.g['pencil#wrapModeDefault'] = 'soft'
+      vim.opt.linebreak = true
+    end,
     config = function()
-      vim.g['pincel#wrapModeDefault'] = 'soft'
-      vim.fn['pencil#init']()
+      vim.cmd [[ call pencil#init() ]]
     end,
   },
   {
@@ -20,8 +23,9 @@ return {
     'iamcco/markdown-preview.nvim', -- Markdown preview
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     ft = { 'markdown' },
-    build = function()
-      vim.fn['mkdp#util#install']()
+    build = 'cd app && yarn install',
+    init = function()
+      vim.g.mkdp_filetypes = { 'markdown' }
     end,
   },
 }
