@@ -1,0 +1,32 @@
+/* Updated CSS (example for Catppuccin Mocha) */
+.mermaid .node rect {
+  fill: #313244 !important;  /* surface0 */
+  stroke: #89b4fa !important; /* blue */
+}
+
+.mermaid .node text {
+  fill: #cdd6f4 !important; /* text */
+}
+
+.mermaid .cluster rect {
+  fill: #45475a !important; /* surface1 */
+}
+
+.mermaid .edgeLabel {
+  background: #585b70 !important; /* surface2 */
+  color: #a6adc8 !important; /* subtext0 */
+}
+
+.mermaid .label {
+  color: #cdd6f4 !important; /* text */
+}
+
+/* Lines/arrows */
+.mermaid path {
+  stroke: #89b4fa !important; /* blue */
+}
+
+.mermaid .marker {
+  fill: #89b4fa !important; 
+}
+

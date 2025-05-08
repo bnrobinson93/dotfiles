@@ -26,6 +26,7 @@ return {
     build = 'cd app && yarn install',
     init = function()
       vim.g.mkdp_filetypes = { 'markdown' }
+      vim.g.mkdp_markdown_css = vim.fn.stdpath 'config' .. '/catppuccin-mermaid-markdown.css'
     end,
   },
 }
