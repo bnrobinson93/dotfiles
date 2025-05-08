@@ -290,3 +290,6 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+# Corepack, disable packageManager
+export COREPACK_ENABLE_AUTO_PIN=0
