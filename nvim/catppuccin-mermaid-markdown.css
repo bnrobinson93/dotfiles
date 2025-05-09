@@ -1,32 +1,877 @@
-/* Updated CSS (example for Catppuccin Mocha) */
-.mermaid .node rect {
-  fill: #313244 !important;  /* surface0 */
-  stroke: #89b4fa !important; /* blue */
+/* Catppuccin Theme for Markdown Preview and Mermaid
+ * A comprehensive theme based on the Catppuccin color palette
+ * https://github.com/catppuccin/catppuccin
+ * For use with neovim markdown-preview plugin
+ */
+
+:root {
+  /* Catppuccin Mocha palette */
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext1: #bac2de;
+  --ctp-subtext0: #a6adc8;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-overlay0: #6c7086;
+  --ctp-surface2: #585b70;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
 }
 
-.mermaid .node text {
-  fill: #cdd6f4 !important; /* text */
+/* General styling */
+.mermaid {
+  background-color: var(--ctp-base);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-.mermaid .cluster rect {
-  fill: #45475a !important; /* surface1 */
+/* Default text color */
+.messageText, .labelText, .loopText, .loopLine, .note, .actor, text, .journalText {
+  fill: var(--ctp-text);
+  color: var(--ctp-text);
 }
 
-.mermaid .edgeLabel {
-  background: #585b70 !important; /* surface2 */
-  color: #a6adc8 !important; /* subtext0 */
+/* Node styling */
+.node rect, .node circle, .node ellipse, .node polygon, .node path {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+  stroke-width: 1px;
 }
 
-.mermaid .label {
-  color: #cdd6f4 !important; /* text */
+/* Cluster styling */
+.cluster rect {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-overlay0);
+  stroke-width: 1px;
+  rx: 5px;
+  ry: 5px;
 }
 
-/* Lines/arrows */
-.mermaid path {
-  stroke: #89b4fa !important; /* blue */
+/* Edge styling */
+.edgePath .path {
+  stroke: var(--ctp-lavender);
+  stroke-width: 2px;
 }
 
-.mermaid .marker {
-  fill: #89b4fa !important; 
+.edgeLabel {
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
 }
 
+/* Flowchart specific */
+.flowchart-link {
+  stroke: var(--ctp-lavender);
+  fill: none;
+}
+
+/* Sequence diagram specific */
+.actor {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+}
+
+.note {
+  fill: var(--ctp-yellow);
+  stroke: var(--ctp-peach);
+}
+
+.noteText {
+  fill: var(--ctp-base);
+  color: var(--ctp-base);
+}
+
+.activation0, .activation1, .activation2 {
+  fill: var(--ctp-blue);
+  stroke: var(--ctp-sapphire);
+}
+
+/* Class diagram specific */
+.classLabel .label {
+  fill: var(--ctp-text);
+}
+
+.relation {
+  stroke: var(--ctp-lavender);
+}
+
+.classTitle {
+  font-weight: bold;
+}
+
+/* Entity Relationship diagram specific */
+.entityBox {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+}
+
+.relationshipLabelBox {
+  fill: var(--ctp-peach);
+  stroke: var(--ctp-yellow);
+}
+
+/* Gantt chart specific */
+.task {
+  stroke-width: 1;
+}
+
+.section0, .section2 {
+  fill: var(--ctp-surface0);
+}
+
+.section1, .section3 {
+  fill: var(--ctp-surface1);
+}
+
+.taskText {
+  fill: var(--ctp-text);
+}
+
+.grid .tick {
+  stroke: var(--ctp-overlay0);
+}
+
+.grid .tick text {
+  fill: var(--ctp-subtext0);
+}
+
+.todayMarker {
+  stroke: var(--ctp-red);
+}
+
+/* State diagram specific */
+.stateLabel text {
+  fill: var(--ctp-text);
+}
+
+.stateDiagram-state {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+}
+
+.stateDiagram-cluster {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+}
+
+/* Journey diagram specific */
+.journey-section {
+  fill: var(--ctp-surface0);
+}
+
+/* Color-coding for various element types */
+.type-animation {
+  fill: var(--ctp-mauve);
+  stroke: var(--ctp-mauve);
+}
+
+.type-success, .type-done, .type-active, .type-yes {
+  fill: var(--ctp-green);
+  stroke: var(--ctp-green);
+}
+
+.type-warning, .type-pending, .type-maybe {
+  fill: var(--ctp-yellow);
+  stroke: var(--ctp-peach);
+}
+
+.type-danger, .type-error, .type-failed, .type-no {
+  fill: var(--ctp-red);
+  stroke: var(--ctp-maroon);
+}
+
+.type-info, .type-running {
+  fill: var(--ctp-blue);
+  stroke: var(--ctp-sapphire);
+}
+
+/* Git graph specific */
+.commit-id, .commit-msg, .branch-label {
+  fill: var(--ctp-text);
+}
+
+.branch {
+  stroke: var(--ctp-lavender);
+}
+
+.commit {
+  fill: var(--ctp-mauve);
+}
+
+/* C4 diagram specific */
+.c4Person rect {
+  fill: var(--ctp-peach);
+  stroke: var(--ctp-maroon);
+}
+
+.c4Container rect {
+  fill: var(--ctp-blue);
+  stroke: var(--ctp-sapphire);
+}
+
+.c4Component rect {
+  fill: var(--ctp-green);
+  stroke: var(--ctp-teal);
+}
+
+.c4Database path {
+  fill: var(--ctp-mauve);
+  stroke: var(--ctp-lavender);
+}
+
+/* Mindmap specific */
+.mindmap-node1 {
+  fill: var(--ctp-blue);
+}
+
+.mindmap-node2 {
+  fill: var(--ctp-green);
+}
+
+.mindmap-node3 {
+  fill: var(--ctp-yellow);
+}
+
+.mindmap-node4 {
+  fill: var(--ctp-peach);
+}
+
+.mindmap-node5 {
+  fill: var(--ctp-mauve);
+}
+
+/* Timeline specific */
+.timeline-event {
+  fill: var(--ctp-surface0);
+  stroke: var(--ctp-lavender);
+}
+
+.timeline-event-text {
+  fill: var(--ctp-text);
+}
+
+.timeline-event-group {
+  fill: var(--ctp-surface2);
+}
+
+/* Pie chart specific */
+.pieTitleText {
+  fill: var(--ctp-text);
+  font-size: 1.2em;
+}
+
+.pieCircle {
+  stroke: var(--ctp-overlay0);
+}
+
+.slice:nth-child(odd) {
+  fill: var(--ctp-blue);
+}
+
+.slice:nth-child(even) {
+  fill: var(--ctp-mauve);
+}
+
+.legend text {
+  fill: var(--ctp-text);
+}
+
+/* Code blocks styling - authentic Catppuccin look */
+pre, pre.code, pre code, .code, code[class*="language-"], pre[class*="language-"] {
+  background-color: var(--ctp-mantle) !important;
+  color: var(--ctp-text) !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace !important;
+  font-size: 0.9em !important;
+  line-height: 1.7 !important;
+  padding: 1em !important;
+  margin: 0.5em 0 !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--ctp-surface0) !important;
+  overflow: auto !important;
+  tab-size: 2 !important;
+  hyphens: none !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Remove any internal borders */
+pre code, pre.code code, .code code {
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Fix for multiline code blocks - remove any internal dividers */
+pre code span, pre code div, pre > div, code > div,
+.hljs span, .hljs div,
+.code div, .code span {
+  border: none !important; 
+  line-height: inherit !important;
+  background: none !important;
+  border-radius: 0 !important;
+}
+
+/* Fix for markdown-preview line wrapping */
+pre, code {
+  white-space: pre !important;
+}
+
+pre code {
+  display: block !important;
+  white-space: pre !important;
+}
+
+/* Fix for potential borders on line elements */
+.line, .line-number, [class*="line"] {
+  border: none !important;
+  background: none !important;
+}
+
+/* Line numbers if supported */
+.line-numbers .line-numbers-rows {
+  border-right: 1px solid var(--ctp-surface1) !important;
+  padding-right: 10px !important;
+}
+
+.line-numbers-rows > span:before {
+  color: var(--ctp-overlay0) !important;
+}
+
+/* Code highlighting colors - refined to match VSCode Catppuccin theme */
+.token.keyword, .token.keyword, code .keyword, .hljs-keyword {
+  color: var(--ctp-mauve) !important;
+  font-style: italic !important;
+}
+
+.token.builtin, code .builtin, .hljs-builtin {
+  color: var(--ctp-teal) !important;
+}
+
+.token.string, code .string, .hljs-string, .token.char, code .char, .hljs-char, .token.regex, code .regex, .hljs-regex {
+  color: var(--ctp-green) !important;
+}
+
+.token.comment, code .comment, .hljs-comment {
+  color: var(--ctp-overlay1) !important;
+  font-style: italic !important;
+}
+
+.token.number, code .number, .hljs-number, .token.boolean, code .boolean, .hljs-boolean {
+  color: var(--ctp-peach) !important;
+}
+
+.token.function, code .function, .hljs-function, .token.method, code .method, .hljs-method {
+  color: var(--ctp-blue) !important;
+}
+
+.token.class-name, code .class-name, .hljs-class, .token.type, code .type, .hljs-type {
+  color: var(--ctp-yellow) !important;
+}
+
+.token.tag, code .tag, .hljs-tag {
+  color: var(--ctp-red) !important;
+}
+
+.token.attr-name, code .attr-name, .hljs-attr, .token.property, code .property, .hljs-property {
+  color: var(--ctp-flamingo) !important;
+}
+
+.token.attr-value, code .attr-value, .hljs-attr-value {
+  color: var(--ctp-green) !important;
+}
+
+.token.operator, code .operator, .hljs-operator {
+  color: var(--ctp-sky) !important;
+}
+
+.token.punctuation, code .punctuation, .hljs-punctuation {
+  color: var(--ctp-subtext1) !important;
+}
+
+.token.variable, code .variable, .hljs-variable {
+  color: var(--ctp-teal) !important;
+}
+
+.token.constant, code .constant, .hljs-constant, .token.symbol, code .symbol, .hljs-symbol {
+  color: var(--ctp-pink) !important;
+}
+
+.token.namespace, code .namespace, .hljs-namespace {
+  color: var(--ctp-rosewater) !important;
+  opacity: 0.8 !important;
+}
+
+.token.important, code .important, .hljs-important,
+.token.bold, code .bold, .hljs-bold {
+  font-weight: bold !important;
+}
+
+.token.italic, code .italic, .hljs-italic {
+  font-style: italic !important;
+}
+
+.token.entity, code .entity, .hljs-entity {
+  cursor: help !important;
+}
+
+.token.deleted, code .deleted, .hljs-deleted {
+  color: var(--ctp-red) !important;
+  background-color: rgba(243, 139, 168, 0.1) !important;
+}
+
+.token.inserted, code .inserted, .hljs-inserted {
+  color: var(--ctp-green) !important;
+  background-color: rgba(166, 227, 161, 0.1) !important;
+}
+
+/* Specific language adjustments */
+/* HTML */
+.language-html .token.tag {
+  color: var(--ctp-red) !important;
+}
+
+/* CSS */
+.language-css .token.property {
+  color: var(--ctp-lavender) !important;
+}
+
+.language-css .token.function {
+  color: var(--ctp-peach) !important;
+}
+
+/* JavaScript */
+.language-javascript .token.dom,
+.language-javascript .token.dom-variable {
+  color: var(--ctp-teal) !important;
+}
+
+/* JSON */
+.language-json .token.property {
+  color: var(--ctp-blue) !important;
+}
+
+/* Markdown */
+.language-markdown .token.title,
+.language-markdown .token.title .token.punctuation {
+  color: var(--ctp-lavender) !important;
+  font-weight: bold !important;
+}
+
+.language-markdown .token.blockquote.punctuation {
+  color: var(--ctp-green) !important;
+}
+
+.language-markdown .token.code {
+  color: var(--ctp-pink) !important;
+}
+
+.language-markdown .token.url {
+  color: var(--ctp-sapphire) !important;
+}
+
+/* Terminal/Shell */
+.language-shell .token.function,
+.language-bash .token.function {
+  color: var(--ctp-teal) !important;
+}
+
+/* Code block title if supported */
+.code-title {
+  background-color: var(--ctp-surface0) !important;
+  color: var(--ctp-subtext0) !important;
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  padding: 0.5em 1em !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 0.8em !important;
+  margin-top: 1em !important;
+  margin-bottom: -0.5em !important;
+  border: 1px solid var(--ctp-surface0) !important;
+  border-bottom: none !important;
+}
+
+.code-title + pre {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Inline code - distinct from code blocks */
+:not(pre) > code {
+  background-color: var(--ctp-surface0) !important;
+  color: var(--ctp-pink) !important;
+  padding: 0.2em 0.4em !important;
+  margin: 0 0.1em !important;
+  border-radius: 4px !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 0.85em !important;
+  white-space: nowrap !important;
+  border: 1px solid var(--ctp-surface1) !important;
+}
+
+/* Link styling */
+a, a:visited {
+  color: var(--ctp-sapphire) !important;
+  text-decoration: none;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+a:hover {
+  color: var(--ctp-blue) !important;
+  text-decoration: underline;
+}
+
+a:active {
+  color: var(--ctp-lavender) !important;
+}
+
+/* Make sure links in diagrams also follow our theme */
+.link, .flowchart-link {
+  stroke: var(--ctp-sapphire) !important;
+}
+
+/* For any other elements that might use the default blue for links */
+[fill="blue"], [stroke="blue"] {
+  fill: var(--ctp-sapphire);
+  stroke: var(--ctp-sapphire);
+}
+
+/* Global markdown preview styling */
+body, html {
+  background-color: var(--ctp-base) !important;
+  color: var(--ctp-text) !important;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main document container */
+.markdown-body, #preview, #markdown-preview {
+  background-color: var(--ctp-base);
+  color: var(--ctp-text);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-size: 16px;
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ctp-lavender);
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  border-bottom: none;
+}
+
+h1 {
+  font-size: 2em;
+  color: var(--ctp-blue);
+}
+
+h2 {
+  font-size: 1.75em;
+  color: var(--ctp-lavender);
+}
+
+h3 {
+  font-size: 1.5em;
+  color: var(--ctp-mauve);
+}
+
+h4 {
+  font-size: 1.25em;
+  color: var(--ctp-pink);
+}
+
+h5 {
+  font-size: 1.1em;
+  color: var(--ctp-flamingo);
+}
+
+h6 {
+  font-size: 1em;
+  color: var(--ctp-rosewater);
+}
+
+/* Paragraphs and text */
+p, li, td, th {
+  color: var(--ctp-text);
+}
+
+/* Strong, emphasis, etc. */
+strong {
+  color: var(--ctp-peach);
+  font-weight: bold;
+}
+
+em {
+  color: var(--ctp-yellow);
+  font-style: italic;
+}
+
+del {
+  color: var(--ctp-overlay1);
+}
+
+mark {
+  background-color: var(--ctp-yellow);
+  color: var(--ctp-base);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid var(--ctp-lavender);
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  background-color: var(--ctp-surface0);
+  color: var(--ctp-subtext0);
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0.5em 0;
+  color: var(--ctp-subtext0);
+}
+
+/* Lists */
+ul, ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+li {
+  margin: 0.3em 0;
+}
+
+li::marker {
+  color: var(--ctp-blue);
+}
+
+ol li::marker {
+  color: var(--ctp-sapphire);
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  border: 1px solid var(--ctp-surface2);
+  background-color: var(--ctp-surface0);
+}
+
+th {
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-lavender);
+  font-weight: bold;
+  text-align: left;
+  padding: 8px 12px;
+}
+
+td {
+  padding: 8px 12px;
+  border-top: 1px solid var(--ctp-surface1);
+}
+
+tr:nth-child(even) {
+  background-color: var(--ctp-surface0);
+}
+
+tr:nth-child(odd) {
+  background-color: var(--ctp-mantle);
+}
+
+tr:hover {
+  background-color: var(--ctp-surface1);
+}
+
+/* Horizontal rule */
+hr {
+  border: none;
+  height: 1px;
+  background-color: var(--ctp-surface1);
+  margin: 2em 0;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 1em 0;
+}
+
+/* Inline code */
+:not(pre) > code {
+  background-color: var(--ctp-surface0);
+  color: var(--ctp-pink);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9em;
+}
+
+/* Task Lists */
+.task-list-item {
+  list-style-type: none;
+}
+
+.task-list-item input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.task-list-item input[type="checkbox"]:checked {
+  /* Custom checkbox styling if supported */
+  accent-color: var(--ctp-green);
+}
+
+/* Table of Contents */
+.toc, .table-of-contents {
+  background-color: var(--ctp-surface0);
+  border-radius: 4px;
+  padding: 1em;
+  margin: 1em 0;
+  border: 1px solid var(--ctp-surface2);
+}
+
+.toc-title, .table-of-contents-title {
+  color: var(--ctp-blue);
+  font-weight: bold;
+  margin-bottom: 0.5em;
+}
+
+.toc a, .table-of-contents a {
+  color: var(--ctp-sapphire);
+  text-decoration: none;
+}
+
+.toc a:hover, .table-of-contents a:hover {
+  color: var(--ctp-blue);
+  text-decoration: underline;
+}
+
+/* Definition Lists */
+dl {
+  margin: 1em 0;
+}
+
+dt {
+  color: var(--ctp-blue);
+  font-weight: bold;
+  margin-top: 0.5em;
+}
+
+dd {
+  margin-left: 2em;
+  color: var(--ctp-text);
+}
+
+/* Footnotes */
+.footnotes {
+  border-top: 1px solid var(--ctp-surface1);
+  margin-top: 2em;
+  padding-top: 1em;
+}
+
+.footnote-ref {
+  color: var(--ctp-peach);
+  font-size: 0.8em;
+  vertical-align: super;
+}
+
+.footnote-backref {
+  color: var(--ctp-sapphire);
+}
+
+/* Admonitions/notices (common in some markdown extensions) */
+.notice, .tip, .warning, .danger, .info {
+  padding: 1em;
+  margin: 1em 0;
+  border-left: 4px solid;
+  border-radius: 3px;
+}
+
+.notice, .info {
+  background-color: rgba(137, 180, 250, 0.1);
+  border-left-color: var(--ctp-blue);
+}
+
+.tip {
+  background-color: rgba(166, 227, 161, 0.1);
+  border-left-color: var(--ctp-green);
+}
+
+.warning {
+  background-color: rgba(249, 226, 175, 0.1);
+  border-left-color: var(--ctp-yellow);
+}
+
+.danger {
+  background-color: rgba(243, 139, 168, 0.1);
+  border-left-color: var(--ctp-red);
+}
+
+/* Math - for MathJax or KaTeX if used */
+.math, .katex {
+  color: var(--ctp-text);
+}
+
+/* Scrollbars - WebKit based browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ctp-mantle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ctp-overlay0);
+}
+
+/* Print styles - maintain theme colors when printing */
+@media print {
+  body {
+    background-color: white;
+    color: black;
+  }
+  
+  a {
+    color: var(--ctp-blue) !important;
+    text-decoration: underline;
+  }
+  
+  pre, code {
+    background-color: #f0f0f0 !important;
+    color: #333 !important;
+  }
+  
+  blockquote {
+    border-left-color: #ddd;
+    color: #555;
+  }
+}
