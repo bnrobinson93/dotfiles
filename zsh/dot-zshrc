@@ -215,7 +215,10 @@ export PATH="$HOME/.pulumi/bin:$PATH"
 PULUMI_ADDED=1; export PULUMI_ADDED
 
 # bun completions
-[ -s "/home/brad/.bun/_bun" ] && source "/home/brad/.bun/_bun"
+if [[ -s "/home/brad/.bun/_bun"  &&  $BUN_SOURCE -ne 1 ]]; then
+  source "/home/brad/.bun/_bun"
+  BUN_SOURCED=1
+fi
 
 export ZETTELKASTEN=$HOME/Documents/Vault
 
@@ -229,7 +232,7 @@ export PATH="$HOME/.local/bin:$PATH"
 FLATPAK_ADDED=1; export FLATPAK_ADDED
 
 # Go
-if type go >/dev/null; then 
+if type go >/dev/null && [ $GO_ADDED -ne 1 ]; then 
   export PATH="$(go env GOPATH)/bin:$PATH" 
   GO_ADDED=1; export GO_ADDED
 fi
@@ -238,7 +241,7 @@ fi
 export PATH="/Users/brad.robinson/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
-if [[ -d "$HOME/.cargo" ]]; then
+if [[ -d "$HOME/.cargo" && $CARGO_ADDED -ne 1 ]]; then
   . "$HOME/.cargo/env"
   CARGO_ADDED=1; export CARGO_ADDED
 fi
@@ -254,38 +257,38 @@ PNPM_ADDED=1; export PNPM_ADDED
 
 
 
-completions() {
-  if type "kubectl" >/dev/null 2>&1; then
-    kubectl () {
-        if [[ -z $KUBECTL_COMPLETE ]]
-        then
-            source <(command kubectl completion zsh)
-            KUBECTL_COMPLETE=1; export KUBECTL_COMPLETE
-        fi
-        command kubectl $*
-    }
-    alias k=kubectl
-    alias kgp="kubectl get pods"
-  fi
+if type "kubectl" >/dev/null 2>&1; then
+  kubectl () {
+      if [[ -z $KUBECTL_COMPLETE ]]
+      then
+          source <(command kubectl completion zsh)
+          KUBECTL_COMPLETE=1; export KUBECTL_COMPLETE
+      fi
+      command kubectl $*
+  }
+  alias k=kubectl
+  alias kgp="kubectl get pods"
+fi
 
-  # Homebrew
-  if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
-    brew () {
-        if [[ -z $BREW_COMPLETE ]]
-        then
-          test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
-          test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
-        fi
-        command brew $*
+# Homebrew
+if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
+  brew () {
+      if [[ -z $BREW_COMPLETE ]]
+      then
+        test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
+        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
         BREW_COMPLETE=1; export BREW_COMPLETE
-    }
-    export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+      fi
+      command brew $*
+  }
+  export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
 
-    export NVM_DIR="$HOME/.nvm"
-    [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
-    [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-  fi
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+fi
 
+completions() {
   # auto-cpufreq completions
   which auto-cpufreq >/dev/null && eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
 
