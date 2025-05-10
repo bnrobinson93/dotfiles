@@ -232,7 +232,7 @@ export PATH="$HOME/.local/bin:$PATH"
 FLATPAK_ADDED=1; export FLATPAK_ADDED
 
 # Go
-if type go >/dev/null && [ $GO_ADDED -ne 1 ]; then 
+[ "$GO_ADDED" != "1" ] && if type go >/dev/null ; then 
   export PATH="$(go env GOPATH)/bin:$PATH" 
   GO_ADDED=1; export GO_ADDED
 fi
@@ -288,22 +288,16 @@ if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
   [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 fi
 
-completions() {
-  # auto-cpufreq completions
-  which auto-cpufreq >/dev/null && eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
+# auto-cpufreq completions
+[ "$AUTO_LOADED" != "1" ] && if type auto-cpufreq >/dev/null; then
+  eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
+  AUTO_LOADED=1; export AUTO_LOADED
+fi
 
-  # The following lines were added by compinstall
-  zstyle :compinstall filename '/home/brad/.zshrc'
-  # End of lines added by compinstall
+# The following lines were added by compinstall
+zstyle :compinstall filename '/home/brad/.zshrc'
+# End of lines added by compinstall
 
-  if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
-    source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
-  fi
-}
-
-
-if [[ -z $COMPLETIONS_LOADED ]]; then
-  completions
-
-  COMPLETIONS_LOADED=1; export COMPLETIONS_LOADED
+if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
+  source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
 fi
