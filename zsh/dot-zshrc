@@ -12,9 +12,12 @@ fi;
 #fi
 
 # Created by Zap installer
-[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ] && \
-  source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" || \
+if [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]]; then
+  source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh"
+else
   zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1
+fi
+
 plug "zsh-users/zsh-autosuggestions"
 #plug "zap-zsh/supercharge"
 #plug "zap-zsh/zap-prompt"
@@ -64,6 +67,7 @@ eval "$(starship init zsh)"
 
 # User configuration
 export MANPATH="/usr/local/man:$MANPATH"
+MANPATH_ADDED=1; export MANPATH_ADDED
 
 # You may need to manually set your language environment
  export LANG=en_US.UTF-8
@@ -122,9 +126,6 @@ prompt_context() {
     prompt_segment black default "%(!.%{%F{yellow}%}.)$USER"
   fi
 }
-
-export ANDROID_SDK=$HOME/Android/Sdk
-export PATH="~/.npm-global/bin:$ANDROID_SDK/platform-tools:$PATH"
 
 grep="grep --color"
 alias vi=$EDITOR
@@ -206,46 +207,12 @@ if type "pacstall" >/dev/null 2>&1; then
   source /usr/share/bash-completion/completions/pacstall
 fi
 
-if type "kubectl" >/dev/null 2>&1; then
-  kubectl () {
-      command kubectl $*
-      if [[ -z $KUBECTL_COMPLETE ]]
-      then
-          source <(command kubectl completion zsh)
-          KUBECTL_COMPLETE=1 
-      fi
-  }
-  alias k=kubectl
-  alias kgp="kubectl get pods"
-fi
-
-# Homebrew
-if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
-  brew () {
-      if [[ -z $BREW_COMPLETE ]]
-      then
-        test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
-        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
-        BREW_COMPLETE=1 
-      fi
-      command brew $*
-  }
-  export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
-
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-fi
-
 # Fix issue with apt <thing>* not working
 unsetopt no_match
 
-# pnpm
-export PNPM_HOME="/home/brad/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-
 # add Pulumi to the PATH
 export PATH="$HOME/.pulumi/bin:$PATH"
+PULUMI_ADDED=1; export PULUMI_ADDED
 
 # bun completions
 [ -s "/home/brad/.bun/_bun" ] && source "/home/brad/.bun/_bun"
@@ -255,32 +222,25 @@ export ZETTELKASTEN=$HOME/Documents/Vault
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+BUN_ADDED=1; export BUN_ADDED
 
 # Flatpak
 export PATH="$HOME/.local/bin:$PATH"
+FLATPAK_ADDED=1; export FLATPAK_ADDED
 
 # Go
 if type go >/dev/null; then 
   export PATH="$(go env GOPATH)/bin:$PATH" 
+  GO_ADDED=1; export GO_ADDED
 fi
-
-# auto-cpufreq
-which auto-cpufreq >/dev/null && eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
-
-# The following lines were added by compinstall
-zstyle :compinstall filename '/home/brad/.zshrc'
-# End of lines added by compinstall
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="/Users/brad.robinson/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
-if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
-  source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
-fi
-
 if [[ -d "$HOME/.cargo" ]]; then
-    . "$HOME/.cargo/env"
+  . "$HOME/.cargo/env"
+  CARGO_ADDED=1; export CARGO_ADDED
 fi
 
 # pnpm
@@ -289,4 +249,58 @@ case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+PNPM_ADDED=1; export PNPM_ADDED
 # pnpm end
+
+
+
+completions() {
+  if type "kubectl" >/dev/null 2>&1; then
+    kubectl () {
+        if [[ -z $KUBECTL_COMPLETE ]]
+        then
+            source <(command kubectl completion zsh)
+            KUBECTL_COMPLETE=1; export KUBECTL_COMPLETE
+        fi
+        command kubectl $*
+    }
+    alias k=kubectl
+    alias kgp="kubectl get pods"
+  fi
+
+  # Homebrew
+  if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
+    brew () {
+        if [[ -z $BREW_COMPLETE ]]
+        then
+          test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
+          test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
+        fi
+        command brew $*
+        BREW_COMPLETE=1; export BREW_COMPLETE
+    }
+    export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+    [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+  fi
+
+  # auto-cpufreq completions
+  which auto-cpufreq >/dev/null && eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
+
+  # The following lines were added by compinstall
+  zstyle :compinstall filename '/home/brad/.zshrc'
+  # End of lines added by compinstall
+
+  if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
+    source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
+  fi
+}
+
+
+if [[ -z $COMPLETIONS_LOADED ]]; then
+  completions
+
+  COMPLETIONS_LOADED=1; export COMPLETIONS_LOADED
+fi
