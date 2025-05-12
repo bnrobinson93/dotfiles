@@ -255,7 +255,7 @@ esac
 PNPM_ADDED=1; export PNPM_ADDED
 # pnpm end
 
-
+alias code='open -a "Visual Studio Code"'
 
 if type "kubectl" >/dev/null 2>&1; then
   kubectl () {
