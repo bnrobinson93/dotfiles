@@ -284,8 +284,11 @@ if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
   export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
 
   export NVM_DIR="$HOME/.nvm"
-  [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+  if [[ -z $NVM_COMPLETE ]]; then
+    [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
+    [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+    NVM_COMPLETE=1
+  fi
 fi
 
 # auto-cpufreq completions
@@ -301,3 +304,4 @@ zstyle :compinstall filename '/home/brad/.zshrc'
 if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
   source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
 fi
+
