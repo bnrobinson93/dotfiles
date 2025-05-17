@@ -6,6 +6,63 @@ local js_based_languages = {
   'vue',
 }
 
+function start_chrome_debugging()
+  local url = vim.fn.input('Enter URL: ', 'http://localhost:3000')
+  local debug_port = 9222
+  local profile_dir = vim.fn.expand '~/.chrome-debug-profile'
+
+  -- Create profile directory if needed
+  if vim.fn.isdirectory(profile_dir) == 0 then
+    vim.fn.mkdir(profile_dir, 'p')
+  end
+
+  -- Close any existing Chrome instances (optional - remove if you want to keep your main Chrome running)
+  local kill_cmd = vim.fn.has 'mac' == 1 and 'pkill -f "Google Chrome"'
+    or vim.fn.has 'unix' == 1 and 'pkill -f chrome'
+    or vim.fn.has 'win32' == 1 and 'taskkill /F /IM chrome.exe'
+    or ''
+
+  if kill_cmd ~= '' then
+    vim.fn.system(kill_cmd)
+    -- Wait a moment for Chrome to fully close
+    vim.fn.system 'sleep 1'
+  end
+
+  -- Build the chrome command
+  local chrome_cmd = ''
+  if vim.fn.has 'mac' == 1 then
+    chrome_cmd = string.format(
+      '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=%d --user-data-dir="%s" "%s" &',
+      debug_port,
+      profile_dir,
+      url
+    )
+  elseif vim.fn.has 'unix' == 1 then
+    chrome_cmd = string.format('google-chrome --remote-debugging-port=%d --user-data-dir="%s" "%s" &', debug_port, profile_dir, url)
+  elseif vim.fn.has 'win32' == 1 then
+    chrome_cmd = string.format('start chrome --remote-debugging-port=%d --user-data-dir="%s" "%s"', debug_port, profile_dir:gsub('/', '\\'), url)
+  end
+
+  -- Execute the command
+  print('Running command: ' .. chrome_cmd)
+  vim.fn.system(chrome_cmd)
+
+  -- Wait a moment for Chrome to start
+  vim.fn.system 'sleep 2'
+
+  -- Check if debugging is active
+  local check_cmd = 'curl -s http://localhost:' .. debug_port .. '/json/version'
+  local result = vim.fn.system(check_cmd)
+
+  if result:match 'Chrome' then
+    print('Chrome debug port ' .. debug_port .. ' is active! You can now attach the debugger.')
+  else
+    print 'Warning: Chrome debug port could not be verified. Check if Chrome started properly.'
+  end
+end
+
+vim.api.nvim_create_user_command('StartChromeDebug', start_chrome_debugging, {})
+
 return {
   -- dap
   {
@@ -69,12 +126,26 @@ return {
       vim.fn.sign_define('DapBreakpoint', { text = '', texthl = 'DiagnosticSignError', linehl = '', numhl = '' })
       vim.fn.sign_define('DapStopped', { text = '', texthl = 'DiagnosticSignWarn', linehl = '', numhl = '' })
 
+      -- Register adapters first
+      dap.adapters.chrome = {
+        type = 'executable',
+        command = 'node',
+        args = { vim.fn.stdpath 'data' .. '/mason/packages/chrome-debug-adapter/out/src/chromeDebug.js' },
+      }
+
+      dap.adapters.firefox = {
+        type = 'executable',
+        command = 'node',
+        args = { vim.fn.stdpath 'data' .. '/mason/packages/firefox-debug-adapter/dist/adapter.bundle.js' },
+      }
+
       -- setup dap config by VsCode launch.json file
       local vscode = require 'dap.ext.vscode'
       local json = require 'plenary.json'
       vscode.json_decode = function(str)
         return vim.json.decode(json.json_strip_comments(str))
       end
+
       for _, language in ipairs(js_based_languages) do
         dap.configurations[language] = {
           {
@@ -89,127 +160,33 @@ return {
           {
             type = 'pwa-node',
             request = 'attach',
-            name = 'Attach to process',
+            name = 'Attach to node process',
             processId = require('dap.utils').pick_process,
             cwd = '${workspaceFolder}',
             sourceMaps = true,
           },
           -- Debug web apps (client side)
-          -- Debug web apps (client side)
           {
-            type = 'pwa-chrome',
+            type = 'chrome', -- Use standard chrome adapter (not pwa-chrome)
+            request = 'attach',
+            name = 'Attach to Chrome',
+            port = 9222,
+            webRoot = '${workspaceFolder}',
+            timeout = 30000, -- Increased timeout (30 seconds)
+            sourceMaps = true,
+          },
+          -- Firefox debugging option
+          {
+            type = 'firefox',
             request = 'launch',
-            name = 'Launch Chrome',
+            name = 'Debug with Firefox',
+            reAttach = true,
             url = function()
-              local co = coroutine.running()
-              return coroutine.create(function()
-                vim.ui.input({
-                  prompt = 'Enter URL: ',
-                  default = 'http://localhost:3000',
-                }, function(url)
-                  if url == nil or url == '' then
-                    return
-                  else
-                    coroutine.resume(co, url)
-                  end
-                end)
-              end)
+              return vim.fn.input('Enter URL: ', 'http://localhost:3000')
             end,
             webRoot = '${workspaceFolder}',
-            skipFiles = { '<node_internals>/**' },
-            protocol = 'inspector',
-            sourceMaps = true,
-            userDataDir = false,
-            -- Be explicit about Chrome path based on OS
-            runtimeExecutable = function()
-              -- Find Chrome path based on OS
-              if vim.fn.has 'mac' == 1 then
-                -- macOS
-                local chrome_paths = {
-                  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-                  '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-                  -- Add other possible paths
-                }
-                for _, path in ipairs(chrome_paths) do
-                  if vim.fn.filereadable(path) == 1 then
-                    return path
-                  end
-                end
-              elseif vim.fn.has 'unix' == 1 then
-                -- Linux
-                local chrome_paths = {
-                  '/usr/bin/google-chrome',
-                  '/usr/bin/google-chrome-stable',
-                  '/usr/bin/chromium',
-                  '/usr/bin/chromium-browser',
-                  -- Add other possible paths
-                }
-                for _, path in ipairs(chrome_paths) do
-                  if vim.fn.filereadable(path) == 1 then
-                    return path
-                  end
-                end
-              elseif vim.fn.has 'win32' == 1 then
-                -- Windows
-                local chrome_paths = {
-                  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-                  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-                  -- Add other possible paths
-                }
-                for _, path in ipairs(chrome_paths) do
-                  if vim.fn.filereadable(path) == 1 then
-                    return path
-                  end
-                end
-              end
-
-              -- Default return if no Chrome found
-              return 'chrome' -- This will use the system's default 'chrome' command
-            end,
-            -- Launch Chrome with remote debugging enabled
-            runtimeArgs = {
-              '--remote-debugging-port=9222',
-              '--user-data-dir=${workspaceFolder}/.vscode/chrome-debug-profile',
-              '--no-first-run',
-            },
-            port = 9222,
+            firefoxExecutable = '/usr/bin/firefox',
           },
-
-          -- Debug web apps (client side) in default browser
-          {
-            type = 'pwa-node',
-            request = 'launch',
-            name = 'Launch Default Browser',
-            program = function()
-              local url = vim.fn.input('Enter URL: ', 'http://localhost:3000')
-
-              -- Open browser before starting debug session
-              local open_cmd = ''
-              if vim.fn.has 'mac' == 1 then
-                open_cmd = 'open'
-              elseif vim.fn.has 'unix' == 1 then
-                open_cmd = 'xdg-open'
-              elseif vim.fn.has 'win32' == 1 then
-                open_cmd = 'start'
-              end
-
-              vim.fn.jobstart(open_cmd .. ' ' .. url)
-
-              -- Return a small script that keeps the debug session alive
-              local temp_script = os.tmpname() .. '.js'
-              local f = io.open(temp_script, 'w')
-              f:write 'console.log("Browser debug session started."); setTimeout(() => {}, 999999);'
-              f:close()
-
-              return temp_script
-            end,
-            cwd = '${workspaceFolder}',
-            sourceMaps = true,
-            protocol = 'inspector',
-            console = 'integratedTerminal',
-            skipFiles = { '<node_internals>/**' },
-          },
-
           -- Devider for launch.json derived configs
           {
             name = ' ----- launch.json configs ----- ',
@@ -290,6 +267,9 @@ return {
           'codelldb', -- For C, C++, Rust
           'delve', -- For Go
           'firefox',
+          'chrome',
+          'chrome-debug-adapter',
+          'firefox-debug-adapter',
         },
         -- Automatically set up adapter configurations
         automatic_setup = true,
