@@ -305,3 +305,7 @@ if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
   source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
 fi
 
+if [[ -d $HOME/.rbenv ]]; then
+  export PATH="$HOME/.rbenv/bin:$PATH"
+  eval "$(rbenv init - zsh)"
+do
