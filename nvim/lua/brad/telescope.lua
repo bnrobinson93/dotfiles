@@ -52,5 +52,16 @@ return {
       end,
       desc = 'grep full string under the cursor (hidden)',
     },
+    {
+      '<leader>pcs',
+      function()
+        local git_files = vim.fn.systemlist 'git ls-files --modified --others --exclude-standard'
+        require('telescope.builtin').live_grep {
+          search_dirs = git_files,
+          prompt_title = 'Grep Changed Files',
+        }
+      end,
+      desc = 'Grep Git Modified Files',
+    },
   },
 }
