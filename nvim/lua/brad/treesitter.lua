@@ -59,8 +59,4 @@ return {
       },
     },
   },
-  keys = {
-    { '<C-space>', desc = 'Increment selection' },
-    { '<bs>', desc = 'Decrement selection', mode = 'x' },
-  },
 }
