@@ -144,6 +144,7 @@ end
 return {
   name = 'eslint-fix',
   dir = vim.fn.stdpath 'config',
+  ft = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
   config = function()
     -- Toggle version that works with existing Trouble qflist
     local function eslint_fix_trouble_toggle()
