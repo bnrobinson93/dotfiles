@@ -245,11 +245,6 @@ return {
     vim.api.nvim_create_user_command('EslintFixTroubleToggle', eslint_fix_trouble_toggle, {
       desc = 'Run eslint --fix and toggle Trouble qflist',
     })
-
-    -- Optional keybinding
-    vim.keymap.set('n', '<leader>ef', eslint_fix_trouble, {
-      desc = 'ESLint fix and show in Trouble',
-    })
   end,
   cmd = { 'EslintFix', 'EslintFixTrouble', 'EslintFixTroubleToggle' },
   keys = {
@@ -258,7 +253,7 @@ return {
       function()
         eslint_fix_trouble()
       end,
-      desc = 'ESLint fix and show in Trouble',
+      desc = '[E]SLint [f]ix and show in Trouble',
     },
   },
 }
