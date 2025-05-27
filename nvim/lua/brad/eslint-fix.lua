@@ -55,7 +55,7 @@ local function eslint_fix_trouble()
   local job_id = vim.fn.jobstart({
     'eslint',
     '--fix',
-    '.',
+    './src',
     '--format',
     'json',
   }, {
