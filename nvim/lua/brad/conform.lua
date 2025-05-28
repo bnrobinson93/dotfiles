@@ -33,6 +33,11 @@ return {
     default_format_opts = {
       lsp_format = 'fallback',
     },
+    format_on_save = {
+      lsp_callback = true,
+      timeout_ms = 500,
+      async = false,
+    },
     formatters = {
       prettierd = {
         env = {
