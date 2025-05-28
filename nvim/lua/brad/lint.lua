@@ -13,7 +13,12 @@ return {
       ['yaml.ghaction'] = { 'actionlint', 'zizmor' },
     }
 
-    vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufWritePost', 'TextChanged' }, {
+    local lint_augroup = vim.api.nvim_create_augroup('Lint', { clear = true })
+
+    -- Can also add TextChanged
+    vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave' }, {
+      -- pattern = { '*' },
+      group = lint_augroup,
       callback = function()
         lint.try_lint()
       end,
@@ -29,4 +34,15 @@ return {
       end
     end, {})
   end,
+
+  keys = {
+    {
+      '<leader>li',
+      function()
+        require('lint').try_lint()
+      end,
+      mode = { 'n', 'v' },
+      desc = 'Lint current file',
+    },
+  }
 }

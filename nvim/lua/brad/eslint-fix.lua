@@ -56,6 +56,8 @@ local function eslint_fix_trouble()
     'eslint',
     '--fix',
     './src',
+    '--ext',
+    'js,jsx,ts,tsx',
     '--format',
     'json',
   }, {
@@ -197,7 +199,9 @@ return {
       vim.fn.jobstart({
         'eslint',
         '--fix',
-        '.',
+        './src',
+        '--ext',
+        'js,jsx,ts,tsx',
       }, {
         stdout_buffered = true,
         stderr_buffered = true,
