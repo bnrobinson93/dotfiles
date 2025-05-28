@@ -11,10 +11,26 @@ return {
       section_separators = { left = '', right = '' },
       component_separators = '|',
     },
+    extensions = { 'nvim-dap-ui', 'quickfix', 'trouble' },
     sections = {
       lualine_a = { 'mode' },
-      lualine_b = { 'filename', 'branch', 'diff', 'diagnostics' },
+      lualine_b = {
+        'filename',
+        'branch',
+        'diff',
+        { 'diagnostics', sources = { 'nvim_diagnostic', 'nvim_workspace_diagnostic' }, update_in_insert = false },
+        'nvim-dap-ui',
+        'quickfix',
+      },
       lualine_c = {
+        {
+          'filetype',
+          separator = '',
+          color = { fg = '#585b70' },
+          padding = { left = 2, right = 0 },
+          colored = false,
+          icon_only = true,
+        },
         {
           'lsp_status',
           separator = '',
@@ -26,15 +42,7 @@ return {
             done = '✓',
             separator = ', ',
           },
-          ignore_lsp = {'GitHub Copilot'},
-        },
-        {
-          'filetype',
-          separator = '',
-          color = { fg = '#585b70' },
-          padding = { left = 0, right = 0 },
-          colored = false,
-          icon_only = true,
+          ignore_lsp = { 'GitHub Copilot' },
         },
       },
       lualine_x = {
