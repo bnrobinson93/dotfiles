@@ -67,12 +67,13 @@ return {
   -- dap
   {
     'mfussenegger/nvim-dap',
+    lazy = true,
     recommended = true,
     desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
 
     dependencies = {
       'rcarriga/nvim-dap-ui',
-      { 'microsoft/vscode-js-debug', build = 'npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out' },
+      { 'microsoft/vscode-js-debug', build = 'pnpm install && pnpx gulp vsDebugServerBundle && mv dist out && git checkout -- OPTIONS.md' },
       {
         'mxsdev/nvim-dap-vscode-js',
         config = function()
@@ -94,6 +95,8 @@ return {
       {
         'Joakker/lua-json5',
         build = './install.sh',
+        ft = { 'json', 'jsonc' },
+        lazy = true,
       },
     },
 
@@ -200,17 +203,18 @@ return {
   -- virtual text
   {
     'theHamsta/nvim-dap-virtual-text',
+    lazy = true,
     opts = {},
   },
   -- nvim dap ui
   {
     'rcarriga/nvim-dap-ui',
     dependencies = { 'nvim-neotest/nvim-nio' },
-  -- stylua: ignore
-  keys = {
-    { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
-    { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
-  },
+    -- stylua: ignore
+    keys = {
+      { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+      { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
+    },
     opts = {},
     config = function(_, opts)
       local dap = require 'dap'
@@ -227,10 +231,11 @@ return {
       end
     end,
   },
-  { 'nvim-neotest/nvim-nio' },
+  { 'nvim-neotest/nvim-nio', lazy = true },
   {
     'jay-babu/mason-nvim-dap.nvim',
     dependencies = 'mason.nvim',
+    lazy = true,
     cmd = { 'DapInstall', 'DapUninstall' },
     opts = {
       -- Makes a best effort to setup the various debuggers with
@@ -254,6 +259,7 @@ return {
   -- mason
   {
     'jay-babu/mason-nvim-dap.nvim',
+    lazy = true,
     dependencies = {
       'williamboman/mason.nvim',
       'mfussenegger/nvim-dap',
