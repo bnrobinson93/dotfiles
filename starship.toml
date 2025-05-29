@@ -26,9 +26,9 @@ disabled = true
 
 [directory]
 style = "green"
-truncation_length = 3
+truncation_length = 5
 truncate_to_repo = false
-fish_style_pwd_dir_length = 1
+# fish_style_pwd_dir_length = 1
 
 [gcloud]
 detect_env_vars = ["GCP_PROJECT", "CLOUDSDK_CORE_PROJECT"]
