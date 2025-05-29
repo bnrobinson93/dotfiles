@@ -1,5 +1,6 @@
 return {
   'folke/todo-comments.nvim',
+  lazy = 'BufReadPre',
   dependencies = { 'nvim-lua/plenary.nvim' },
   opts = {
     signs = true,
