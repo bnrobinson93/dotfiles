@@ -2,7 +2,7 @@ vim.g.skip_ts_context_commentstring_module = true
 
 return {
   'nvim-treesitter/nvim-treesitter',
-  lazy = false,
+  lazy = 'BufReadPre',
   branch = 'master',
   version = false,
   cmd = { 'TSUpdateSync', 'TSUpdate', 'TSInstall' },
