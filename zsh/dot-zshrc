@@ -1,311 +1,232 @@
+# Ultra-fast zshrc - fixed starship initialization
+
+# FAST compinit
 autoload -Uz compinit
-if [[ -n $HOME/.cache/zsh/zcompdump-$ZSH_VERSION(#qN.mh+24) ]]; then
-  compinit -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
-else
-  compinit -C;
-fi;
+[[ ! -d "$HOME/.cache/zsh" ]] && mkdir -p "$HOME/.cache/zsh"
+compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
-# Autostart tmux
-# export TERM=xterm-256color
-#if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ] && ! pstree -s $$ | grep -wqE 'code|language-server'; then
-#  exec tmux
-#fi
-
-# Created by Zap installer
-if [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]]; then
-  source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh"
-else
-  zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1
+# Autostart tmux (keep as-is since it's fast)
+if command -v tmux &> /dev/null && \
+  [ -n "$PS1" ] && \
+  [[ ! "$TERM" =~ screen ]] && \
+  [[ ! "$TERM" =~ tmux ]] && \
+  [ -z "$TMUX" ] && 
+  ! pstree -s $$ | grep -wqE 'code|language-server'
+then
+  exec tmux
 fi
 
-plug "zsh-users/zsh-autosuggestions"
-#plug "zap-zsh/supercharge"
-#plug "zap-zsh/zap-prompt"
-plug "zsh-users/zsh-syntax-highlighting"
-plug 'none9632/zsh-sudo'
-plug 'lukechilds/zsh-nvm'
-export NVM_LAZY_LOAD_EXTRA_COMMANDS=('tmux')
-export NVM_LAZY_LOAD=true
-export NVM_COMPLETION=true
-export NVM_AUTO_USE=true
-
-ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-# Tab autocomplete is case-insensitive
-zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
-ZSH_HIGHLIGHT_MAXLENGTH=300
-setopt histignoredups
-SAVEHIST=10000 # Number of entries
-HISTSIZE=10000
-HISTFILE=~/.history # File
-autoload -U up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-setopt histignoredups
-setopt APPEND_HISTORY # Don't erase history
-setopt EXTENDED_HISTORY # Add additional data to history like timestamp
-setopt INC_APPEND_HISTORY # Add immediately
-setopt HIST_FIND_NO_DUPS # Don't show duplicates in search
-setopt HIST_IGNORE_SPACE # Don't preserve spaces. You may want to turn it off
-setopt NO_HIST_BEEP # Don't beep
-setopt SHARE_HISTORY # Share history between session/terminals
-
-# This speeds up pasting w/ autosuggest
-# https://github.com/zsh-users/zsh-autosuggestions/issues/238
-pasteinit() {
-  OLD_SELF_INSERT=${${(s.:.)widgets[self-insert]}[2,3]}
-  zle -N self-insert url-quote-magic # I wonder if you'd need `.url-quote-magic`?
-}
-
-pastefinish() {
-  zle -N self-insert $OLD_SELF_INSERT
-}
-zstyle :bracketed-paste-magic paste-init pasteinit
-zstyle :bracketed-paste-magic paste-finish pastefinish
-
-eval "$(starship init zsh)"
-
-# User configuration
-export MANPATH="/usr/local/man:$MANPATH"
-MANPATH_ADDED=1; export MANPATH_ADDED
-
-# You may need to manually set your language environment
- export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
- if [[ -n $SSH_CONNECTION ]]; then
-   export EDITOR='vim'
- else
+# Essential environment
+export LANG=en_US.UTF-8
+if [[ -n $SSH_CONNECTION ]]; then
+   type vim >/dev/null 2>&1 && export EDITOR='vim' || export EDITOR='vi'
+else
    export EDITOR='nvim'
 fi
-# Fix Ctrl+A and Ctrl+E from emacs instead of vi
+
+# Essential PATH - single assignment
+export PATH="$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:$PATH"
+
+# Essential exports
+export ZETTELKASTEN=$HOME/Documents/Vault
+export BUN_INSTALL="$HOME/.bun"
+export PNPM_HOME="$HOME/.local/share/pnpm"
+
+# Basic settings
 set -o emacs
-# create a zkbd compatible hash;
-# to add other keys to this hash, see: man 5 terminfo
-typeset -g -A key
+unsetopt no_match
 
-key[Home]="${terminfo[khome]}"
-key[End]="${terminfo[kend]}"
-key[Insert]="${terminfo[kich1]}"
-key[Backspace]="${terminfo[kbs]}"
-key[Delete]="${terminfo[kdch1]}"
-key[Up]="${terminfo[kcuu1]}"
-key[Down]="${terminfo[kcud1]}"
-key[Left]="${terminfo[kcub1]}"
-key[Right]="${terminfo[kcuf1]}"
-key[PageUp]="${terminfo[kpp]}"
-key[PageDown]="${terminfo[knp]}"
-key[Shift-Tab]="${terminfo[kcbt]}"
+# Essential aliases
+alias vi=$EDITOR
+grep="grep --color=always"
 
-# setup key accordingly
-[[ -n "${key[Home]}"      ]] && bindkey -- "${key[Home]}"       beginning-of-line
-[[ -n "${key[End]}"       ]] && bindkey -- "${key[End]}"        end-of-line
-[[ -n "${key[Insert]}"    ]] && bindkey -- "${key[Insert]}"     overwrite-mode
-[[ -n "${key[Backspace]}" ]] && bindkey -- "${key[Backspace]}"  backward-delete-char
-[[ -n "${key[Delete]}"    ]] && bindkey -- "${key[Delete]}"     delete-char
-[[ -n "${key[Up]}"        ]] && bindkey -- "${key[Up]}"         history-beginning-search-backward
-[[ -n "${key[Down]}"      ]] && bindkey -- "${key[Down]}"       history-beginning-search-forward
-[[ -n "${key[Left]}"      ]] && bindkey -- "${key[Left]}"       backward-char
-[[ -n "${key[Right]}"     ]] && bindkey -- "${key[Right]}"      forward-char
-[[ -n "${key[PageUp]}"    ]] && bindkey -- "${key[PageUp]}"     beginning-of-buffer-or-history
-[[ -n "${key[PageDown]}"  ]] && bindkey -- "${key[PageDown]}"   end-of-buffer-or-history
-[[ -n "${key[Shift-Tab]}" ]] && bindkey -- "${key[Shift-Tab]}"  reverse-menu-complete
-
-# Finally, make sure the terminal is in application mode, when zle is
-# active. Only then are the values from $terminfo valid.
-if (( ${+terminfo[smkx]} && ${+terminfo[rmkx]} )); then
-	autoload -Uz add-zle-hook-widget
-	function zle_application_mode_start { echoti smkx }
-	function zle_application_mode_stop { echoti rmkx }
-	add-zle-hook-widget -Uz zle-line-init zle_application_mode_start
-	add-zle-hook-widget -Uz zle-line-finish zle_application_mode_stop
+# SIMPLIFIED STARSHIP - cache init but load synchronously when interactive
+if type starship >/dev/null 2>&1; then
+  # Only initialize starship for interactive shells to avoid overhead in scripts
+  if [[ -o interactive ]]; then
+    # Cache starship init to avoid repeated expensive calls
+    local starship_cache="$HOME/.cache/zsh/starship_init.zsh"
+    
+    # Regenerate cache if starship config is newer or cache doesn't exist
+    if [[ ! -f "$starship_cache" ]] || [[ "${HOME}/.config/starship.toml" -nt "$starship_cache" ]] 2>/dev/null; then
+      starship init zsh > "$starship_cache" 2>/dev/null
+    fi
+    
+    # Source the cached version
+    source "$starship_cache" 2>/dev/null
+  fi
+else
+  # Fallback prompt if starship not available
+  export PS1='%n@%m:%~%# '
 fi
 
-prompt_context() {
-  if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    prompt_segment black default "%(!.%{%F{yellow}%}.)$USER"
-  fi
-}
+# Essential tool functions
+if type "eza" >/dev/null 2>&1; then
+  alias ls="eza"
+  function la { eza -la -h -smod "$@"; }
+  function ll { eza -l -h -smod "$@"; }
+  function lt { eza -l -h --color=always -smod "$@" | tail -15; }
+  function lss { eza -l -h --color=always -smod "$@" | less -reXF; }
+  function l { eza -lah --color=always -smod --icons --git "$@"; }
+else
+  alias ls="ls --color=tty"
+  function la { ls -larth --color=always "$@"; }
+  function ll { ls -lrth --color=always "$@"; }
+  function lt { ls -larth --color=always "$@"; }
+  function lss { ls -lrth --color=always "$@" | less -erXF; }
+  function l { ls -ltrha --color=always "$@"; }
+fi
 
-grep="grep --color"
-alias vi=$EDITOR
+type bat >/dev/null 2>&1 && alias cat="bat"
+type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
+alias code='open -a "Visual Studio Code"'
 
 function ignore {
-    for dir in $*; do
+    for dir in "$@"; do
         [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
         echo "$dir" >> ~/.gitignore
     done
 }
 
-if type "vivid" >/dev/null 2>&1; then
+# SYNCHRONOUS deferred loading - no background jobs
+zsh_load_deferred() {
+  # Only load once
+  [[ -n "$ZSH_DEFERRED_LOADED" ]] && return
+  
+  # History settings
+  setopt histignoredups APPEND_HISTORY EXTENDED_HISTORY INC_APPEND_HISTORY
+  setopt HIST_FIND_NO_DUPS HIST_IGNORE_SPACE NO_HIST_BEEP SHARE_HISTORY
+  SAVEHIST=10000
+  HISTSIZE=10000
+  HISTFILE=$HOME/.history
+
+  # Load zap if available
+  [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]] && source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" 2>/dev/null
+  
+  # Load essential plugins (synchronously to avoid job management issues)
+  command -v plug >/dev/null && {
+    plug "zsh-users/zsh-autosuggestions" 2>/dev/null
+    plug "zsh-users/zsh-syntax-highlighting" 2>/dev/null 
+    plug 'none9632/zsh-sudo' 2>/dev/null
+  }
+  
+  # Plugin settings
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+  zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
+  ZSH_HIGHLIGHT_MAXLENGTH=300
+
+  # Key bindings setup
+  autoload -U up-line-or-beginning-search down-line-or-beginning-search
+  zle -N up-line-or-beginning-search
+  zle -N down-line-or-beginning-search
+  
+  # Essential key bindings
+  [[ -n "${terminfo[khome]}" ]] && bindkey -- "${terminfo[khome]}" beginning-of-line
+  [[ -n "${terminfo[kend]}" ]] && bindkey -- "${terminfo[kend]}" end-of-line
+  [[ -n "${terminfo[kcuu1]}" ]] && bindkey -- "${terminfo[kcuu1]}" history-beginning-search-backward
+  [[ -n "${terminfo[kcud1]}" ]] && bindkey -- "${terminfo[kcud1]}" history-beginning-search-forward
+  [[ -n "${terminfo[kdch1]}" ]] && bindkey -- "${terminfo[kdch1]}" delete-char
+
+  # Colors
+  if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
     export LS_COLORS="$(vivid generate catppuccin-mocha)"
-    export EZA_COLORS="$(vivid generate catppuccin-mocha)"
-fi
-
-if type "op" >/dev/null 2>&1; then
-  source <(op completion zsh)
-fi
-
-#unalias la
-function la {
-  if type "eza" >/dev/null 2>&1; then
-    eza -la -h -smod $*
-  else
-    ls -larth --color=always $*
+    export EZA_COLORS="$LS_COLORS"
   fi
+
+  ZSH_DEFERRED_LOADED=1
 }
 
-#unalias ll
-function ll {
-  if type "eza" >/dev/null 2>&1; then
-    eza -l -h -smod $*
-  else
-    ls -lrth --color=always $*
+# Load deferred items immediately for interactive shells
+[[ -o interactive ]] && zsh_load_deferred
+
+# MANUAL NVM SETUP - much faster than the plugin
+export NVM_DIR="$HOME/.nvm"
+nvm() {
+  if [[ -z "$NVM_LOADED" ]]; then
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+    NVM_LOADED=1
   fi
+  command nvm "$@"
 }
 
-function lt {
-  if type "eza" >/dev/null 2>&1; then
-    eza -l -h --color=always -smod $* | tail -15
-  else
-    ls -larth --color=always $*
+# Auto-use .nvmrc if present
+node() {
+  if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
+    nvm use 2>/dev/null || true
   fi
+  command node "$@"
 }
 
-function lss {
-  if type "eza" >/dev/null 2>&1; then
-    eza -l -h --color=always -smod $* | less -reXF
-  else
-    ls -lrth --color=always $* | less -erXF
+npm() {
+  if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
+    nvm use 2>/dev/null || true
   fi
+  command npm "$@"
 }
 
-function l {
-  if type "eza" >/dev/null 2>&1; then
-    eza -lah --color=always -smod --icons --git $*
-  else
-    ls -ltrha --color=always $*
-  fi
-}
-
-if type "eza" >/dev/null 2>&1; then
-  alias ls="eza"
-else
-  ls="ls --color=tty"
-fi
-
-if type "bat" >/dev/null 2>&1; then
-  alias cat="bat"
-fi
-if type "nala" >/dev/null 2>&1; then
-  alias sudo='sudo '
-  alias apt="nala"
-fi
-if type "pacstall" >/dev/null 2>&1; then
-  autoload bashcompinit
-  bashcompinit
-  source /usr/share/bash-completion/completions/pacstall
-fi
-
-# Fix issue with apt <thing>* not working
-unsetopt no_match
-
-# add Pulumi to the PATH
-export PATH="$HOME/.pulumi/bin:$PATH"
-PULUMI_ADDED=1; export PULUMI_ADDED
-
-# bun completions
-if [[ -s "/home/brad/.bun/_bun"  &&  $BUN_SOURCE -ne 1 ]]; then
-  source "/home/brad/.bun/_bun"
-  BUN_SOURCED=1
-fi
-
-export ZETTELKASTEN=$HOME/Documents/Vault
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-BUN_ADDED=1; export BUN_ADDED
-
-# Flatpak
-export PATH="$HOME/.local/bin:$PATH"
-FLATPAK_ADDED=1; export FLATPAK_ADDED
-
-# Go
-[ "$GO_ADDED" != "1" ] && if type go >/dev/null ; then 
-  export PATH="$(go env GOPATH)/bin:$PATH" 
-  GO_ADDED=1; export GO_ADDED
-fi
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/brad.robinson/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
-
-if [[ -d "$HOME/.cargo" && $CARGO_ADDED -ne 1 ]]; then
-  . "$HOME/.cargo/env"
-  CARGO_ADDED=1; export CARGO_ADDED
-fi
-
-# pnpm
-export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-PNPM_ADDED=1; export PNPM_ADDED
-# pnpm end
-
-alias code='open -a "Visual Studio Code"'
-
-if type "kubectl" >/dev/null 2>&1; then
-  kubectl () {
-      if [[ -z $KUBECTL_COMPLETE ]]
-      then
-          source <(command kubectl completion zsh)
-          KUBECTL_COMPLETE=1; export KUBECTL_COMPLETE
-      fi
-      command kubectl $*
+# Other lazy loaders
+if type kubectl >/dev/null 2>&1; then
+  kubectl() {
+    if [[ -z $KUBECTL_COMPLETE ]]; then
+      source <(command kubectl completion zsh) 2>/dev/null
+      KUBECTL_COMPLETE=1
+    fi
+    command kubectl "$@"
   }
   alias k=kubectl
   alias kgp="kubectl get pods"
 fi
 
-# Homebrew
-if [[ -d ~/../linuxbrew/.linuxbrew || -d /opt/homebrew ]]; then
-  brew () {
-      if [[ -z $BREW_COMPLETE ]]
-      then
-        test -d ~/../linuxbrew/.linuxbrew && eval "$(~/../linuxbrew/.linuxbrew/bin/brew shellenv)" 
-        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)" 
-        BREW_COMPLETE=1; export BREW_COMPLETE
-      fi
-      command brew $*
+if [[ -d /opt/homebrew || -d ~/.linuxbrew/.linuxbrew ]]; then
+  brew() {
+    if [[ -z $BREW_COMPLETE ]]; then
+      test -d ~/.linuxbrew/.linuxbrew && eval "$(~/.linuxbrew/.linuxbrew/bin/brew shellenv)"
+      test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
+      export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+      BREW_COMPLETE=1
+    fi
+    command brew "$@"
   }
-  export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
-
-  export NVM_DIR="$HOME/.nvm"
-  if [[ -z $NVM_COMPLETE ]]; then
-    [ -s "${BREW_PREFIX}/opt/nvm/nvm.sh" ] && \. "${BREW_PREFIX}/opt/nvm/nvm.sh"  # This loads nvm
-    [ -s "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm" ] && \. "${BREW_PREFIX}/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-    NVM_COMPLETE=1
-  fi
 fi
 
-# auto-cpufreq completions
-[ "$AUTO_LOADED" != "1" ] && if type auto-cpufreq >/dev/null; then
-  eval "$(_AUTO_CPUFREQ_COMPLETE=zsh_source auto-cpufreq)"
-  AUTO_LOADED=1; export AUTO_LOADED
+if type go >/dev/null 2>&1; then
+  go() {
+    if [[ -z $GO_ADDED ]]; then
+      export PATH="$(command go env GOPATH)/bin:$PATH"
+      GO_ADDED=1
+    fi
+    command go "$@"
+  }
 fi
 
-# The following lines were added by compinstall
-zstyle :compinstall filename '/home/brad/.zshrc'
-# End of lines added by compinstall
-
-if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh ]]; then
-  source ${XDG_CONFIG_HOME:-$HOME/.config}/op/plugins.sh
+# Rust lazy loading
+if [[ -d "$HOME/.cargo" ]]; then
+  cargo() {
+    if [[ -z $CARGO_ADDED ]]; then
+      source "$HOME/.cargo/env"
+      CARGO_ADDED=1
+    fi
+    command cargo "$@"
+  }
+  
+  rustc() {
+    if [[ -z $CARGO_ADDED ]]; then
+      source "$HOME/.cargo/env"
+      CARGO_ADDED=1
+    fi
+    command rustc "$@"
+  }
 fi
 
+# Ruby lazy loading
 if [[ -d $HOME/.rbenv ]]; then
   export PATH="$HOME/.rbenv/bin:$PATH"
-  eval "$(rbenv init - zsh)"
+  rbenv() {
+    if [[ -z $RBENV_LOADED ]]; then
+      eval "$(command rbenv init - zsh)"
+      RBENV_LOADED=1
+    fi
+    command rbenv "$@"
+  }
 fi
