@@ -2,12 +2,11 @@ vim.g.skip_ts_context_commentstring_module = true
 
 return {
   'nvim-treesitter/nvim-treesitter',
+  lazy = false,
+  branch = 'master',
   version = false,
   cmd = { 'TSUpdateSync', 'TSUpdate', 'TSInstall' },
-  build = function()
-    pcall(require('nvim-treesitter.install').update { with_sync = true })
-  end,
-  lazy = false,
+  build = ':TSUpdate',
   init = function(plugin)
     -- https://www.lazyvim.org/plugins/treesitter
     -- PERF: add nvim-treesitter queries to the rtp and it's custom query predicates early
@@ -58,9 +57,5 @@ return {
         node_decremental = '<bs>',
       },
     },
-  },
-  keys = {
-    { '<C-space>', desc = 'Increment selection' },
-    { '<bs>', desc = 'Decrement selection', mode = 'x' },
   },
 }
