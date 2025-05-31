@@ -1,5 +1,6 @@
 return {
   'lukas-reineke/indent-blankline.nvim',
+  lazy = 'BufEnter',
   opts = function()
     return {
       indent = {

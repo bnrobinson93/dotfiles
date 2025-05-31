@@ -42,7 +42,7 @@ return {
       },
       sources = cmp.config.sources {
         -- { name = 'codeium', max_item_count = 3 },
-        -- { name = 'supermaven' },
+        { name = 'supermaven' },
         { name = 'nvim_lsp' },
         { name = 'path', max_item_count = 3 },
         { name = 'buffer', keyword_length = 4, max_item_count = 5 },

@@ -1,3 +1,6 @@
+scan_timeout = 10
+command_timeout = 500
+
 format = """$directory\
 $git_branch\
 $git_commit\
@@ -10,6 +13,7 @@ $go\
 $nodejs\
 $jobs\
 $character"""
+
 # format_right = """$all"""
 palette = "catppuccin_mocha"
 
@@ -22,11 +26,13 @@ disabled = true
 
 [directory]
 style = "green"
-truncation_length = 3
+truncation_length = 5
 truncate_to_repo = false
+# fish_style_pwd_dir_length = 1
 
 [gcloud]
 detect_env_vars = ["GCP_PROJECT", "CLOUDSDK_CORE_PROJECT"]
+timeout = 500
 
 [git_state]
 format = '[ \($state( $progress_current of $progress_total)\)]($style)'
@@ -36,6 +42,7 @@ style = 'bold teal'
 symbol = " "
 style = 'sky'
 format = """on [$symbol$branch(:$remote_branch)]($style)"""
+only_attached = true
 
 [git_metrics]
 disabled = true
@@ -52,15 +59,24 @@ staged = "[󰐗 ](green)"
 renamed = "[󰁙 ](rose)"
 deleted = '[󰅙 ](red)'
 format = '([ $all_status$ahead_behind]($style) )'
+ignore_submodules = true
 
 [nodejs]
 format = "[$symbol($version )]($style)"
+detect_files = ["package.json"]
+detect_folders = []
+detect_extensions = []
 
 [package]
 format = "[📦 $version ](flamingo)"
 
 [jobs]
 style = "surface2"
+
+[go]
+detect_files = ["go.mod", "go.sum"]
+detect_folders = []
+detect_extensions = []
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
@@ -89,3 +105,37 @@ surface0 = "#313244"
 base = "#1e1e2e"
 mantle = "#181825"
 crust = "#11111b"
+
+# Disable slow/unused modules for better performance
+[aws]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[terraform]
+disabled = true
+
+[azure]
+disabled = true
+
+[battery]
+disabled = true
+
+[time]
+disabled = true
+
+[username]
+disabled = true
+
+[hostname]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[python]
+disabled = true
