@@ -3,6 +3,14 @@
 ACCESS_TOKEN_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/token"
 CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/ticktask/config"
 FOLDER_ERROR_TASKS="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/error_tasks"
+ONE_PASSWORD_BIN=$(ls -1d \
+  /opt/homebrew/bin/op \
+  /usr/bin/op \
+  /usr/local/bin/op \
+  /home/linuxbrew/.linuxbrew/bin/op \
+  $HOME/.homebrew/bin/op \
+  C:\\Program Files\\1Password CLI\\op.exe 2>/dev/null |
+  head -n1)
 
 if [ -z "$1" ]; then
   echo "Usage: $0 your task title"
@@ -14,9 +22,9 @@ fi
 task_title=$(echo "$@" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
 if [ ! -f $CONFIG_FILE ]; then
-  if type op >/dev/null 2>&1; then
-    echo "Fetching crednetials from 1Password"
-    credentials="$(op item get 'TickTick Access Token' --reveal --format json |
+  if [ -x $ONE_PASSWORD_BIN ] >/dev/null 2>&1; then
+    echo "Found 1Password CLI at $ONE_PASSWORD_BIN. Fetching credentials..."
+    credentials="$($ONE_PASSWORD_BIN item get 'TickTick Access Token' --reveal --format json |
       jq -r '.fields[] | "CLIENT_ID=\"\(select(.label=="username").value)\"; export CLIENT_ID", "CLIENT_SECRET=\"\(select(.label=="credential").value)\"; export CLIENT_SECRET"')"
     for cred in "$credentials"; do
       eval "${cred}"
