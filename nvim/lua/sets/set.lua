@@ -11,6 +11,7 @@ vim.opt.nu = true
 vim.opt.rnu = true
 
 vim.g.netrw_banner = 0
+vim.g.netrw_keepdir = 0
 
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2

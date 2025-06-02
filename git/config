@@ -3,7 +3,7 @@
 [push]
 	default = current
 [pull]
-  rebase = true
+  rebase = false
 [alias]
   l = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --branches
   s = status --short
