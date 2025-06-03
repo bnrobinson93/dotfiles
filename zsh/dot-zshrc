@@ -155,14 +155,14 @@ node() {
   if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
     nvm use 2>/dev/null || true
   fi
-  node "$@"
+  command node "$@"
 }
 
 npm() {
   if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
     nvm use 2>/dev/null || true
   fi
-  npm "$@"
+  command npm "$@"
 }
 
 # Other lazy loaders
@@ -172,7 +172,7 @@ if type kubectl >/dev/null 2>&1; then
       source <(command kubectl completion zsh) 2>/dev/null
       KUBECTL_COMPLETE=1
     fi
-    kubectl "$@"
+    command kubectl "$@"
   }
   alias k=kubectl
   alias kgp="kubectl get pods"
@@ -186,7 +186,7 @@ if [[ -d /opt/homebrew || -d ~/.linuxbrew/.linuxbrew ]]; then
       export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
       BREW_COMPLETE=1
     fi
-    brew "$@"
+    command brew "$@"
   }
 fi
 
@@ -196,7 +196,7 @@ if type go >/dev/null 2>&1; then
       export PATH="$(command go env GOPATH)/bin:$PATH"
       GO_ADDED=1
     fi
-    go "$@"
+    command go "$@"
   }
 fi
 
@@ -207,7 +207,7 @@ if [[ -d "$HOME/.cargo" ]]; then
       source "$HOME/.cargo/env"
       CARGO_ADDED=1
     fi
-    cargo "$@"
+    command cargo "$@"
   }
   
   rustc() {
@@ -215,7 +215,7 @@ if [[ -d "$HOME/.cargo" ]]; then
       source "$HOME/.cargo/env"
       CARGO_ADDED=1
     fi
-    rustc "$@"
+    command rustc "$@"
   }
 fi
 
@@ -227,7 +227,7 @@ if [[ -d $HOME/.rbenv ]]; then
       eval "$(command rbenv init - zsh)"
       RBENV_LOADED=1
     fi
-    rbenv "$@"
+    command rbenv "$@"
   }
 fi
 
