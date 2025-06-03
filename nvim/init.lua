@@ -12,7 +12,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = '\\'
 
 require('lazy').setup {
-  install = { colorscheme = { 'catppuccin' } },
+  install = { colorscheme = { 'night-owl', 'catppuccin' } },
   checker = { enabled = true, notify = false },
   change_detection = { notify = false },
   spec = { import = 'brad' },
