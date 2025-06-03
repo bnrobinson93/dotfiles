@@ -1,5 +1,5 @@
 shell-integration = zsh
-theme = catppuccin-mocha
+theme = NightOwlDark
 font-family = "DankMono Nerd Font"
 background-opacity = 0.95
 background-blur-radius = 20
@@ -7,3 +7,4 @@ font-size = 16
 mouse-hide-while-typing = true
 scrollback-limit = 1000000
 window-save-state = always
+cursor-text = white
