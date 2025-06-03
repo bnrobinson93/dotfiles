@@ -1,5 +1,6 @@
 return {
   'catppuccin/nvim',
+  enabled = false,
   lazy = false,
   name = 'catppuccin',
   priority = 1000,
@@ -46,11 +47,10 @@ return {
       end,
     }
 
-    vim.cmd.colorscheme 'catppuccin'
+    vim.cmd.colorscheme 'night-owl'
     require('lualine').setup {
       options = {
-        theme = 'catppuccin',
-        -- ... the rest of your lualine config
+        theme = 'night-owl',
       },
     }
   end,
