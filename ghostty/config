@@ -1,5 +1,5 @@
 shell-integration = zsh
-theme = NightOwlDark
+theme = catppuccin-mocha
 font-family = "DankMono Nerd Font"
 background-opacity = 0.95
 background-blur-radius = 20
