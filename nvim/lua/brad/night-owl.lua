@@ -1,6 +1,6 @@
 return {
   'oxfist/night-owl.nvim',
-  enabled = true,
+  enabled = false,
   lazy = false,
   name = 'night-owl',
   priority = 1000,
