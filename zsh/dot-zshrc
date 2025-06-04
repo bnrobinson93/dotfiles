@@ -77,7 +77,11 @@ else
   function l { ls -ltrha --color=always "$@"; }
 fi
 
+type rg >/dev/null 2>&1 && alias grep="rg"
+type fd >/dev/null 2>&1 && alias find="fd"
 type bat >/dev/null 2>&1 && alias cat="bat"
+type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" && alias cd="z"
+type dust >/dev/null 2>&1 && alias du="dust"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 alias code='open -a "Visual Studio Code"'
 
