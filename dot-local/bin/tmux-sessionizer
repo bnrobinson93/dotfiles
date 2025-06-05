@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
+SEARCH_PATHS="~ ~/Documents ~/Documents/code ~/Documents/code/integrations-monorepo/integrations ~/Documents/code/js-lib-monorepo/libraries"
+
 if [[ $# -eq 1 ]]; then
   selected_folder=$1
 else
-  selected_folder=$(find ~ ~/Documents ~/Documents/code ~/Documents/code/integrations-monorepo/integrations ~/Documents/code/js-lib-monorepo/libraries -mindepth 1 -maxdepth 1 -type d | fzf)
+  if type fd >/dev/null 2>&1; then
+    selected_folder=$(fd --full-path $SEARCH_PATHS --min-depth 1 --max-depth 1 --type d | fzf)
+  else
+    selected_folder=$(find $SEARCH_PATHS -mindepth 1 -maxdepth 1 -type d | fzf)
+  fi
 fi
 
 if [[ -z $selected_folder ]]; then
