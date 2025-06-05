@@ -74,6 +74,7 @@ format = "[📦 $version ](flamingo)"
 style = "surface2"
 
 [golang]
+symbol = " "
 detect_files = ["go.mod", "go.sum"]
 detect_folders = []
 detect_extensions = []
