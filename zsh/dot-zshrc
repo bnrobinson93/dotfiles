@@ -85,6 +85,15 @@ type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 alias code='open -a "Visual Studio Code"'
 
+# recording
+if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
+  function rec {
+    asciinema rec /tmp/demo.cast
+    agg --theme nord --font-size 16 --font-family "MesloLGL Nerd Font,FiraCode Nerd Font,DankMono Nerd Font" /tmp/demo.cast ~/Pictures/demo.gif
+    [ -f ~/Pictures/demo.gif ] && rm /tmp/demo.cast
+  }
+fi
+
 function ignore {
     for dir in "$@"; do
         [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
