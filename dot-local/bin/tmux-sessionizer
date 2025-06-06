@@ -25,32 +25,13 @@ fi
 selected_name=$(basename "$selected_folder" | tr . _)
 tmux_running=$(pgrep tmux)
 
-# check for .nvmrc and run nvm use if it exists
-run_nvm_check() {
-  local target_dir=$1
-  local session_name=$2
-  local is_new_session=${3:-true}
-
-  if [[ ! -f "$target_dir/.nvmrc" ]]; then
-    return
-  fi
-
-  if [[ "$is_new_session" == "true" ]]; then
-    tmux send-keys -t "$session_name" "nvm use" ENTER
-  fi
-}
-
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
   tmux new-session -s $selected_name -c $selected_folder
-  run_nvm_check "$selected_folder" "$selected_name" "true"
   exit 0
 fi
 
 if ! tmux has-session -t=$selected_name 2>/dev/null; then
   tmux new-session -ds $selected_name -c $selected_folder
-  run_nvm_check "$selected_folder" "$selected_name" "true"
-else
-  run_nvm_check "$selected_folder" "$selected_name"
 fi
 
 tmux switch-client -t $selected_name

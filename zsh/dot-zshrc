@@ -160,7 +160,6 @@ nvm() {
     return 1
 }
 
-# Auto-use .nvmrc if present
 node() {
   if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
     nvm use 2>/dev/null || true
@@ -174,6 +173,11 @@ npm() {
   fi
   command npm "$@"
 }
+
+# Auto-use nvm if .nvmrc exists
+if [[ -f .nvmrc && -n "$TMUX" ]]; then
+  nvm use
+fi
 
 # Other lazy loaders
 if type kubectl >/dev/null 2>&1; then
