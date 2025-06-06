@@ -146,12 +146,18 @@ zsh_load_deferred() {
 # MANUAL NVM SETUP - much faster than the plugin
 export NVM_DIR="$HOME/.nvm"
 nvm() {
-  if [[ -z "$NVM_LOADED" ]]; then
-    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/zsh_completion" ] && source "$NVM_DIR/zsh_completion"
-    NVM_LOADED=1
-  fi
-  nvm "$@"
+    if [[ -z "$NVM_LOADED" ]]; then
+        unset -f nvm
+        [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+        export NVM_LOADED=1
+        # Now that nvm is loaded, call it directly
+        nvm "$@"
+        return $?
+    fi
+    # If we get here, something went wrong - nvm should have been loaded
+    echo "Error: nvm failed to load properly"
+    return 1
 }
 
 # Auto-use .nvmrc if present

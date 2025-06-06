@@ -68,7 +68,7 @@ detect_folders = []
 detect_extensions = []
 
 [package]
-format = "[📦 $version ](flamingo)"
+format = "[ $version ](flamingo)"
 
 [jobs]
 style = "surface2"
