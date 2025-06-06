@@ -15,6 +15,7 @@ Contains all the dotfiles that I use in my development environment.
 - tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
 - stow - `sudo apt install stow`
 - Gitmux - `brew tap arl/arl && brew install gitmux`
+- Asciinema - `brew install asciinema agg`
 
 ## Usage
 
@@ -37,4 +38,10 @@ Run the below, then restart the terminal/tmux session.
 ```sh
 sudo apt-get install language-pack-en language-pack-en-base manpages
 sudo update-locale LANG=en_US.UTF8
+```
+
+# Fun stuff
+```sh
+asciinema rec demo.cast
+agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/Pictures/demo.gif && rm demo.cast
 ```
