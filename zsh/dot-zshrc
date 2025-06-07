@@ -25,7 +25,7 @@ else
 fi
 
 # Essential PATH - single assignment
-export PATH="$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:$PATH"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -201,10 +201,10 @@ if type kubectl >/dev/null 2>&1; then
   alias kgp="kubectl get pods"
 fi
 
-if [[ -d /opt/homebrew || -d ~/.linuxbrew/.linuxbrew ]]; then
+if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
   brew() {
     if [[ -z $BREW_COMPLETE ]]; then
-      test -d ~/.linuxbrew/.linuxbrew && eval "$(~/.linuxbrew/.linuxbrew/bin/brew shellenv)"
+      test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
       export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
       BREW_COMPLETE=1
@@ -255,5 +255,5 @@ if [[ -d $HOME/.rbenv ]]; then
 fi
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/brad.robinson/.rd/bin:$PATH"
+export PATH="/home/brad/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
