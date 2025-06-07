@@ -10,12 +10,19 @@ Contains all the dotfiles that I use in my development environment.
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
 - fzf - `sudo apt install fzf`
 - ripgrep - `sudo apt install ripgrep`
-- lazygit - `brew install lazygit`
 - tmux - `sudo apt install tmux`
 - tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
 - stow - `sudo apt install stow`
+
+Brew commands:
+
+- lazygit - `brew install lazygit`
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
+- Find - `brew install fd-find`
+- Bat - `brew install bat`
+- Ripgrep - `brew install ripgrep`
+- Dust - `brew install dust`
 
 ## Usage
 
@@ -41,6 +48,7 @@ sudo update-locale LANG=en_US.UTF8
 ```
 
 # Fun stuff
+
 ```sh
 asciinema rec demo.cast
 agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/Pictures/demo.gif && rm demo.cast

@@ -77,11 +77,13 @@ else
   function l { ls -ltrha --color=always "$@"; }
 fi
 
-type rg >/dev/null 2>&1 && alias grep="rg"
-type fd >/dev/null 2>&1 && alias find="fd"
-type bat >/dev/null 2>&1 && alias cat="bat"
-type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" && alias cd="z"
-type dust >/dev/null 2>&1 && alias du="dust -B"
+type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+
+# type rg >/dev/null 2>&1 && alias grep="rg"
+# type fd >/dev/null 2>&1 && alias find="fd"
+# type bat >/dev/null 2>&1 && alias cat="bat"
+# type z > /dev/null 2>&1 && alias cd="z"
+# type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 alias code='open -a "Visual Studio Code"'
 
@@ -100,6 +102,15 @@ function ignore {
         echo "$dir" >> ~/.gitignore
     done
 }
+
+if type coreutils >/dev/null 2>&1; then
+  coveredCommands=($(coreutils --list))
+  foreach util in $coveredCommands; do
+    if type $util >/dev/null 2>&1; then
+      alias $util="coreutils $util $@"
+    fi
+  done
+fi
 
 # SYNCHRONOUS deferred loading - no background jobs
 zsh_load_deferred() {
