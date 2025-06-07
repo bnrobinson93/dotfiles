@@ -9,7 +9,7 @@ $git_metrics\
 $git_status\
 $line_break\
 $package\
-$go\
+$golang\
 $nodejs\
 $jobs\
 $character"""
@@ -68,12 +68,13 @@ detect_folders = []
 detect_extensions = []
 
 [package]
-format = "[📦 $version ](flamingo)"
+format = "[ $version ](flamingo)"
 
 [jobs]
 style = "surface2"
 
-[go]
+[golang]
+symbol = " "
 detect_files = ["go.mod", "go.sum"]
 detect_folders = []
 detect_extensions = []

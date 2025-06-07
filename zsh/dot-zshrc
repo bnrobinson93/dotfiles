@@ -10,7 +10,7 @@ if command -v tmux &> /dev/null && \
   [ -n "$PS1" ] && \
   [[ ! "$TERM" =~ screen ]] && \
   [[ ! "$TERM" =~ tmux ]] && \
-  [ -z "$TMUX" ] && 
+  [ ! -z "$TMUX" ] &&  \
   ! pstree -s $$ | grep -wqE 'code|language-server'
 then
   exec tmux
@@ -77,9 +77,22 @@ else
   function l { ls -ltrha --color=always "$@"; }
 fi
 
+type rg >/dev/null 2>&1 && alias grep="rg"
+type fd >/dev/null 2>&1 && alias find="fd"
 type bat >/dev/null 2>&1 && alias cat="bat"
+type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" && alias cd="z"
+type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 alias code='open -a "Visual Studio Code"'
+
+# recording
+if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
+  function rec {
+    asciinema rec /tmp/demo.cast
+    agg --theme nord --font-size 16 --font-family "MesloLGL Nerd Font,FiraCode Nerd Font,DankMono Nerd Font" /tmp/demo.cast ~/Pictures/demo.gif
+    [ -f ~/Pictures/demo.gif ] && rm /tmp/demo.cast
+  }
+fi
 
 function ignore {
     for dir in "$@"; do
@@ -142,15 +155,20 @@ zsh_load_deferred() {
 # MANUAL NVM SETUP - much faster than the plugin
 export NVM_DIR="$HOME/.nvm"
 nvm() {
-  if [[ -z "$NVM_LOADED" ]]; then
-    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-    NVM_LOADED=1
-  fi
-  command nvm "$@"
+    if [[ -z "$NVM_LOADED" ]]; then
+        unset -f nvm
+        [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+        export NVM_LOADED=1
+        # Now that nvm is loaded, call it directly
+        nvm "$@"
+        return $?
+    fi
+    # If we get here, something went wrong - nvm should have been loaded
+    echo "Error: nvm failed to load properly"
+    return 1
 }
 
-# Auto-use .nvmrc if present
 node() {
   if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
     nvm use 2>/dev/null || true
@@ -164,6 +182,11 @@ npm() {
   fi
   command npm "$@"
 }
+
+# Auto-use nvm if .nvmrc exists
+if [[ -f .nvmrc && -n "$TMUX" ]]; then
+  nvm use
+fi
 
 # Other lazy loaders
 if type kubectl >/dev/null 2>&1; then
@@ -230,3 +253,7 @@ if [[ -d $HOME/.rbenv ]]; then
     command rbenv "$@"
   }
 fi
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="/Users/brad.robinson/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

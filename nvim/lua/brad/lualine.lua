@@ -6,7 +6,6 @@ return {
   opts = {
     options = {
       icons_enabled = true,
-      theme = 'catppuccin',
       always_divide_middle = false,
       section_separators = { left = '', right = '' },
       component_separators = '|',
