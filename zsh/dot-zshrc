@@ -40,6 +40,15 @@ unsetopt no_match
 alias vi=$EDITOR
 grep="grep --color=always"
 
+if type coreutils >/dev/null 2>&1; then
+  coveredCommands=($(coreutils --list))
+  foreach util in $coveredCommands; do
+    if type $util >/dev/null 2>&1; then
+      alias $util="coreutils $util $@"
+    fi
+  done
+fi
+
 # SIMPLIFIED STARSHIP - cache init but load synchronously when interactive
 if type starship >/dev/null 2>&1; then
   # Only initialize starship for interactive shells to avoid overhead in scripts
@@ -102,15 +111,6 @@ function ignore {
         echo "$dir" >> ~/.gitignore
     done
 }
-
-if type coreutils >/dev/null 2>&1; then
-  coveredCommands=($(coreutils --list))
-  foreach util in $coveredCommands; do
-    if type $util >/dev/null 2>&1; then
-      alias $util="coreutils $util $@"
-    fi
-  done
-fi
 
 # SYNCHRONOUS deferred loading - no background jobs
 zsh_load_deferred() {
