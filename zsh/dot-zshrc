@@ -25,7 +25,7 @@ else
 fi
 
 # Essential PATH - single assignment
-export PATH="$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:$PATH"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -39,6 +39,15 @@ unsetopt no_match
 # Essential aliases
 alias vi=$EDITOR
 grep="grep --color=always"
+
+if type coreutils >/dev/null 2>&1; then
+  coveredCommands=($(coreutils --list))
+  foreach util in $coveredCommands; do
+    if type $util >/dev/null 2>&1; then
+      alias $util="coreutils $util $@"
+    fi
+  done
+fi
 
 # SIMPLIFIED STARSHIP - cache init but load synchronously when interactive
 if type starship >/dev/null 2>&1; then
@@ -77,11 +86,13 @@ else
   function l { ls -ltrha --color=always "$@"; }
 fi
 
-type rg >/dev/null 2>&1 && alias grep="rg"
-type fd >/dev/null 2>&1 && alias find="fd"
-type bat >/dev/null 2>&1 && alias cat="bat"
-type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)" && alias cd="z"
-type dust >/dev/null 2>&1 && alias du="dust -B"
+type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+
+# type rg >/dev/null 2>&1 && alias grep="rg"
+# type fd >/dev/null 2>&1 && alias find="fd"
+# type bat >/dev/null 2>&1 && alias cat="bat"
+# type z > /dev/null 2>&1 && alias cd="z"
+# type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 alias code='open -a "Visual Studio Code"'
 
@@ -201,10 +212,10 @@ if type kubectl >/dev/null 2>&1; then
   alias kgp="kubectl get pods"
 fi
 
-if [[ -d /opt/homebrew || -d ~/.linuxbrew/.linuxbrew ]]; then
+if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
   brew() {
     if [[ -z $BREW_COMPLETE ]]; then
-      test -d ~/.linuxbrew/.linuxbrew && eval "$(~/.linuxbrew/.linuxbrew/bin/brew shellenv)"
+      test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
       export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
       BREW_COMPLETE=1
@@ -255,5 +266,5 @@ if [[ -d $HOME/.rbenv ]]; then
 fi
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/brad.robinson/.rd/bin:$PATH"
+export PATH="/home/brad/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
