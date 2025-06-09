@@ -1,0 +1,88 @@
+{
+	"name": "shadcn-ui-snippets",
+	"displayName": "shadcn/ui snippets",
+	"publisher": "VeroXyle",
+	"description": "Simply import and use shadcn-ui components in your project",
+	"icon": "dist/icon.png",
+	"version": "7.0.0",
+	"engines": {
+		"vscode": "^1.83.0"
+	},
+	"scripts": {
+		"generate": "rm -rf ./dist/ && bun src/scripts/generate.js && cp ./src/extras/* ./dist/ && cp ./src/images/* ./dist/ && bunx prettier --write ./dist/*.code-snippets",
+		"publish": "bun run generate && vsce publish"
+	},
+	"categories": [
+		"Snippets"
+	],
+	"keywords": [
+		"javascript snippets",
+		"nextjs snippets",
+		"react snippets",
+		"shadcn-ui-snippet",
+		"shadcn-ui-snippets",
+		"shadcn-ui",
+		"shadcn",
+		"shadcn/ui",
+		"shadcnui",
+		"snippet",
+		"snippets",
+		"typescript snippets"
+	],
+	"contributes": {
+		"snippets": [
+			{
+				"language": "javascriptreact",
+				"path": "./dist/import.code-snippets"
+			},
+			{
+				"language": "typescriptreact",
+				"path": "./dist/import.code-snippets"
+			},
+			{
+				"language": "javascriptreact",
+				"path": "./dist/usage.code-snippets"
+			},
+			{
+				"language": "typescriptreact",
+				"path": "./dist/usage.code-snippets"
+			},
+			{
+				"language": "javascriptreact",
+				"path": "./dist/help.code-snippets"
+			},
+			{
+				"language": "typescriptreact",
+				"path": "./dist/help.code-snippets"
+			},
+			{
+				"language": "javascriptreact",
+				"path": "./dist/pages.code-snippets"
+			},
+			{
+				"language": "typescriptreact",
+				"path": "./dist/pages.code-snippets"
+			}
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nrjdalal/shadcn-ui-snippets"
+	},
+	"bugs": {
+		"url": "https://github.com/nrjdalal/shadcn-ui-snippets/issues"
+	},
+	"__metadata": {
+		"id": "7303c3e5-f869-4d1c-965a-58039a287f85",
+		"publisherId": "68031e25-6a29-4d50-8a80-7e02acc6407b",
+		"publisherDisplayName": "VeroXyle",
+		"targetPlatform": "undefined",
+		"isApplicationScoped": false,
+		"isPreReleaseVersion": false,
+		"hasPreReleaseVersion": false,
+		"installedTimestamp": 1719771794922,
+		"pinned": false,
+		"preRelease": false,
+		"source": "gallery"
+	}
+}
