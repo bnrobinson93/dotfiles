@@ -41,8 +41,11 @@ return {
       custom_highlights = function(colors)
         return {
           ['@function'] = { fg = colors.blue, style = { 'italic' } },
-          -- If you also want to style function calls:
           ['@function.call'] = { fg = colors.blue, style = { 'italic' } },
+          ['@lsp.mod.declaration'] = { fg = colors.blue, style = { 'italic' } },
+          ['@variable.builtin'] = { fg = colors.teal, style = { 'italic' } },
+          ['@variable.member'] = { fg = colors.yellow, style = { 'italic' } },
+          ['String'] = { fg = colors.flamingo },
         }
       end,
     }
