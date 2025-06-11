@@ -2,10 +2,9 @@ vim.g.skip_ts_context_commentstring_module = true
 
 return {
   'nvim-treesitter/nvim-treesitter',
-  lazy = 'BufReadPre',
+  lazy = false,
   branch = 'master',
   version = false,
-  cmd = { 'TSUpdateSync', 'TSUpdate', 'TSInstall' },
   build = ':TSUpdate',
   init = function(plugin)
     -- https://www.lazyvim.org/plugins/treesitter
@@ -19,6 +18,7 @@ return {
   end,
   config = function(_, opts)
     require('nvim-treesitter.configs').setup(opts)
+    vim.keymap.set('n', '<F12>', '<cmd>Inspect<CR>', { desc = 'Show Treesitter Captures Under Cursor', silent = true })
   end,
   opts = {
     sync_install = false,
