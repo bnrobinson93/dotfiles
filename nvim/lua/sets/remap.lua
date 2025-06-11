@@ -32,8 +32,8 @@ vim.keymap.set('n', '<C-t>', '<cmd>tabnew<CR>', { desc = 'Open new tab' })
 -- vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
 vim.cmd [[ command W write ]]
 
-vim.keymap.set("n", "<leader>k", "<cmd>cnext<CR>zz", { desc = 'Go to next quickfix location'})
-vim.keymap.set("n", "<leader>j", "<cmd>cprev<CR>zz", { desc = 'Go to previous quickfix location'})
+vim.keymap.set('n', '<leader>k', '<cmd>cnext<CR>zz', { desc = 'Go to next quickfix location' })
+vim.keymap.set('n', '<leader>j', '<cmd>cprev<CR>zz', { desc = 'Go to previous quickfix location' })
 -- vim.keymap.set('n', '<leader>K', '<cmd>lnext<CR>zz', { desc = 'Jump to next location' })
 -- vim.keymap.set('n', '<leader>J', '<cmd>lprev<CR>zz', { desc = 'Jump to previous location' })
 
@@ -42,3 +42,34 @@ vim.keymap.set('n', '<leader>l', '<cmd>set relativenumber!<CR>', { desc = 'Toggl
 
 vim.keymap.set('n', '<leader>s', [[:s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Replace word under cursor' })
 vim.keymap.set('n', '<leader>S', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = 'Replace all instances of word under cursor' })
+
+vim.keymap.set({ 'n', 'v' }, '<F5>', function()
+  local file_name = vim.fn.expand '%'
+  local start_line, end_line
+
+  -- Get line numbers based on mode
+  local mode = vim.fn.mode()
+  if mode == 'v' or mode == 'V' or mode == '\22' then -- visual modes
+    start_line = vim.fn.line "'<"
+    end_line = vim.fn.line "'>"
+  else -- normal mode
+    start_line = vim.fn.line '.'
+    end_line = start_line
+  end
+
+  -- Construct the gh browse command
+  local gh_cmd
+  if start_line == end_line then
+    gh_cmd = string.format('gh browse %s:%d', vim.fn.shellescape(file_name), start_line)
+  else
+    gh_cmd = string.format('gh browse %s:%d-%d', vim.fn.shellescape(file_name), start_line, end_line)
+  end
+
+  -- Execute the command
+  local result = vim.fn.system(gh_cmd)
+  if vim.v.shell_error ~= 0 then
+    print('Error opening in GitHub: ' .. result)
+  else
+    print(string.format('Opened %s:%d%s in GitHub', file_name, start_line, start_line == end_line and '' or '-' .. end_line))
+  end
+end, { desc = 'Opens the current selection in GitHub' })
