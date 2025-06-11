@@ -1,9 +1,10 @@
 local Vault = vim.fn.expand '~' .. '/Documents/Vault'
+local ZETTLE_TEMPLATE = 'zettle'
 
 local function createNoteWithDefaultTemplate()
-  local TEMPLATE_FILENAME = 'zettle'
   local obsidian = require('obsidian').get_client()
   local utils = require 'obsidian.util'
+  local location = vim.fn.getcwd()
 
   -- prevent Obsidian.nvim from injecting it's own frontmatter table
   -- obsidian.opts.disable_frontmatter = true
@@ -23,10 +24,32 @@ local function createNoteWithDefaultTemplate()
   if not note then
     return
   end
+
+  -- Update the daily note
+  local datetime = os.time()
+  local dailyNote = obsidian:daily_note_path(datetime)
+
+  if location ~= Vault then
+    -- Swap to the vault to create the daily note, then swap back
+    vim.cmd('cd ' .. Vault)
+    obsidian:today()
+    vim.cmd('cd ' .. location)
+  end
+
+  if note.filename ~= dailyNote.filename then
+    -- If the note is not a daily note, update the daily note
+    local file = io.open(dailyNote.filename, 'a')
+    if not file then
+      vim.notify('Failed to open daily note: ' .. dailyNote.filename, vim.log.levels.ERROR)
+      return
+    end
+    file:write('\n\n[[' .. title .. ']]\n')
+    file:close()
+  end
+
   -- open new note in a buffer
   obsidian:open_note(note, { sync = true })
-  -- NOTE: make sure the template folder is configured in Obsidian.nvim opts
-  obsidian:write_note_to_buffer(note, { template = TEMPLATE_FILENAME })
+  obsidian:write_note_to_buffer(note, { template = ZETTLE_TEMPLATE })
 end
 
 return {
@@ -86,7 +109,7 @@ return {
     end,
     ui = { enable = false },
     attachments = {
-      img_folder = 'resources/attachments',
+      img_folder = Vault .. 'resources/attachments',
     },
     mappings = {
       -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
