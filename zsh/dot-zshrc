@@ -25,7 +25,7 @@ else
 fi
 
 # Essential PATH - single assignment
-export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -39,7 +39,6 @@ unsetopt no_match
 # Essential aliases
 alias vi=$EDITOR
 grep="grep --color=always"
-
 if type coreutils >/dev/null 2>&1; then
   coveredCommands=($(coreutils --list))
   foreach util in $coveredCommands; do
@@ -47,6 +46,12 @@ if type coreutils >/dev/null 2>&1; then
       alias $util="coreutils $util $@"
     fi
   done
+fi
+
+# for history
+if type atuin >/dev/null 2>&1; then
+  . "$HOME/.atuin/bin/env"
+  eval "$(atuin init zsh)"
 fi
 
 # SIMPLIFIED STARSHIP - cache init but load synchronously when interactive

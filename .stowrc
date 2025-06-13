@@ -2,6 +2,7 @@
 --dotfiles
 --ignore=dot-local
 --ignore=gitmux
+--ignore=zsh
 --ignore=.stowrc
 --ignore=DS_Store
 --ignore=README.md
