@@ -40,7 +40,8 @@ unsetopt no_match
 alias vi=$EDITOR
 grep="grep --color=always"
 if type coreutils >/dev/null 2>&1; then
-  coveredCommands=($(coreutils --list))
+  # Exclude printf for atuin
+  coveredCommands=($(coreutils --list | rg -v 'printf'))
   foreach util in $coveredCommands; do
     if type $util >/dev/null 2>&1; then
       alias $util="coreutils $util $@"

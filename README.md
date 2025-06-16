@@ -2,7 +2,7 @@
 
 Contains all the dotfiles that I use in my development environment.
 
-## Requirements
+## Install Tools - Requirements
 
 - git - `sudo apt install git`
 - zsh - `sudo apt install zsh`
@@ -21,11 +21,9 @@ Contains all the dotfiles that I use in my development environment.
 ## Usage
 
 ```sh
-stow .
-stow -t ~/.local -S dot-local --dotfiles
-ln -s ./zsh/dot-zshrc ~/.zshrc
-ln -s ./zsh/dot-zshenv ~/.zshenv
-ln -s ./gitmux/dot-gitmux.conf ~/.gitmux.conf
+stow -v2 .
+stow -v2 -t ~/.local -S dot-local --dotfiles
+stow -v2 -t ~ -S zsh gitmux --dotfiles
 chsh -s /bin/zsh
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 ```
@@ -41,9 +39,11 @@ sudo apt-get install language-pack-en language-pack-en-base manpages
 sudo update-locale LANG=en_US.UTF8
 ```
 
-# Fun stuff
+# Recording
 
 ```sh
 asciinema rec demo.cast
 agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/Pictures/demo.gif && rm demo.cast
 ```
+
+![demo](./resources/record-demo.gif)

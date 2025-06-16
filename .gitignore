@@ -4,3 +4,4 @@ tmux/plugins/**
 nvim/lazy-lock.json
 *.log
 nvim/spell/**
+nvim.lazy/**
