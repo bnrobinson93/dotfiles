@@ -1,6 +1,6 @@
 return {
   'JoosepAlviste/nvim-ts-context-commentstring',
-  lazy = 'BufRead',
+  event = 'BufRead',
   dependencies = {
     'nvim-treesitter/nvim-treesitter',
   },
