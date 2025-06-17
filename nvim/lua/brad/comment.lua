@@ -22,7 +22,7 @@ return {
   },
   {
     'numToStr/Comment.nvim',
-    lazy = 'BufReadPost',
+    event = 'BufReadPost',
     dependencies = { 'JoosepAlviste/nvim-ts-context-commentstring' },
     config = function()
       local prehook = require('ts_context_commentstring.integrations.comment_nvim').create_pre_hook()

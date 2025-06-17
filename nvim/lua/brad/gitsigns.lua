@@ -1,7 +1,7 @@
 return {
   {
     'lewis6991/gitsigns.nvim',
-    lazy = 'BufEnter',
+    event = 'BufEnter',
     dependencies = { 'nvim-telescope/telescope.nvim' },
     cond = require('telescope.utils').get_os_command_output { 'git', 'rev-parse', '--is-inside-work-tree' },
     opts = {
