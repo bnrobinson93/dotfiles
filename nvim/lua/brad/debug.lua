@@ -231,7 +231,7 @@ return {
       end
     end,
   },
-  { 'nvim-neotest/nvim-nio', lazy = true },
+  { 'nvim-neotest/nvim-nio' },
   {
     'jay-babu/mason-nvim-dap.nvim',
     dependencies = 'mason.nvim',
