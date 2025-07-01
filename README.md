@@ -6,6 +6,7 @@ Contains all the dotfiles that I use in my development environment.
 
 - git - `sudo apt install git`
 - zsh - `sudo apt install zsh`
+- carapace - `brew install carapace`
 - starship - `curl -sS https://starship.rs/install.sh | sh `
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
 - fzf - `sudo apt install fzf`
