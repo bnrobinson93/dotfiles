@@ -143,6 +143,10 @@ zsh_load_deferred() {
   # Plugin settings
   ZSH_AUTOSUGGEST_STRATEGY=(history completion)
   zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
+  zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
+  if test carapace >/dev/null 2>&1; then
+    source <(carapace _carapace)
+  fi
   ZSH_HIGHLIGHT_MAXLENGTH=300
 
   # Key bindings setup
