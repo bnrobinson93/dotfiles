@@ -31,7 +31,7 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
     -- Set these options once
     vim.opt_local.list = true
     vim.opt_local.listchars:append 'trail:·'
-    vim.cmd 'hi def link ExtraWhitespace DiffDelete'
+    vim.cmd 'hi def link ExtraWhitespace RedrawDebugRecompose'
     vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
 
     -- Store reference to update_diagnostics in buffer scope
