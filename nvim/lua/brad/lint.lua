@@ -9,8 +9,9 @@ return {
       typescriptreact = { 'eslint_d' },
       javascript = { 'eslint_d' },
       javascriptreact = { 'eslint_d' },
-      yaml = { 'actionlint', 'zizmor' },
-      ['yaml.ghaction'] = { 'actionlint', 'zizmor' },
+      yaml = { 'yamllint' },
+      ['yaml.ghaction'] = { 'yamllint', 'actionlint', 'zizmor' },
+      ['yaml.githubactions'] = { 'yamllint', 'actionlint', 'zizmor' },
     }
 
     local lint_augroup = vim.api.nvim_create_augroup('Lint', { clear = true })
@@ -44,5 +45,5 @@ return {
       mode = { 'n', 'v' },
       desc = 'Lint current file',
     },
-  }
+  },
 }
