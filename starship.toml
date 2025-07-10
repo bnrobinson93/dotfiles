@@ -2,6 +2,7 @@ scan_timeout = 10
 command_timeout = 500
 
 format = """$directory\
+${custom.jj}\
 $git_branch\
 $git_commit\
 $git_state\
@@ -140,3 +141,30 @@ disabled = true
 
 [python]
 disabled = true
+
+[custom.jj]
+command = '''
+jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 --template '
+  separate(" ",
+    change_id.shortest(4),
+    bookmarks,
+    "|",
+    concat(
+      if(conflict, "󰀨 "),
+      if(divergent, "󰵚 "),
+      if(hidden, "👻"),
+      if(immutable, "🔒"),
+    ),
+    raw_escape_sequence("\x1b[1;32m") ++ if(empty, "(empty)"),
+    raw_escape_sequence("\x1b[1;32m") ++ coalesce(
+      truncate_end(32, description.first_line(), "…"),
+      "(no description set)",
+    ) ++ raw_escape_sequence("\x1b[0m"),
+  )
+'
+'''
+ignore_timeout = true
+description = "The current jj status"
+symbol = "󱗆 "
+detect_folders = [".jj"]
+
