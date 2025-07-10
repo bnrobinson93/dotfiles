@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+---
+name: la
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([eza, -la, -h, -smod])']
+---
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+name: ll
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([eza, -l, -h, -smod])']
+---
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+name: lt
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([eza, -l, -h, --color=always, -smod])']
+---
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+name: lss
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([eza, -l, -h, --color=always, -smod])']
+---
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+name: l
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([eza, -lah, --color=always, -smod, --icons, --git])']
+---
+# yaml-language-server: $schema=https://carapace.sh/schemas/command.json
+name: k
+completion:
+  positional:
+    - ['$carapace.bridge.Zsh([kubectl])']
