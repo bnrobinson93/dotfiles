@@ -1,5 +1,8 @@
 return {
   'folke/zen-mode.nvim',
+  cond = function()
+    return not vim.g.vscode
+  end,
   opts = {
     window = {
       backdrop = 0.95,

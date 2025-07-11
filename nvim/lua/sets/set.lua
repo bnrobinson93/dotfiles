@@ -20,6 +20,9 @@ vim.opt.autoindent = true
 vim.opt.expandtab = true
 vim.opt.smarttab = true
 
+-- views can only be fully collapsed with the global statusline
+vim.opt.laststatus = 3
+
 -- Highlight trailing spaces in YAML files
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = { '*.yaml', '*.yml' },
