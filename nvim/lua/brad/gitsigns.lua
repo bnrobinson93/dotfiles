@@ -3,7 +3,12 @@ return {
     'lewis6991/gitsigns.nvim',
     event = 'BufEnter',
     dependencies = { 'nvim-telescope/telescope.nvim' },
-    cond = require('telescope.utils').get_os_command_output { 'git', 'rev-parse', '--is-inside-work-tree' },
+    cond = function()
+      if vim.g.vscode then
+        return false
+      end
+      return require('telescope.utils').get_os_command_output { 'git', 'rev-parse', '--is-inside-work-tree' }
+    end,
     opts = {
       signs = {
         add = { text = '▎' },

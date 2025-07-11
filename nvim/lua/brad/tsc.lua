@@ -1,6 +1,9 @@
 return {
   'dmmulroy/tsc.nvim',
   ft = { 'typescript', 'typescriptreact', 'react', 'typescriptreact', 'javascript', 'javascriptreact' },
+  cond = function()
+    return not vim.g.vscode
+  end,
   cmd = 'TSC',
   opts = {
     use_trouble_qflist = true,
