@@ -3,6 +3,9 @@ local lazy_status = require 'lazy.status'
 return {
   'nvim-lualine/lualine.nvim',
   dependencies = { 'nvim-tree/nvim-web-devicons' },
+  cond = function()
+    return not vim.g.vscode
+  end,
   opts = {
     options = {
       icons_enabled = true,
@@ -41,7 +44,7 @@ return {
             done = '✓',
             separator = ', ',
           },
-          ignore_lsp = { 'GitHub Copilot' },
+          ignore_lsp = { 'GitHub Copilot', 'copilot' },
         },
       },
       lualine_x = {

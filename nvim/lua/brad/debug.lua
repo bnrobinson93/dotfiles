@@ -68,6 +68,9 @@ return {
   {
     'mfussenegger/nvim-dap',
     lazy = true,
+    cond = function()
+      return not vim.g.vscode
+    end,
     recommended = true,
     desc = 'Debugging support. Requires language specific adapters to be configured. (see lang extras)',
 

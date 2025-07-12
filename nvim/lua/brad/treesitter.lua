@@ -3,6 +3,9 @@ vim.g.skip_ts_context_commentstring_module = true
 return {
   'nvim-treesitter/nvim-treesitter',
   lazy = false,
+  cond = function()
+    return not vim.g.vscode
+  end,
   branch = 'master',
   version = false,
   build = ':TSUpdate',

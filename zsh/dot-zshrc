@@ -167,6 +167,13 @@ zsh_load_deferred() {
     export EZA_COLORS="$LS_COLORS"
   fi
 
+<<<<<<< HEAD
+=======
+  # if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
+  #   op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+  # fi
+
+>>>>>>> 3e6ca748580da0f73c61a67e022cba101c34e866
   ZSH_DEFERRED_LOADED=1
 }
 
@@ -179,7 +186,10 @@ nvm() {
     if [[ -z "$NVM_LOADED" ]]; then
         unset -f nvm
         [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+<<<<<<< HEAD
         [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+=======
+>>>>>>> 3e6ca748580da0f73c61a67e022cba101c34e866
         export NVM_LOADED=1
         # Now that nvm is loaded, call it directly
         nvm "$@"
@@ -210,6 +220,7 @@ if [[ -f .nvmrc && -n "$TMUX" ]]; then
 fi
 
 # Other lazy loaders
+<<<<<<< HEAD
 if type kubectl >/dev/null 2>&1; then
   kubectl() {
     if [[ -z $KUBECTL_COMPLETE ]]; then
@@ -278,3 +289,92 @@ fi
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="/home/brad/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+=======
+function get_completions() {
+  if type nvm >/dev/null 2>&1; then
+    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+  fi
+
+  if type kubectl >/dev/null 2>&1; then
+    kubectl() {
+      if [[ -z $KUBECTL_COMPLETE ]]; then
+        source <(command kubectl completion zsh) 2>/dev/null
+        KUBECTL_COMPLETE=1
+      fi
+      command kubectl "$@"
+    }
+    alias k=kubectl
+    alias kgp="kubectl get pods"
+  fi
+
+  if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
+    brew() {
+      if [[ -z $BREW_COMPLETE ]]; then
+        test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
+        export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+        BREW_COMPLETE=1
+      fi
+      command brew "$@"
+    }
+  fi
+
+  if type go >/dev/null 2>&1; then
+    go() {
+      if [[ -z $GO_ADDED ]]; then
+        export PATH="$(command go env GOPATH)/bin:$PATH"
+        GO_ADDED=1
+      fi
+      command go "$@"
+    }
+  fi
+
+  # Rust lazy loading
+  if [[ -d "$HOME/.cargo" ]]; then
+    cargo() {
+      if [[ -z $CARGO_ADDED ]]; then
+        source "$HOME/.cargo/env"
+        CARGO_ADDED=1
+      fi
+      command cargo "$@"
+    }
+    
+    rustc() {
+      if [[ -z $CARGO_ADDED ]]; then
+        source "$HOME/.cargo/env"
+        CARGO_ADDED=1
+      fi
+      command rustc "$@"
+    }
+  fi
+
+  # Ruby lazy loading
+  if [[ -d $HOME/.rbenv ]]; then
+    export PATH="$HOME/.rbenv/bin:$PATH"
+    rbenv() {
+      if [[ -z $RBENV_LOADED ]]; then
+        eval "$(command rbenv init - zsh)"
+        RBENV_LOADED=1
+      fi
+      command rbenv "$@"
+    }
+  fi
+
+  # JJ
+  if type jj >/dev/null 2>&1; then
+    source <(jj util completion zsh)
+  fi
+}
+
+if test carapace >/dev/null 2>&1; then
+  source <(carapace _carapace)
+else
+  get_completions
+fi
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/brad.robinson/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/brad.robinson/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/brad.robinson/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/brad.robinson/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+>>>>>>> 3e6ca748580da0f73c61a67e022cba101c34e866
