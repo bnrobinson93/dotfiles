@@ -135,6 +135,7 @@ vim.api.nvim_create_autocmd('VimLeavePre', {
 return {
   'williamboman/mason-lspconfig.nvim',
   event = { 'BufReadPre', 'BufNewFile' },
+  cond = function() return not vim.g.vscode end,
   dependencies = {
     'williamboman/mason.nvim',
     'neovim/nvim-lspconfig',

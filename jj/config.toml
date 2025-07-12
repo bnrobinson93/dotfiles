@@ -1,0 +1,38 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[user]
+name = "Brad Robinson"
+email = "github@biblebrad.com"
+
+[aliases]
+s = "status"
+d = "describe -m"
+c = "commit -m"
+l = ["log", "-T", "label('change_id', change_id.short()) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ description.first_line() ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ if(signature, ' ' ++ label('signature', '[signed]'), '')"]
+ac = ["describe", "-m"]
+push = ["bookmark", "create"]
+
+[commit]
+sign = true
+
+[ui]
+default-command = ["log", "--limit", "10"]
+diff-editor = ":builtin"
+show-cryptographic-signatures = true
+
+[signing]
+key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDKsmcUtNTWAR5Voj2VSV1iiqAH3/OboWLX7ZMdtVZ9W"
+backend = "ssh"
+
+[core]
+excludesfile = "~/.gitignore"
+
+[signing.backends.ssh]
+program = "ssh-sign-wrapper.sh"
+allowed_signers = "~/.ssh/allowed_signers"
+
+[git]
+auto-local-bookmark = true
+
+[templates]
+git_push_bookmark = '"" ++ change_id.short()'

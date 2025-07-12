@@ -1,6 +1,7 @@
 return {
   'NvChad/nvim-colorizer.lua',
   event = 'BufReadPre',
+  cond = function() return not vim.g.vscode end,
   opts = {
     filetypes = { '*', '!vim', '!prompt', '!popup' },
     user_default_options = {
