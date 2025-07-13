@@ -2,7 +2,7 @@
 
 [user]
 name = "Brad Robinson"
-email = "31802085+bnrobinson93@users.noreply.github.com"
+email = "github@biblebrad.com"
 
 [aliases]
 s = "status"
@@ -16,23 +16,28 @@ push = ["bookmark", "create"]
 sign = true
 
 [ui]
-default-command = ["log", "--limit", "10"]
+default-command = ["log", "--limit", "15"]
 diff-editor = ":builtin"
 show-cryptographic-signatures = true
 
+# this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
+# It would be nice to use "own" istead of "drop"
 [signing]
-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDKsmcUtNTWAR5Voj2VSV1iiqAH3/OboWLX7ZMdtVZ9W"
+behavior = "own"
+key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
 backend = "ssh"
 
 [core]
 excludesfile = "~/.gitignore"
 
 [signing.backends.ssh]
+# program = "ssh-sign-wrapper.sh"
 program = "ssh-sign-wrapper.sh"
 allowed_signers = "~/.ssh/allowed_signers"
 
 [git]
 auto-local-bookmark = true
+sign-on-push = true
 
 [templates]
 git_push_bookmark = '"" ++ change_id.short()'
