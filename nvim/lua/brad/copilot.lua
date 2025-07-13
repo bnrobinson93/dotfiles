@@ -10,7 +10,7 @@ return {
       vim.fn.expand '$HOME' .. '/Documents/code',
     },
     suggestion = {
-      auto_trigger = true,
+      auto_trigger = false,
       keymap = {
         accept = '<M-a>',
       },
