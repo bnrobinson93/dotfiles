@@ -19,7 +19,7 @@ local function createNoteWithDefaultTemplate()
     title = nil
   end
 
-  note = obsidian:create_note { title = title, no_write = true }
+  note = obsidian:create_note { title = title, no_write = true, dir = '0-Inbox' }
 
   if not note then
     return
@@ -78,7 +78,7 @@ return {
       date_format = '%Y%m%d',
       time_format = '%H%M',
     },
-    new_notes_location = '0-Inbox',
+    new_notes_location = 'notes_subdir',
     note_id_func = function(title)
       -- Create note IDs in a Zettelkasten format with a timestamp and a suffix.
       -- In this case a note with the title 'My new note' will be given an ID that looks
@@ -86,14 +86,14 @@ return {
       local suffix = ''
       if title ~= nil then
         -- If title is given, transform it into valid file name.
-        suffix = title:gsub(' ', '-'):gsub('[^A-Za-z0-9-]', ''):lower()
+        suffix = title:gsub('[^A-Za-z0-9-]', ''):lower()
       else
         -- If title is nil, just add 4 random uppercase letters to the suffix.
         for _ = 1, 4 do
-          suffix = suffix .. string.char(math.random(65, 90))
+          suffix = tostring(os.time()) .. '-' .. suffix .. string.char(math.random(65, 90))
         end
       end
-      return tostring(os.time()) .. '-' .. suffix
+      return suffix
     end,
     note_frontmatter_func = function(note)
       local now = os.date '%Y-%m-%dT%H:%M'

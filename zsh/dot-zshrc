@@ -6,15 +6,15 @@ autoload -Uz compinit
 compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
 # Autostart tmux (keep as-is since it's fast)
-if command -v tmux &> /dev/null && \
-  [ -n "$PS1" ] && \
-  [[ ! "$TERM" =~ screen ]] && \
-  [[ ! "$TERM" =~ tmux ]] && \
-  [ ! -z "$TMUX" ] &&  \
-  ! pstree -s $$ | grep -wqE 'code|language-server'
-then
-  exec tmux
-fi
+# if command -v tmux &> /dev/null && \
+#   [ -n "$PS1" ] && \
+#   [[ ! "$TERM" =~ screen ]] && \
+#   [[ ! "$TERM" =~ tmux ]] && \
+#   [ ! -z "$TMUX" ] &&  \
+#   ! pstree -s $$ | grep -wqE 'code|language-server'
+# then
+#   exec tmux
+# fi
 
 # Essential environment
 export LANG=en_US.UTF-8
@@ -25,7 +25,7 @@ else
 fi
 
 # Essential PATH - single assignment
-export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin:$HOME/Downloads/google-cloud-sdk/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -296,3 +296,7 @@ else
   get_completions
 fi
 
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="/Users/brad.robinson/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

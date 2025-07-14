@@ -8,13 +8,13 @@ email = "31802085+bnrobinson93@users.noreply.github.com"
 s = "status"
 l = ["log", "--limit", "15"]
 push = ["git", "push", "--allow-new"]
-tug = ["bookmark", "move", "--to", "@"]
+tug = ["bookmark", "move", "--to", "@-"] # for the new + tug + squash workflow
 
 [commit]
 sign = true
 
 [ui]
-default-command  = ["log", "--limit", "15", "-T", "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ description.first_line() ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"]
+default-command  = ["log", "--limit", "15", "-T", "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ coalesce(description.first_line(), '(empty)') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"]
 diff-editor = ":builtin"
 merge-editor = ["meld", "$left", "$base", "$right", "-o", "$output"]
 
