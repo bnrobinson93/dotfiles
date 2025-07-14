@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
       if [[ "$key_arg" == ssh-* ]]; then
         # It's key content, create a temporary file
         temp_key=$(mktemp)
-        echo "$key_arg github@biblebrad.com" > "$temp_key"
+        echo "$key_arg 31802085+bnrobinson93@users.noreply.github.com" > "$temp_key"
         key_file="$temp_key"
       else
         # It's already a file path, use as-is
