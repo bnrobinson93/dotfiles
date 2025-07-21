@@ -6,15 +6,15 @@ autoload -Uz compinit
 compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
 # Autostart tmux (keep as-is since it's fast)
-if command -v tmux &> /dev/null && \
-  [ -n "$PS1" ] && \
-  [[ ! "$TERM" =~ screen ]] && \
-  [[ ! "$TERM" =~ tmux ]] && \
-  [ ! -z "$TMUX" ] &&  \
-  ! pstree -s $$ | grep -wqE 'code|language-server'
-then
-  exec tmux
-fi
+# if command -v tmux &> /dev/null && \
+#   [ -n "$PS1" ] && \
+#   [[ ! "$TERM" =~ screen ]] && \
+#   [[ ! "$TERM" =~ tmux ]] && \
+#   [ ! -z "$TMUX" ] &&  \
+#   ! pstree -s $$ | grep -wqE 'code|language-server'
+# then
+#   exec tmux
+# fi
 
 # Essential environment
 export LANG=en_US.UTF-8
@@ -25,7 +25,7 @@ else
 fi
 
 # Essential PATH - single assignment
-export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin:$HOME/Downloads/google-cloud-sdk/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -118,11 +118,6 @@ function ignore {
     done
 }
 
-export SSH_AUTH_SOCK=~/.1password/agent.sock
-if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
-  op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
-fi
-
 # SYNCHRONOUS deferred loading - no background jobs
 zsh_load_deferred() {
   # Only load once
@@ -169,6 +164,14 @@ zsh_load_deferred() {
     export EZA_COLORS="$LS_COLORS"
   fi
 
+  export SSH_AUTH_SOCK=~/.1password/agent.sock
+  if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
+    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+  fi
+
+  if test carapace >/dev/null 2>&1; then
+    source <(carapace _carapace)
+  fi
   ZSH_DEFERRED_LOADED=1
 }
 
@@ -292,6 +295,7 @@ if test carapace >/dev/null 2>&1; then
 else
   get_completions
 fi
+
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="/Users/brad.robinson/.rd/bin:$PATH"
