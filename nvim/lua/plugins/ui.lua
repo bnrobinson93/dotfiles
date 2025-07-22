@@ -1,0 +1,19 @@
+return {
+  -- Disable the bufferline completely
+  { "akinsho/bufferline.nvim", enabled = false },
+
+  -- Configure noice to use traditional command line
+  {
+    "folke/noice.nvim",
+    opts = {
+      cmdline = {
+        enabled = true,
+        view = "cmdline", -- Use traditional bottom command line instead of popup
+      },
+      popupmenu = {
+        enabled = true,
+        backend = "cmp", -- Use cmp for completion instead of noice popup
+      },
+    },
+  },
+}
