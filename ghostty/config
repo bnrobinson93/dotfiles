@@ -1,6 +1,6 @@
 shell-integration = zsh
 theme = catppuccin-mocha
-font-family = "DankMono Nerd Font Propo"
+font-family = "Dank Mono Nerd Font Propo"
 background-opacity = 0.95
 background-blur-radius = 20
 font-size = 16

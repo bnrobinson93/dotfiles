@@ -42,7 +42,7 @@ style = 'bold teal'
 [git_branch]
 symbol = ""
 style = 'sky'
-format = """on [$symbol$branch(:$remote_branch)]($style)"""
+format = """on [$symbol$branch(:$remote_branch)]($style) """
 only_attached = true
 
 [git_metrics]
@@ -59,7 +59,7 @@ modified = "[󰛿 ](peach)"
 staged = "[󰐗 ](green)"
 renamed = "[󰁙 ](rose)"
 deleted = '[󰅙 ](red)'
-format = '([$all_status$ahead_behind]($style))'
+format = '([$ahead_behind$all_status ]($style))'
 ignore_submodules = true
 
 [nodejs]
