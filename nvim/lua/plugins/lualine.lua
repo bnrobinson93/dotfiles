@@ -7,10 +7,10 @@ return {
     },
     extensions = { "nvim-dap-ui", "quickfix", "trouble" },
     sections = {
-      lualine_a = { "mode" },
       lualine_b = {
-        "filename",
         "branch",
+        LazyVim.lualine.root_dir(),
+        "filename",
         { "diagnostics", sources = { "nvim_diagnostic", "nvim_workspace_diagnostic" }, update_in_insert = false },
         "nvim-dap-ui",
         "quickfix",
@@ -32,7 +32,7 @@ return {
           icon = "",
           symbols = {
             spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
-            done = "✓",
+            done = "",
             separator = ", ",
           },
           ignore_lsp = { "GitHub Copilot", "copilot" },
