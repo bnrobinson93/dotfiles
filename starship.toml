@@ -40,7 +40,7 @@ format = '[ \($state( $progress_current of $progress_total)\)]($style)'
 style = 'bold teal'
 
 [git_branch]
-symbol = " "
+symbol = ""
 style = 'sky'
 format = """on [$symbol$branch(:$remote_branch)]($style)"""
 only_attached = true
@@ -59,7 +59,7 @@ modified = "[󰛿 ](peach)"
 staged = "[󰐗 ](green)"
 renamed = "[󰁙 ](rose)"
 deleted = '[󰅙 ](red)'
-format = '([ $all_status$ahead_behind]($style) )'
+format = '([$all_status$ahead_behind]($style))'
 ignore_submodules = true
 
 [nodejs]
@@ -167,4 +167,3 @@ ignore_timeout = true
 description = "The current jj status"
 symbol = "󱗆 "
 detect_folders = [".jj"]
-
