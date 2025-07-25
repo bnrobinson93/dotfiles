@@ -11,7 +11,6 @@ return {
       lualine_b = {
         "filename",
         "branch",
-        "diff",
         { "diagnostics", sources = { "nvim_diagnostic", "nvim_workspace_diagnostic" }, update_in_insert = false },
         "nvim-dap-ui",
         "quickfix",
