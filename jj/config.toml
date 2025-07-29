@@ -25,8 +25,8 @@ diff-editor = ":builtin"
 show-cryptographic-signatures = true
 
 [colors]
-signature = "green"
-unsigned = "red"
+signature = "blue"
+unsigned = "cyan"
 
 # this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
 [signing]
