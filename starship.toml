@@ -36,11 +36,11 @@ detect_env_vars = ["GCP_PROJECT", "CLOUDSDK_CORE_PROJECT"]
 timeout = 500
 
 [git_state]
-format = '[ \($state( $progress_current of $progress_total)\)]($style)'
+format = '[\($state( $progress_current of $progress_total)\) ]($style)'
 style = 'bold teal'
 
 [git_branch]
-symbol = ""
+symbol = " "
 style = 'sky'
 format = """on [$symbol$branch(:$remote_branch)]($style) """
 only_attached = true
