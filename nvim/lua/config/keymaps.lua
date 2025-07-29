@@ -45,11 +45,11 @@ map("n", "<leader>w", "<cmd>set wrap!<CR>", { desc = "Toggle word wrap" })
 map("n", "<leader>l", "<cmd>set relativenumber!<CR>", { desc = "Toggle relative line numbers" })
 
 -- Search and replace
-map("n", "<leader>s", [[:s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
+map("n", "<leader>s", [[:s/\<<C-r><C-w>\>//gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
 map(
   "n",
   "<leader>S",
-  [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+  [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]],
   { desc = "Replace all instances of word under cursor" }
 )
 
