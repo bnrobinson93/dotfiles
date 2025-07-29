@@ -36,13 +36,13 @@ detect_env_vars = ["GCP_PROJECT", "CLOUDSDK_CORE_PROJECT"]
 timeout = 500
 
 [git_state]
-format = '[ \($state( $progress_current of $progress_total)\)]($style)'
+format = '[\($state( $progress_current of $progress_total)\) ]($style)'
 style = 'bold teal'
 
 [git_branch]
 symbol = " "
 style = 'sky'
-format = """on [$symbol$branch(:$remote_branch)]($style)"""
+format = """on [$symbol$branch(:$remote_branch)]($style) """
 only_attached = true
 
 [git_metrics]
@@ -59,7 +59,7 @@ modified = "[󰛿 ](peach)"
 staged = "[󰐗 ](green)"
 renamed = "[󰁙 ](rose)"
 deleted = '[󰅙 ](red)'
-format = '([ $all_status$ahead_behind]($style) )'
+format = '([$ahead_behind$all_status ]($style))'
 ignore_submodules = true
 
 [nodejs]
@@ -167,4 +167,3 @@ ignore_timeout = true
 description = "The current jj status"
 symbol = "󱗆 "
 detect_folders = [".jj"]
-

@@ -14,16 +14,21 @@ tug = ["bookmark", "move", "--to", "@-"]
 sign = true
 
 [ui]
-default-command  = ["log", "--limit", "15", "-T", "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ description.first_line() ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"]
+default-command = [
+  "log",
+  "--limit",
+  "15",
+  "-T",
+  "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ description.first_line() ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))",
+]
 diff-editor = ":builtin"
 show-cryptographic-signatures = true
 
 [colors]
-signature = "green"
-unsigned = "red"
+signature = "blue"
+unsigned = "cyan"
 
 # this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
-# It would be nice to use "own" istead of "drop"
 [signing]
 behavior = "own"
 key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
@@ -33,7 +38,6 @@ backend = "ssh"
 excludesfile = "~/.gitignore"
 
 [signing.backends.ssh]
-# program = "ssh-sign-wrapper.sh"
 program = "ssh-sign-wrapper.sh"
 allowed_signers = "~/.ssh/allowed_signers"
 
