@@ -22,11 +22,7 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
-      animate = {
-        scroll = false,
-        duration = 1,
-        easing = "ease-out",
-      },
+      scroll = { enabled = false },
       zen = {
         minimal = true,
         show = {
