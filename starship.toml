@@ -165,5 +165,5 @@ jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 -
 '''
 ignore_timeout = true
 description = "The current jj status"
-symbol = "󱗆 "
+symbol = " "
 detect_folders = [".jj"]
