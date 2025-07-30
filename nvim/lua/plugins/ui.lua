@@ -16,4 +16,22 @@ return {
       },
     },
   },
+
+  {
+    "folke/snacks.nvim",
+    opts = {
+      animate = {
+        scroll = false,
+        duration = 1,
+        easing = "ease-out",
+      },
+      zen = {
+        minimal = true,
+        show = {
+          statusline = false,
+          tabline = false,
+        },
+      },
+    },
+  },
 }
