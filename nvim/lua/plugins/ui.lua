@@ -8,11 +8,13 @@ return {
     opts = {
       cmdline = {
         enabled = true,
-        view = "cmdline", -- Use traditional bottom command line instead of popup
+        view = "cmdline_popup", -- Use traditional: cmdline
       },
-      popupmenu = {
-        enabled = true,
-        backend = "cmp", -- Use cmp for completion instead of noice popup
+      presets = {
+        inc_rename = true,
+        lsp_doc_border = true,
+        command_palette = false,
+        bottom_search = false,
       },
     },
   },
@@ -34,4 +36,8 @@ return {
       },
     },
   },
+
+  { "smjonas/inc-rename.nvim", opts = {
+    input_buffer_type = "noice",
+  } },
 }
