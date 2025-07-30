@@ -82,14 +82,14 @@ if type "eza" >/dev/null 2>&1; then
   function ll { eza -l -h -smod "$@"; }
   function lt { eza -l -h --color=always -smod "$@" | tail -15; }
   function lss { eza -l -h --color=always -smod "$@" | less -reXF; }
-  function l { eza -lah --color=always -smod --icons --git "$@"; }
+  function l { eza -lah --color=always --icons --git "$@"; }
 else
   alias ls="ls --color=tty"
   function la { ls -larth --color=always "$@"; }
   function ll { ls -lrth --color=always "$@"; }
   function lt { ls -larth --color=always "$@"; }
   function lss { ls -lrth --color=always "$@" | less -erXF; }
-  function l { ls -ltrha --color=always "$@"; }
+  function l { ls -lrha --color=always "$@"; }
 fi
 
 type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
