@@ -7,14 +7,15 @@ Contains all the dotfiles that I use in my development environment.
 - git - `sudo apt install git`
 - zsh - `sudo apt install zsh`
 - carapace - `brew install carapace`
-- starship - `curl -sS https://starship.rs/install.sh | sh `
+- bat - `brew install bat`
+- starship - `curl -sS https://starship.rs/install.sh | sh`
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
 - fzf - `sudo apt install fzf`
 - Atuin - `curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh`
 - ripgrep - `sudo apt install ripgrep`
 - lazygit - `brew install lazygit`
 - tmux - `sudo apt install tmux`
-- tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm `
+- tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm`
 - stow - `sudo apt install stow`
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
@@ -27,6 +28,7 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux --dotfiles
 chsh -s /bin/zsh
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
+bat cache --build
 ```
 
 ## Note for WSL
