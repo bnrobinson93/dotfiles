@@ -1,26 +1,18 @@
-local vault_path = vim.fn.expand("~") .. "/Documents/Vault"
+local vault_path = vim.fn.expand("~") .. "/Documents/Vault_Personal"
+local vault_path_work = vim.fn.expand("~") .. "/Documents/Vault"
 
 return {
   {
+    -- old: epwalsh/obsidian.nvim
     "obsidian-nvim/obsidian.nvim",
     version = "*",
     ft = "markdown",
-    event = function()
-      local cwd = vim.fn.getcwd()
-      if cwd:find(vault_path, 1, true) == 1 then
-        return "VimEnter"
-      else
-        return {
-          "BufReadPre " .. vault_path .. "/*.md",
-          "BufNewFile " .. vault_path .. "/*.md",
-        }
-      end
-    end,
     dependencies = {
       "nvim-lua/plenary.nvim",
     },
     opts = {
       workspaces = {
+        { name = "work", path = vault_path_work },
         { name = "personal", path = vault_path },
       },
       completion = {
@@ -30,7 +22,7 @@ return {
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
-        template = "resources/templates/daily.md",
+        template = "daily.md",
       },
       templates = {
         folder = "resources/templates",
@@ -42,14 +34,16 @@ return {
           end,
         },
       },
-      new_notes_location = "0-Inbox",
+      new_notes_location = "notes_subdir",
+      notes_subdir = "0-Inbox",
       note_id_func = function(title)
         local titleToUse = ""
         if title ~= nil then
           titleToUse = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
         else
+          titleToUse = tostring(os.time()) .. "-"
           for _ = 1, 4 do
-            titleToUse = tostring(os.time()) .. "-" .. string.char(math.random(65, 90))
+            titleToUse = titleToUse .. "-" .. string.char(math.random(65, 90))
           end
         end
         return titleToUse
@@ -68,77 +62,10 @@ return {
       end,
       ui = { enable = false },
       attachments = {
-        img_folder = vault_path .. "/resources/attachments",
-      },
-      mappings = {
-        ["gf"] = {
-          action = function()
-            return require("obsidian").util.gf_passthrough()
-          end,
-          opts = { noremap = false, expr = true, buffer = true },
-        },
-        ["<leader>x"] = {
-          action = function()
-            return require("obsidian").util.toggle_checkbox()
-          end,
-          opts = { buffer = true },
-        },
-        ["<cr>"] = {
-          action = function()
-            return require("obsidian").util.smart_action()
-          end,
-          opts = { buffer = true, expr = true },
-        },
+        img_folder = "resources/attachments",
       },
     },
     keys = {
-      {
-        "<C-n>",
-        function()
-          local obsidian = require("obsidian").get_client()
-          local utils = require("obsidian.util")
-          local location = vim.fn.getcwd()
-
-          local note
-          local title = utils.input("Enter title or path (optional): ")
-          if not title then
-            return
-          elseif title == "" then
-            title = nil
-          end
-
-          note = obsidian:create_note({ title = title, no_write = true })
-
-          if not note then
-            return
-          end
-
-          local datetime = os.time()
-          local dailyNote = obsidian:daily_note_path(datetime)
-
-          if location ~= vault_path then
-            vim.cmd("cd " .. vault_path)
-            obsidian:today()
-            vim.cmd("cd " .. location)
-          end
-
-          if note.filename ~= dailyNote.filename then
-            local file = io.open(dailyNote.filename, "a")
-            if not file then
-              vim.notify("Failed to open daily note: " .. dailyNote.filename, vim.log.levels.ERROR)
-              return
-            end
-            file:write("\n\n[[" .. title .. "]]\n")
-            file:close()
-          end
-
-          obsidian:open_note(note, { sync = true })
-          obsidian:write_note_to_buffer(note, { template = "zettle" })
-        end,
-        desc = "New Obsidian Note",
-        ft = "markdown",
-        mode = "n",
-      },
       {
         "<F1>",
         function()

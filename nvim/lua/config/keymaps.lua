@@ -85,56 +85,54 @@ map({ "n", "v" }, "<F5>", function()
 end, { desc = "Open selection in GitHub" })
 
 map("n", "<C-n>", function()
-  -- Make sure obsidian is available
-  local ok, obsidian = pcall(require, "obsidian")
-  if not ok then
-    -- Fall back to normal down motion if obsidian isn't loaded
-    vim.notify("Obsidian plugin not loaded", vim.log.levels.INFO)
-    vim.cmd("normal! j")
-    return
+  require("lazy").load({ plugins = { "obsidian.nvim" } })
+
+  local note_name = vim.fn.input("Enter title or path (optional): ")
+  if note_name == "" or note_name == nil then
+    note_name = os.date("%Y-%m-%d_%H-%M-%S")
   end
 
-  local client = obsidian.get_client()
-  local utils = require("obsidian.util")
-  local location = vim.fn.getcwd()
-  local vault_path = client.current_workspace.path.filename
+  local function create_note_with_daily_link()
+    -- Step 1: Create/open daily note first (this applies template if needed)
+    vim.cmd("Obsidian today")
 
-  local title = utils.input("Enter note's title or path (optional): ")
-  if not title then
-    return
-  elseif title == "" then
-    title = nil
+    -- Wait for the command to complete before capturing buffer
+    vim.defer_fn(function()
+      local daily_buf = vim.api.nvim_get_current_buf()
+      local daily_path = vim.api.nvim_buf_get_name(daily_buf)
+
+      -- Verify we're actually in a daily note
+      if not daily_path:match("daily") and not daily_path:match("Daily") then
+        vim.notify("Error: Could not open daily note", vim.log.levels.ERROR)
+        return
+      end
+
+      -- Step 2: Create the new note
+      vim.cmd("Obsidian new " .. vim.fn.shellescape(note_name))
+      local new_note_buf = vim.api.nvim_get_current_buf()
+      local note_path = vim.api.nvim_buf_get_name(new_note_buf)
+      local note_title = vim.fn.fnamemodify(note_path, ":t:r")
+
+      -- Step 3: Go back to daily note and append the link
+      vim.schedule(function()
+        vim.api.nvim_set_current_buf(daily_buf)
+
+        -- Get current lines and append the new note link
+        local daily_lines = vim.api.nvim_buf_get_lines(daily_buf, 0, -1, false)
+        local note_link = string.format("- [[%s]]", note_title)
+        table.insert(daily_lines, note_link)
+
+        -- Update and save the daily note
+        vim.api.nvim_buf_set_lines(daily_buf, 0, -1, false, daily_lines)
+        vim.cmd("write")
+
+        -- Step 4: Switch back to the new note
+        vim.api.nvim_set_current_buf(new_note_buf)
+
+        vim.notify("Created note: " .. note_title)
+      end)
+    end, 200) -- 200ms delay to let Obsidian today complete
   end
 
-  local note = client:create_note({ title = title, no_write = true })
-  if not note then
-    vim.notify("Failed to create note", vim.log.levels.ERROR)
-    return
-  end
-
-  -- Handle daily note linking
-  local datetime = os.time()
-  local dailyNote = client:daily_note_path(datetime)
-
-  -- Switch to vault directory if needed for daily note operations
-  if location ~= vault_path then
-    vim.cmd("cd " .. vault_path)
-    client:today()
-    vim.cmd("cd " .. location)
-  end
-
-  -- Add link to daily note if this isn't the daily note itself
-  if note.filename ~= dailyNote.filename then
-    local file = io.open(dailyNote.filename, "a")
-    if file then
-      file:write("\n\n[[" .. (title or "Untitled") .. "]]\n")
-      file:close()
-    else
-      vim.notify("Failed to update daily note: " .. dailyNote.filename, vim.log.levels.WARN)
-    end
-  end
-
-  -- Open and setup the new note
-  client:open_note(note, { sync = true })
-  client:write_note_to_buffer(note, { template = "zettle" })
+  create_note_with_daily_link()
 end, { desc = "New Obsidian Note" })

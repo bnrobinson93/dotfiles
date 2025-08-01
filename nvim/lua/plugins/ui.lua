@@ -22,6 +22,7 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
+      styles = { notification_history = { wo = { wrap = true } } },
       scroll = { enabled = false },
       zen = {
         minimal = true,
