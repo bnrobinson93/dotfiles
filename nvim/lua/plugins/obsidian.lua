@@ -1,5 +1,5 @@
-local vault_path = vim.fn.expand("~") .. "/Documents/Vault_Personal"
-local vault_path_work = vim.fn.expand("~") .. "/Documents/Vault"
+local vault_path = vim.fn.expand("~") .. "/Documents/Vault"
+local vault_path_alt = vim.fn.expand("~") .. "/Documents/Vault_2"
 
 return {
   {
@@ -12,8 +12,8 @@ return {
     },
     opts = {
       workspaces = {
-        { name = "work", path = vault_path_work },
-        { name = "personal", path = vault_path },
+        { name = "primary", path = vault_path },
+        { name = "alt", path = vault_path_alt },
       },
       completion = {
         blink = true,
