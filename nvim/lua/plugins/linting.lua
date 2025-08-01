@@ -1,6 +1,7 @@
 return {
   {
     "mfussenegger/nvim-lint",
+    optional = true,
     opts = {
       linters_by_ft = {
         typescript = { "eslint_d" },
@@ -9,6 +10,15 @@ return {
         javascriptreact = { "eslint_d" },
         yaml = { "actionlint", "zizmor" },
         ["yaml.ghaction"] = { "actionlint", "zizmor" },
+      },
+      linters = {
+        ["markdownlint-cli2"] = {
+          args = {
+            "--config",
+            vim.fn.stdpath("config") .. "lua/plugins/global.markdownlint-cli2.jsonc",
+            "--",
+          },
+        },
       },
     },
     keys = {
