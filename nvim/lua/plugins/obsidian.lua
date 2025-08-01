@@ -2,7 +2,7 @@ local vault_path = vim.fn.expand("~") .. "/Documents/Vault"
 
 return {
   {
-    "epwalsh/obsidian.nvim",
+    "obsidian-nvim/obsidian.nvim",
     version = "*",
     ft = "markdown",
     event = function()
@@ -24,6 +24,7 @@ return {
         { name = "personal", path = vault_path },
       },
       completion = {
+        blink = true,
         min_chars = 2,
       },
       daily_notes = {
