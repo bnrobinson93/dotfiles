@@ -22,7 +22,6 @@ return {
   {
     "folke/snacks.nvim",
     opts = {
-      styles = { notification_history = { wo = { wrap = true } } },
       scroll = { enabled = false },
       zen = {
         minimal = true,
@@ -32,6 +31,21 @@ return {
         },
       },
     },
+  },
+
+  {
+    "folke/snacks.nvim",
+    opts = function(_, opts)
+      table.insert(opts.dashboard.preset.keys, 3, {
+        icon = "󰃭 ",
+        key = "o",
+        desc = "Today's Note",
+        action = function()
+          require("lazy").load({ plugins = { "obsidian.nvim" } })
+          vim.cmd("Obsidian today")
+        end,
+      })
+    end,
   },
 
   { "smjonas/inc-rename.nvim", opts = {
