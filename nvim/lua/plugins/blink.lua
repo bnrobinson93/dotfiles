@@ -1,6 +1,16 @@
 return {
-  "saghen/blink.cmp",
-  opts = {
+  {
+    "saghen/blink.cmp",
+    optional = true,
+    dependencies = { "allaman/emoji.nvim", "saghen/blink.compat" },
+    opts = function(_, opts)
+      opts.sources.compat = { "emoji" }
+      table.insert(opts.sources.default, "emoji")
+    end,
+  },
+
+  {
+    "saghen/blink.cmp",
     keymap = {
       preset = "super-tab",
       ["<Tab>"] = {
