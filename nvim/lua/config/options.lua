@@ -29,5 +29,7 @@ opt.isfname:append("@-@")
 opt.colorcolumn = "80,120"
 opt.textwidth = 120
 
+opt.scrolloff = 4
+
 -- JavaScript alias settings
 vim.cmd([[ set includeexpr=tr(v:fname,'@','.') ]])
