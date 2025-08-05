@@ -84,12 +84,13 @@ map({ "n", "v" }, "<F5>", function()
   end
 end, { desc = "Open selection in GitHub" })
 
+-- New note in Obsidian
 map("n", "<C-n>", function()
   require("lazy").load({ plugins = { "obsidian.nvim" } })
 
   local note_name = vim.fn.input("Enter title or path (optional): ")
   if note_name == "" or note_name == nil then
-    note_name = os.date("%Y-%m-%d_%H-%M-%S")
+    return
   end
 
   local function create_note_with_daily_link()
@@ -119,7 +120,7 @@ map("n", "<C-n>", function()
 
         -- Get current lines and append the new note link
         local daily_lines = vim.api.nvim_buf_get_lines(daily_buf, 0, -1, false)
-        local note_link = string.format("- [[%s]]", note_title)
+        local note_link = string.format("[[%s]]", note_title)
         table.insert(daily_lines, note_link)
 
         -- Update and save the daily note
@@ -128,6 +129,15 @@ map("n", "<C-n>", function()
 
         -- Step 4: Switch back to the new note
         vim.api.nvim_set_current_buf(new_note_buf)
+
+        -- Step 5: Now safely delete the daily buffer after switching away
+        vim.schedule(function()
+          if vim.api.nvim_buf_is_valid(daily_buf) then
+            pcall(function()
+              vim.cmd("bdelete " .. daily_buf)
+            end)
+          end
+        end)
 
         vim.notify("Created note: " .. note_title)
       end)
