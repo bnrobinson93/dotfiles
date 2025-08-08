@@ -203,7 +203,7 @@ return {
       end
 
       vim.keymap.set({ "n", "v", "i" }, "<C-b>", bold, { desc = "Bold", buffer = true })
-      vim.keymap.set({ "n", "v", "i" }, "<C-i>", italics, { desc = "Italics", buffer = true })
+      vim.keymap.set({ "n", "v", "i" }, "<C-e>", italics, { desc = "Italics", buffer = true })
     end,
     keys = {
       {
