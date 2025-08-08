@@ -81,6 +81,89 @@ return {
         img_folder = "resources/attachments",
       },
     },
+    config = function()
+      local function wrap_selection(before, after)
+        local mode = vim.api.nvim_get_mode().mode
+        local bufnr = 0
+
+        if mode == "v" or mode == "V" then
+          -- Visual mode: wrap the currently selected text
+          -- Get current visual selection bounds
+          local start_row = vim.fn.line("v") - 1
+          local start_col = vim.fn.col("v") - 1
+          local end_row = vim.fn.line(".") - 1
+          local end_col = vim.fn.col(".")
+
+          -- Ensure start comes before end (in case selection was made backwards)
+          if start_row > end_row or (start_row == end_row and start_col > end_col) then
+            start_row, end_row = end_row, start_row
+            start_col, end_col = end_col, start_col
+          end
+
+          -- Exit visual mode first
+          vim.cmd("normal! \27") -- ESC to exit visual mode
+
+          -- Insert the wrapper text (end first to preserve positions)
+          vim.api.nvim_buf_set_text(bufnr, end_row, end_col, end_row, end_col, { after })
+          vim.api.nvim_buf_set_text(bufnr, start_row, start_col, start_row, start_col, { before })
+        elseif mode == "n" then
+          -- Normal mode: wrap the current WORD (cWORD equivalent)
+          local cursor_pos = vim.api.nvim_win_get_cursor(0)
+          local row = cursor_pos[1] - 1
+          local col = cursor_pos[2]
+
+          -- Get the current line
+          local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1]
+
+          -- Find word boundaries (WORD = non-whitespace sequence)
+          local word_start = col
+          local word_end = col
+
+          -- Find start of word
+          while word_start > 0 and line:sub(word_start, word_start):match("%S") do
+            word_start = word_start - 1
+          end
+          if word_start == 0 or line:sub(word_start, word_start):match("%s") then
+            word_start = word_start + 1
+          end
+
+          -- Find end of word
+          while word_end <= #line and line:sub(word_end + 1, word_end + 1):match("%S") do
+            word_end = word_end + 1
+          end
+
+          -- Adjust for 0-based indexing
+          word_start = word_start - 1
+
+          -- Insert wrapper text
+          vim.api.nvim_buf_set_text(bufnr, row, word_end, row, word_end, { after })
+          vim.api.nvim_buf_set_text(bufnr, row, word_start, row, word_start, { before })
+        elseif mode == "i" then
+          -- Insert mode: insert wrapper and position cursor in the middle
+          local cursor_pos = vim.api.nvim_win_get_cursor(0)
+          local row = cursor_pos[1] - 1
+          local col = cursor_pos[2]
+
+          -- Insert the wrapper text
+          local text = before .. after
+          vim.api.nvim_buf_set_text(bufnr, row, col, row, col, { text })
+
+          -- Move cursor to the middle (after the 'before' text)
+          vim.api.nvim_win_set_cursor(0, { row + 1, col + #before })
+        end
+      end
+
+      local bold = function()
+        wrap_selection("**", "**")
+      end
+
+      local italics = function()
+        wrap_selection("__", "__")
+      end
+
+      vim.keymap.set({ "n", "v", "i" }, "<C-b>", bold, { desc = "Bold", buffer = true })
+      vim.keymap.set({ "n", "v", "i" }, "<C-i>", italics, { desc = "Italics", buffer = true })
+    end,
     keys = {
       {
         "<F1>",

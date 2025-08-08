@@ -292,7 +292,3 @@ if test carapace >/dev/null 2>&1; then
 else
   get_completions
 fi
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/brad.robinson/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
