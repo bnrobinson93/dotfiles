@@ -87,7 +87,7 @@ return {
         local bufnr = 0
 
         if mode == "v" or mode == "V" then
-          -- Visual mode: wrap the currently selected text
+          -- Visual mode: wrap the currently selected text or unwrap if already wrapped
           -- Get current visual selection bounds
           local start_row = vim.fn.line("v") - 1
           local start_col = vim.fn.col("v") - 1
@@ -100,44 +100,85 @@ return {
             start_col, end_col = end_col, start_col
           end
 
+          -- Get the text around the selection to check for existing markers
+          local line_start = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1] or ""
+          local line_end = start_row == end_row and line_start
+            or (vim.api.nvim_buf_get_lines(bufnr, end_row, end_row + 1, false)[1] or "")
+
+          local before_len = #before
+          local after_len = #after
+          local has_before = start_col >= before_len and line_start:sub(start_col - before_len + 1, start_col) == before
+          local has_after = end_col + after_len <= #line_end and line_end:sub(end_col + 1, end_col + after_len) == after
+
           -- Exit visual mode first
           vim.cmd("normal! \27") -- ESC to exit visual mode
 
-          -- Insert the wrapper text (end first to preserve positions)
-          vim.api.nvim_buf_set_text(bufnr, end_row, end_col, end_row, end_col, { after })
-          vim.api.nvim_buf_set_text(bufnr, start_row, start_col, start_row, start_col, { before })
+          if has_before and has_after then
+            -- Remove existing markers
+            vim.api.nvim_buf_set_text(bufnr, end_row, end_col, end_row, end_col + after_len, {})
+            vim.api.nvim_buf_set_text(bufnr, start_row, start_col - before_len, start_row, start_col, {})
+          else
+            -- Add markers
+            vim.api.nvim_buf_set_text(bufnr, end_row, end_col, end_row, end_col, { after })
+            vim.api.nvim_buf_set_text(bufnr, start_row, start_col, start_row, start_col, { before })
+          end
         elseif mode == "n" then
-          -- Normal mode: wrap the current WORD (cWORD equivalent)
+          -- Normal mode: wrap the current WORD (cWORD equivalent) or unwrap if already wrapped
           local cursor_pos = vim.api.nvim_win_get_cursor(0)
           local row = cursor_pos[1] - 1
           local col = cursor_pos[2]
 
           -- Get the current line
-          local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1]
+          local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1] or ""
+          if #line == 0 then
+            return
+          end
 
-          -- Find word boundaries (WORD = non-whitespace sequence)
+          -- Find the actual WORD boundaries (all non-whitespace)
           local word_start = col
           local word_end = col
 
-          -- Find start of word
-          while word_start > 0 and line:sub(word_start, word_start):match("%S") do
+          -- Find start of WORD (move left while non-whitespace)
+          while word_start > 1 and line:sub(word_start, word_start):match("%S") do
             word_start = word_start - 1
           end
-          if word_start == 0 or line:sub(word_start, word_start):match("%s") then
+          if word_start == 1 and line:sub(1, 1):match("%S") then
+            -- We're at the beginning of line and it's non-whitespace
+            word_start = 1
+          else
+            -- Move to first non-whitespace character
             word_start = word_start + 1
           end
 
-          -- Find end of word
-          while word_end <= #line and line:sub(word_end + 1, word_end + 1):match("%S") do
+          -- Find end of WORD (move right while non-whitespace)
+          while word_end <= #line and line:sub(word_end, word_end):match("%S") do
             word_end = word_end + 1
           end
+          word_end = word_end - 1 -- Back to last non-whitespace character
 
-          -- Adjust for 0-based indexing
-          word_start = word_start - 1
+          -- Convert to 0-based for buffer operations
+          local word_start_0 = word_start - 1
+          local word_end_0 = word_end -- word_end is already the position after the last character
 
-          -- Insert wrapper text
-          vim.api.nvim_buf_set_text(bufnr, row, word_end, row, word_end, { after })
-          vim.api.nvim_buf_set_text(bufnr, row, word_start, row, word_start, { before })
+          -- Extract the current WORD
+          local current_word = line:sub(word_start, word_end)
+          local before_len = #before
+          local after_len = #after
+
+          -- Check if the word already has the markers
+          local has_markers = current_word:sub(1, before_len) == before
+            and current_word:sub(-after_len) == after
+            and #current_word > before_len + after_len
+
+          if has_markers then
+            -- Remove the markers from within the word
+            local inner_text = current_word:sub(before_len + 1, -after_len - 1)
+            vim.api.nvim_buf_set_text(bufnr, row, word_start_0, row, word_end_0, { inner_text })
+          else
+            -- Add markers around the entire word
+            local wrapped_text = before .. current_word .. after
+            vim.api.nvim_buf_set_text(bufnr, row, word_start_0, row, word_end_0, { wrapped_text })
+          end
         elseif mode == "i" then
           -- Insert mode: insert wrapper and position cursor in the middle
           local cursor_pos = vim.api.nvim_win_get_cursor(0)
