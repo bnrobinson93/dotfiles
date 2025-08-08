@@ -48,14 +48,32 @@ return {
       end,
       note_frontmatter_func = function(note)
         local now = os.date("%Y-%m-%dT%H:%M")
-        local out = { updated = now, created = now }
+        -- NOTE: the `note.metadata` object contains ONLY:
+        -- created, updated, and author
 
-        if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
-          for k, v in pairs(note.metadata) do
-            out[k] = v
-          end
+        -- Start by cloning that object
+        local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
+
+        -- Add things I may want
+        if note.title then
+          out.title = note.title
+        end
+        if note.url then
+          out.url = note.url
         end
 
+        -- Update the modified time
+        out.updated = now
+
+        -- More things I may want
+        if note.tags then
+          out.tags = note.tags
+        end
+        if note.aliases and note.aliases.len > 0 then
+          out.aliases = note.aliases
+        end
+
+        -- return the final result
         return out
       end,
       ui = { enable = false },
