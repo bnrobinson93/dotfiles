@@ -13,6 +13,7 @@ return {
     selection = function(source)
       return require("CopilotChat.select").visual(source) or require("CopilotChat.select").line(source)
     end,
+    insert_at_end = true,
     prompts = {
       Help = {
         description = "Talk with me like a senior developer",
