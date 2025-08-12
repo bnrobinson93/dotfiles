@@ -5,7 +5,12 @@ return {
     -- old: epwalsh/obsidian.nvim
     "obsidian-nvim/obsidian.nvim",
     version = "*",
-    ft = "markdown",
+    cond = function()
+      local cwd = vim.fn.getcwd()
+      local bufname = vim.api.nvim_buf_get_name(0)
+      -- Only load if we're in the vault directory or opening a file from it
+      return cwd:find(vault_path, 1, true) == 1 or bufname:find(vault_path, 1, true) == 1
+    end,
     dependencies = {
       "nvim-lua/plenary.nvim",
     },
