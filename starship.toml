@@ -59,6 +59,7 @@ modified = "[󰛿 ](peach)"
 staged = "[󰐗 ](green)"
 renamed = "[󰁙 ](rose)"
 deleted = '[󰅙 ](red)'
+style = "overlay0"
 format = '([$ahead_behind$all_status ]($style))'
 ignore_submodules = true
 
@@ -152,14 +153,14 @@ jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 -
     concat(
       if(conflict, "󰀨 "),
       if(divergent, "󰵚 "),
-      if(hidden, "👻"),
-      if(immutable, "🔒"),
+      if(hidden, "󰘓 "),
+      if(immutable, "󰌾 "),
     ),
     raw_escape_sequence("\x1b[1;32m") ++ if(empty, "(empty)"),
     raw_escape_sequence("\x1b[1;32m") ++ coalesce(
       truncate_end(32, description.first_line(), "…"),
       "(no description set)",
-    ) ++ raw_escape_sequence("\x1b[0m"),
+    ) ++ raw_escape_sequence("\x1b[1;37m"),
   )
 '
 '''
