@@ -207,8 +207,8 @@ return {
         wrap_selection("__", "__")
       end
 
-      vim.keymap.set({ "n", "v", "i" }, "<C-b>", bold, { desc = "Bold", buffer = true })
-      vim.keymap.set({ "n", "v", "i" }, "<C-e>", italics, { desc = "Italics", buffer = true })
+      vim.keymap.set({ "n", "v", "i" }, "<leader>cb", bold, { desc = "Bold", buffer = true })
+      vim.keymap.set({ "n", "v", "i" }, "<leader>ci", italics, { desc = "Italics", buffer = true })
     end,
     keys = {
       {
