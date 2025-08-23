@@ -92,7 +92,10 @@ else
   function l { ls -lrha --color=always "$@"; }
 fi
 
-type zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+if type zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+  alias cd="zoxide" # note this will override the uutils version as well
+fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
 # type fd >/dev/null 2>&1 && alias find="fd"
