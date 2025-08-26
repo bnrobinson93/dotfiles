@@ -27,7 +27,9 @@ return {
         {
           "lsp_status",
           separator = "",
-          color = { fg = "#585b70" },
+          color = function()
+            return { fg = Snacks.util.color("NonText") }
+          end,
           padding = { left = 0, right = 1 },
           icon = "",
           symbols = {
@@ -38,6 +40,7 @@ return {
           ignore_lsp = { "GitHub Copilot", "copilot" },
         },
       },
+      lualine_z = {},
     },
   },
 }
