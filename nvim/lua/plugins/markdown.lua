@@ -3,17 +3,22 @@ return {
   dependencies = { "nvim-treesitter/nvim-treesitter" },
   ft = { "markdown", "Avante", "vimwiki", "help", "copilot-chat" },
   opts = {
+    file_types = { "markdown", "Avante" },
     render_modes = { "n", "c", "t" },
     checkbox = {
+      enabled = true,
       unchecked = { icon = " " },
       checked = { icon = "󰄳 ", scope_highlight = "@markup.strikethrough" },
       custom = {
-        todo = { raw = "[-]", rendered = "󰍷 ", highlight = "DiagnosticSignError" },
-        important = { raw = "[!]", rendered = " ", highlight = "DiagnosticSignWarn" },
-        partial = { raw = "[~]", rendered = " ", highlight = "DiagnosticSignHint" },
-        delayed = { raw = "[>]", rendered = "󰥔 ", highlight = "DiagnosticSignWarn" },
+        todo = { raw = "[-]", rendered = " ", highlight = "DiagnosticSignError" },
+        partial = { raw = "[/]", rendered = " ", highlight = "DiagnosticSignHint" },
+        partial_2 = { raw = "[~]", rendered = " ", highlight = "DiagnosticSignHint" },
+        priority = { raw = "[!]", rendered = "󰓏 ", highlight = "DiagnosticSignWarn" },
+        priority_2 = { raw = "[*]", rendered = "󰓏 ", highlight = "DiagnosticSignWarn" },
+        migrated = { raw = "[>]", rendered = " ", highlight = "DiagnosticSignWarn" },
+        scheduled = { raw = "[<]", rendered = "󰥔 ", highlight = "DiagnosticSignWarn" },
         partial_parent = {
-          raw = "[/]",
+          raw = "[+]",
           rendered = "󰁊 ",
           highlight = "DiagnosticDepricated",
           scope_highlight = "@markup.strikethrough",

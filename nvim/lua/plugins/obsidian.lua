@@ -213,7 +213,7 @@ return {
         -- return the final result
         return out
       end,
-      ui = { enable = false },
+      ui = { enable = true },
       attachments = {
         img_folder = "resources/attachments",
       },

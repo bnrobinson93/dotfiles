@@ -6,7 +6,7 @@ vim.opt.confirm = false
 local opt = vim.opt
 
 -- Your custom options from sets/set.lua
-opt.conceallevel = 1 -- For Obsidian
+opt.conceallevel = 2 -- For Obsidian
 opt.guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver35-Cursor,r-cr-o:hor30-Cursor"
 opt.mouse = "nv"
 
