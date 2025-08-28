@@ -5,7 +5,7 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [aliases]
-s = "status"
+s = ["status"]
 l = ["log", "--limit", "15"]
 push = ["git", "push", "--allow-new"]
 tug = ["bookmark", "move", "--to", "@-"]
