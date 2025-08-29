@@ -5,16 +5,15 @@ autoload -Uz compinit
 [[ ! -d "$HOME/.cache/zsh" ]] && mkdir -p "$HOME/.cache/zsh"
 compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
-# Autostart tmux (keep as-is since it's fast)
-if command -v tmux &> /dev/null && \
-  [ -n "$PS1" ] && \
-  [[ ! "$TERM" =~ screen ]] && \
-  [[ ! "$TERM" =~ tmux ]] && \
-  [ ! -z "$TMUX" ] &&  \
-  ! pstree -s $$ | grep -wqE 'code|language-server'
-then
-  exec tmux
-fi
+# if command -v tmux &> /dev/null && \
+#   [ -n "$PS1" ] && \
+#   [[ ! "$TERM" =~ screen ]] && \
+#   [[ ! "$TERM" =~ tmux ]] && \
+#   [ ! -z "$TMUX" ] &&  \
+#   ! pstree -s $$ | grep -wqE 'code|language-server'
+# then
+#   exec tmux
+# fi
 
 # Essential environment
 export LANG=en_US.UTF-8
