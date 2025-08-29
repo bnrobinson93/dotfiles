@@ -1,7 +1,10 @@
 return {
-  -- Disable the bufferline completely
-  { "akinsho/bufferline.nvim", enabled = false },
-
+  {
+    "nvim-lspconfig",
+    opts = {
+      inlay_hints = { enabled = false },
+    },
+  },
   -- Configure noice to use traditional command line
   {
     "folke/noice.nvim",
