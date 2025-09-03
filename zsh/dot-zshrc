@@ -93,7 +93,7 @@ fi
 
 if type zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
-  alias cd="zoxide" # note this will override the uutils version as well
+  alias cd="z" # note this will override the uutils version as well
 fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
