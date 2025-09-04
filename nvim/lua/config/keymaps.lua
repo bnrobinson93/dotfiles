@@ -84,7 +84,7 @@ map({ "n", "v" }, "<F5>", function()
   end
 end, { desc = "Open selection in GitHub" })
 
--- New note in Obsidian
+-- New note in Obsidian (debug quotes version)
 map("n", "<C-n>", function()
   require("lazy").load({ plugins = { "obsidian.nvim" } })
 
@@ -93,56 +93,42 @@ map("n", "<C-n>", function()
     return
   end
 
-  local function create_note_with_daily_link()
-    -- Step 1: Create/open daily note first (this applies template if needed)
-    vim.cmd("Obsidian today")
+  -- Multiple cleaning attempts
+  local clean_name = note_name
+  clean_name = clean_name:gsub("^'", ""):gsub("'$", "") -- Remove single quotes
+  clean_name = clean_name:gsub('^"', ""):gsub('"$', "") -- Remove double quotes
+  clean_name = clean_name:gsub("^%s*", ""):gsub("%s*$", "") -- Remove leading/trailing whitespace
 
-    -- Wait for the command to complete before capturing buffer
-    vim.defer_fn(function()
-      local daily_buf = vim.api.nvim_get_current_buf()
-      local daily_path = vim.api.nvim_buf_get_name(daily_buf)
-
-      -- Verify we're actually in a daily note
-      if not daily_path:match("daily") and not daily_path:match("Daily") then
-        vim.notify("Error: Could not open daily note", vim.log.levels.ERROR)
-        return
-      end
-
-      -- Step 2: Create the new note
-      vim.cmd("Obsidian new " .. vim.fn.shellescape(note_name))
-      local new_note_buf = vim.api.nvim_get_current_buf()
-      local note_path = vim.api.nvim_buf_get_name(new_note_buf)
-      local note_title = vim.fn.fnamemodify(note_path, ":t:r")
-
-      -- Step 3: Go back to daily note and append the link
-      vim.schedule(function()
-        vim.api.nvim_set_current_buf(daily_buf)
-
-        -- Get current lines and append the new note link
-        local daily_lines = vim.api.nvim_buf_get_lines(daily_buf, 0, -1, false)
-        local note_link = string.format("[[%s]]", note_title)
-        table.insert(daily_lines, note_link)
-
-        -- Update and save the daily note
-        vim.api.nvim_buf_set_lines(daily_buf, 0, -1, false, daily_lines)
-        vim.cmd("write")
-
-        -- Step 4: Switch back to the new note
-        vim.api.nvim_set_current_buf(new_note_buf)
-
-        -- Step 5: Now safely delete the daily buffer after switching away
-        vim.schedule(function()
-          if vim.api.nvim_buf_is_valid(daily_buf) then
-            pcall(function()
-              vim.cmd("bdelete " .. daily_buf)
-            end)
-          end
-        end)
-
-        vim.notify("Created note: " .. note_title)
-      end)
-    end, 200) -- 200ms delay to let Obsidian today complete
+  -- Create the new note first
+  if clean_name:match("%s") then
+    vim.cmd('ObsidianNew "' .. clean_name .. '"')
+  else
+    vim.cmd("ObsidianNew " .. clean_name)
   end
 
-  create_note_with_daily_link()
+  vim.defer_fn(function()
+    local new_note_buf = vim.api.nvim_get_current_buf()
+    local new_note_path = vim.api.nvim_buf_get_name(new_note_buf)
+    local filename_title = vim.fn.fnamemodify(new_note_path, ":t:r")
+
+    -- Use the cleaned name for the link
+    local note_title = clean_name
+
+    -- Handle daily note
+    vim.cmd("split")
+    vim.cmd("ObsidianToday")
+
+    vim.defer_fn(function()
+      local daily_buf = vim.api.nvim_get_current_buf()
+      local daily_lines = vim.api.nvim_buf_get_lines(daily_buf, 0, -1, false)
+      local note_link = string.format("[[%s]]", note_title)
+
+      table.insert(daily_lines, note_link)
+      vim.api.nvim_buf_set_lines(daily_buf, 0, -1, false, daily_lines)
+      vim.cmd("write")
+      vim.cmd("close")
+
+      vim.notify("Created note and linked to daily: " .. note_title)
+    end, 300)
+  end, 500)
 end, { desc = "New Obsidian Note" })

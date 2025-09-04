@@ -1,4 +1,4 @@
-local vault_path = vim.fn.expand("~") .. "/Documents/Vault"
+local vault_path = "~/Documents/Vault"
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
@@ -134,15 +134,10 @@ end
 
 return {
   {
-    -- old: epwalsh/obsidian.nvim
     "obsidian-nvim/obsidian.nvim",
     version = "*",
-    cond = function()
-      local cwd = vim.fn.getcwd()
-      local bufname = vim.api.nvim_buf_get_name(0)
-      -- Only load if we're in the vault directory or opening a file from it
-      return cwd:find(vault_path, 1, true) == 1 or bufname:find(vault_path, 1, true) == 1
-    end,
+    lazy = true,
+    ft = "markdown",
     dependencies = {
       "nvim-lua/plenary.nvim",
     },
@@ -174,7 +169,10 @@ return {
       note_id_func = function(title)
         local titleToUse = ""
         if title ~= nil then
-          titleToUse = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
+          -- Remove quotes first, then process
+          titleToUse = title:gsub("^'", ""):gsub("'$", "") -- Remove single quotes
+          titleToUse = titleToUse:gsub('^"', ""):gsub('"$', "") -- Remove double quotes
+          titleToUse = titleToUse:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
         else
           titleToUse = tostring(os.time()) .. "-"
           for _ = 1, 4 do
@@ -206,7 +204,7 @@ return {
         if note.tags then
           out.tags = note.tags
         end
-        if note.aliases and note.aliases.len > 0 then
+        if note.aliases then
           out.aliases = note.aliases
         end
 
@@ -218,7 +216,8 @@ return {
         img_folder = "resources/attachments",
       },
     },
-    config = function()
+    config = function(_, opts)
+      require("obsidian").setup(opts)
       vim.keymap.set({ "n", "v", "i" }, "<leader>cb", bold, { desc = "Bold", buffer = true })
       vim.keymap.set({ "n", "v", "i" }, "<leader>ci", italics, { desc = "Italics", buffer = true })
     end,
