@@ -8,14 +8,6 @@ autocmd("FileType", {
   pattern = { "markdown", "mkd", "text", "COMMIT_EDITMSG" },
   callback = function()
     vim.opt_local.spell = true
-
-    vim.cmd([[
-      augroup pencil
-      autocmd!
-      autocmd FileType markdown,mkd call pencil#init()
-      autocmd FileType text         call pencil#init()
-      augroup END
-    ]])
   end,
 })
 

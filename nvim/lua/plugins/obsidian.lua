@@ -1,4 +1,4 @@
-local vault_path = "~/Documents/Vault"
+local vault_path = vim.fn.expand(os.getenv("ZETTELKASTEN") or "")
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
@@ -138,22 +138,32 @@ return {
     version = "*",
     lazy = true,
     ft = "markdown",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
     opts = {
+      attachments = {
+        img_folder = "resources/attachments",
+      },
       workspaces = {
-        { name = "primary", path = vault_path },
+        {
+          name = "primary",
+          path = vault_path,
+          overrides = {
+            notes_subdir = "0-Inbox",
+          },
+        },
       },
       completion = {
         blink = true,
         min_chars = 2,
+        create_new = false,
       },
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
         template = "daily.md",
       },
+      ui = { enabled = true, update_debounce = 1000 },
+      footer = { enabled = false },
+      new_notes_location = "notes_subdir",
       templates = {
         folder = "resources/templates",
         date_format = "%Y-%m-%d",
@@ -164,8 +174,6 @@ return {
           end,
         },
       },
-      new_notes_location = "notes_subdir",
-      notes_subdir = "0-Inbox",
       note_id_func = function(title)
         local titleToUse = ""
         if title ~= nil then
@@ -211,10 +219,6 @@ return {
         -- return the final result
         return out
       end,
-      ui = { enable = true },
-      attachments = {
-        img_folder = "resources/attachments",
-      },
     },
     config = function(_, opts)
       require("obsidian").setup(opts)

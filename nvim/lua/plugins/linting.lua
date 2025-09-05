@@ -23,7 +23,7 @@ return {
     },
     keys = {
       {
-        "<leader>li",
+        "<leader>cl",
         function()
           require("lint").try_lint()
         end,
@@ -33,7 +33,6 @@ return {
     },
   },
 
-  -- Your custom ESLint fix functionality
   {
     "local/eslint-fix",
     dir = vim.fn.stdpath("config"),
@@ -255,9 +254,9 @@ return {
     end,
     keys = {
       {
-        "<leader>ef",
+        "<leader>cL",
         "<cmd>EslintFixTrouble<cr>",
-        desc = "[E]SLint [f]ix and show in Trouble",
+        desc = "Lint entire codebase",
       },
     },
   },

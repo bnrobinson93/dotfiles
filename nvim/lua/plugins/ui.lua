@@ -5,6 +5,7 @@ return {
       inlay_hints = { enabled = false },
     },
   },
+
   -- Configure noice to use traditional command line
   {
     "folke/noice.nvim",
@@ -24,21 +25,16 @@ return {
 
   {
     "folke/snacks.nvim",
-    opts = {
-      scroll = { enabled = false },
-      zen = {
+    opts = function(_, opts)
+      opts.scroll = { enabled = false }
+      opts.zen = {
         minimal = true,
         show = {
           statusline = false,
           tabline = false,
         },
-      },
-    },
-  },
+      }
 
-  {
-    "folke/snacks.nvim",
-    opts = function(_, opts)
       table.insert(opts.dashboard.preset.keys, 3, {
         icon = "󰃭 ",
         key = "o",
@@ -48,6 +44,8 @@ return {
           vim.cmd("Obsidian today")
         end,
       })
+
+      return opts
     end,
   },
 

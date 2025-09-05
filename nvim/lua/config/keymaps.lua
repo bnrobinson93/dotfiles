@@ -45,13 +45,13 @@ map("n", "<leader>w", "<cmd>set wrap!<CR>", { desc = "Toggle word wrap" })
 map("n", "<leader>l", "<cmd>set relativenumber!<CR>", { desc = "Toggle relative line numbers" })
 
 -- Search and replace
-map("n", "<leader>s", [[:s/\<<C-r><C-w>\>//gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
-map(
-  "n",
-  "<leader>S",
-  [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]],
-  { desc = "Replace all instances of word under cursor" }
-)
+-- map("n", "<leader>s", [[:s/\<<C-r><C-w>\>//gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
+-- map(
+--   "n",
+--   "<leader>S",
+--   [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]],
+--   { desc = "Replace all instances of word under cursor" }
+-- )
 
 -- GitHub browse (if you use gh CLI)
 map({ "n", "v" }, "<F5>", function()
@@ -84,7 +84,7 @@ map({ "n", "v" }, "<F5>", function()
   end
 end, { desc = "Open selection in GitHub" })
 
--- New note in Obsidian (debug quotes version)
+-- New note in Obsidian
 map("n", "<C-n>", function()
   require("lazy").load({ plugins = { "obsidian.nvim" } })
 
@@ -107,10 +107,6 @@ map("n", "<C-n>", function()
   end
 
   vim.defer_fn(function()
-    local new_note_buf = vim.api.nvim_get_current_buf()
-    local new_note_path = vim.api.nvim_buf_get_name(new_note_buf)
-    local filename_title = vim.fn.fnamemodify(new_note_path, ":t:r")
-
     -- Use the cleaned name for the link
     local note_title = clean_name
 
