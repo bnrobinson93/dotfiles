@@ -156,12 +156,14 @@ return {
         min_chars = 2,
         create_new = false,
       },
+      checkbox = {
+        order = { " ", "x", "-", "/", "~", "!", "*", ">", "<", "+" },
+      },
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
         template = "daily.md",
       },
-      ui = { enabled = true, update_debounce = 1000 },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
       templates = {
@@ -219,6 +221,11 @@ return {
         -- return the final result
         return out
       end,
+      ui = {
+        enabled = true,
+        checkboxes = nil,
+        bullets = nil,
+      },
     },
     config = function(_, opts)
       require("obsidian").setup(opts)
