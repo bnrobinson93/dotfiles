@@ -223,8 +223,8 @@ return {
       end,
       ui = {
         enabled = true,
-        checkboxes = nil,
-        bullets = nil,
+        checkboxes = {},
+        bullets = {},
       },
     },
     config = function(_, opts)
