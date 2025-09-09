@@ -35,14 +35,10 @@ return {
           end
         end,
       }
+
+      opts.picker.matcher = { frecency = true }
+
       opts.scroll = { enabled = false }
-      opts.zen = {
-        minimal = true,
-        show = {
-          statusline = false,
-          tabline = false,
-        },
-      }
 
       table.insert(opts.dashboard.preset.keys, 3, {
         icon = "󰃭 ",
