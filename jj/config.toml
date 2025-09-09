@@ -26,7 +26,7 @@ push = [
   "--",
   "sh",
   "-c",
-  "[ -f .husky/pre-commit ] && jj check || true && jj git push --allow-new",
+  "[ -f .husky/pre-commit ] && jj check || true && jj tug && jj git push --allow-new",
 ]
 
 [commit]
