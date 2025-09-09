@@ -26,6 +26,7 @@ return {
   {
     "folke/snacks.nvim",
     opts = function(_, opts)
+      opts.image = { enabled = true, doc = { enabled = true, inline = true } }
       opts.scroll = { enabled = false }
       opts.zen = {
         minimal = true,
