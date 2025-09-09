@@ -223,7 +223,6 @@ return {
       end,
       ui = {
         enabled = true,
-        checkboxes = {},
         bullets = {},
       },
     },
