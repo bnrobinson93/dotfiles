@@ -140,6 +140,7 @@ return {
     ft = "markdown",
     opts = {
       attachments = {
+        confirm_img_paste = true,
         img_folder = "resources/attachments",
       },
       workspaces = {

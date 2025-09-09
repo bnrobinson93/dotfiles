@@ -26,7 +26,15 @@ return {
   {
     "folke/snacks.nvim",
     opts = function(_, opts)
-      opts.image = { enabled = true, doc = { enabled = true, inline = true } }
+      opts.image = {
+        enabled = true,
+        doc = { enabled = true, inline = true },
+        resolve = function(path, src)
+          if require("obsidian.api").path_is_note(path) then
+            return require("obsidian.api").resolve_image_path(src)
+          end
+        end,
+      }
       opts.scroll = { enabled = false }
       opts.zen = {
         minimal = true,
