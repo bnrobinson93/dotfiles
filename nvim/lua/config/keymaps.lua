@@ -93,22 +93,12 @@ map("n", "<C-n>", function()
     return
   end
 
-  -- Multiple cleaning attempts
-  local clean_name = note_name
-  clean_name = clean_name:gsub("^'", ""):gsub("'$", "") -- Remove single quotes
-  clean_name = clean_name:gsub('^"', ""):gsub('"$', "") -- Remove double quotes
-  clean_name = clean_name:gsub("^%s*", ""):gsub("%s*$", "") -- Remove leading/trailing whitespace
-
   -- Create the new note first
-  if clean_name:match("%s") then
-    vim.cmd('ObsidianNew "' .. clean_name .. '"')
-  else
-    vim.cmd("ObsidianNew " .. clean_name)
-  end
+  vim.cmd("ObsidianNew " .. note_name)
 
   vim.defer_fn(function()
     -- Use the cleaned name for the link
-    local note_title = clean_name
+    local note_title = note_name
 
     -- Handle daily note
     vim.cmd("split")
