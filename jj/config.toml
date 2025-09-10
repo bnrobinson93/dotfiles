@@ -49,7 +49,7 @@ unsigned = "cyan"
 
 # this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
 [signing]
-behavior = "own"
+behavior = "drop"
 key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
 backend = "ssh"
 
