@@ -1,4 +1,3 @@
-
 Found matching local key for jj temp file: /home/brad/.ssh/id_ed25519_GitHubSigning
 Using local SSH key for signing...
 Key file being used: /home/brad/.ssh/id_ed25519_GitHubSigning
