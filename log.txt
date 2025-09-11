@@ -1,18 +1,4 @@
 
-DEBUG: Processing key_arg: '/tmp/jj-signing-key-B05vhW'
-DEBUG: File exists: YES
-DEBUG: Pattern match test: MATCHES
-DEBUG: Taking jj temp file branch
-DEBUG: Detected jj temporary key file: /tmp/jj-signing-key-B05vhW
-DEBUG: File exists check: YES
-DEBUG: Pattern match check: YES
-DEBUG: Checking temp file: /tmp/jj-signing-key-B05vhW
-DEBUG: Temp file contains (cleaned): 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO'
-DEBUG: Looking for key_type='ssh-ed25519' key_data='AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO'
-DEBUG: Checking /home/brad/.ssh/google_compute_engine.pub: type='ssh-rsa' data='AAAAB3NzaC1yc2EAAAAD...'
-DEBUG: Checking /home/brad/.ssh/google_compute_engine.pub: type='ssh-rsa' data='AAAAB3NzaC1yc2EAAAAD...'
-DEBUG: Checking /home/brad/.ssh/id_ed25519_GitHubSigning.pub: type='ssh-ed25519' data='AAAAC3NzaC1lZDI1NTE5...'
-DEBUG: MATCH FOUND: /home/brad/.ssh/id_ed25519_GitHubSigning
 Found matching local key for jj temp file: /home/brad/.ssh/id_ed25519_GitHubSigning
 Using local SSH key for signing...
 Key file being used: /home/brad/.ssh/id_ed25519_GitHubSigning

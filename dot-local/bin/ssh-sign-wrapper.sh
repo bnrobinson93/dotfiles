@@ -20,20 +20,17 @@ save_ssh_keys() {
 find_local_key_from_file() {
   local key_file="$1"
 
-  echo "DEBUG: Checking temp file: $key_file" >>log.txt
 
   # Read the public key content from the file
   if [[ -f "$key_file" ]]; then
     local key_content
     key_content=$(cat "$key_file" 2>/dev/null | head -n1 | tr -d '\n\r%' | sed 's/[[:space:]]*$//')
 
-    echo "DEBUG: Temp file contains (cleaned): '$key_content'" >>log.txt
 
     if [[ "$key_content" == ssh-* ]]; then
       local key_type=$(echo "$key_content" | awk '{print $1}')
       local key_data=$(echo "$key_content" | awk '{print $2}')
 
-      echo "DEBUG: Looking for key_type='$key_type' key_data='$key_data'" >>log.txt
 
       # Look for matching key in ~/.ssh/ - check all files, not just id_*
       for local_key_file in "$HOME"/.ssh/*; do
@@ -42,10 +39,8 @@ find_local_key_from_file() {
           local file_key_type=$(echo "$file_key_content" | awk '{print $1}')
           local file_key_data=$(echo "$file_key_content" | awk '{print $2}')
 
-          echo "DEBUG: Checking $local_key_file.pub: type='$file_key_type' data='${file_key_data:0:20}...'" >>log.txt
 
           if [[ "$key_type" == "$file_key_type" && "$key_data" == "$file_key_data" ]]; then
-            echo "DEBUG: MATCH FOUND: $local_key_file" >>log.txt
             echo "$local_key_file"
             return 0
           fi
@@ -56,10 +51,8 @@ find_local_key_from_file() {
           local file_key_data=$(echo "$file_key_content" | awk '{print $2}')
           local base_key_file="${local_key_file%.pub}"
 
-          echo "DEBUG: Checking $local_key_file: type='$file_key_type' data='${file_key_data:0:20}...'" >>log.txt
 
           if [[ "$key_type" == "$file_key_type" && "$key_data" == "$file_key_data" && -f "$base_key_file" ]]; then
-            echo "DEBUG: MATCH FOUND: $base_key_file" >>log.txt
             echo "$base_key_file"
             return 0
           fi
@@ -68,7 +61,6 @@ find_local_key_from_file() {
     fi
   fi
 
-  echo "DEBUG: No local key match found" >>log.txt
   return 1
 }
 
@@ -104,19 +96,48 @@ sign_with_local_key() {
   local namespace="$2"
   local key_file="$3"
 
-  # Use ssh-keygen for signing
+
+  # Since we have format issues with the local PKCS#8 key file,
+  # use the 1Password SSH agent but reference the key by its public key content
+  # This avoids the file format issue while still using the "local" detection logic
+
+  local result=""
+  local exit_code=0
+
+  # Get the public key content from the local file
+  local pub_key_content
+  if [[ -f "${key_file}.pub" ]]; then
+    pub_key_content=$(cat "${key_file}.pub")
+  else
+    echo "Error: Public key file ${key_file}.pub not found" >>log.txt
+    return 1
+  fi
+
+  # Create a temporary file with just the public key for ssh-keygen to reference
+  local temp_pub_key=$(mktemp)
+  echo "$pub_key_content" >"$temp_pub_key"
+
   case "$mode" in
   sign)
-    ssh-keygen -Y sign -n "$namespace" -f "$key_file" </dev/stdin
+    # Use 1Password SSH agent but reference by the temp public key file
+    result=$(SSH_AUTH_SOCK=~/.1password/agent.sock ssh-keygen -Y sign -n "$namespace" -f "$temp_pub_key" </dev/stdin 2>&1)
+    exit_code=$?
     ;;
   verify)
-    ssh-keygen -Y verify -n "$namespace" -f "$key_file" </dev/stdin
+    result=$(SSH_AUTH_SOCK=~/.1password/agent.sock ssh-keygen -Y verify -n "$namespace" -f "$temp_pub_key" </dev/stdin 2>&1)
+    exit_code=$?
     ;;
   *)
     echo "Error: Unsupported mode '$mode'" >>log.txt
-    return 1
+    exit_code=1
     ;;
   esac
+
+  # Clean up temp file
+  rm -f "$temp_pub_key"
+
+  echo "$result"
+  return $exit_code
 }
 
 # Function to use 1Password for signing
@@ -186,14 +207,9 @@ main() {
   local use_1password=false
 
   # Determine key file path and whether to use 1Password
-  echo "DEBUG: Processing key_arg: '$key_arg'" >>log.txt
-  echo "DEBUG: File exists: $(test -f "$key_arg" && echo "YES" || echo "NO")" >>log.txt
-  echo "DEBUG: Pattern match test: $(echo "$key_arg" | grep -q "/tmp/jj-signing-key-" && echo "MATCHES" || echo "NO MATCH")" >>log.txt
 
   if [[ "$key_arg" == ssh-* ]]; then
-    echo "DEBUG: Taking ssh-* branch" >>log.txt
     # Key content provided directly - try to find local match first
-    echo "DEBUG: Key content provided directly: $key_arg" >>log.txt
     local local_key
     if local_key=$(find_local_key_from_content "$key_arg"); then
       echo "Found matching local key for provided content: $local_key" >>log.txt
@@ -209,11 +225,7 @@ main() {
       use_1password=true
     fi
   elif [[ -f "$key_arg" && "$key_arg" == /tmp/jj-signing-key-* ]]; then
-    echo "DEBUG: Taking jj temp file branch" >>log.txt
     # This is a jj temporary key file - check if we have a local match
-    echo "DEBUG: Detected jj temporary key file: $key_arg" >>log.txt
-    echo "DEBUG: File exists check: $(test -f "$key_arg" && echo "YES" || echo "NO")" >>log.txt
-    echo "DEBUG: Pattern match check: $(echo "$key_arg" | grep -q "/tmp/jj-signing-key-" && echo "YES" || echo "NO")" >>log.txt
     local local_key
     if local_key=$(find_local_key_from_file "$key_arg"); then
       echo "Found matching local key for jj temp file: $local_key" >>log.txt
