@@ -1,4 +1,4 @@
-local CACHE_DURATION = 2
+local CACHE_DURATION = 5 -- Increased from 2 seconds
 local cache = {
   cwd = nil,
   is_jj = nil,
@@ -6,134 +6,223 @@ local cache = {
   last_check = 0,
 }
 
-local function is_jujutsu_repo()
-  -- Check if .jj directory exists in current working directory or parents
-  local current_dir = vim.fn.getcwd()
+-- Debounce timer to prevent rapid updates
+local update_timer = nil
+local UPDATE_DELAY = 500 -- milliseconds
 
-  -- If we've cached this recently for the same directory, use cache
-  local now = os.time()
+local uv = vim.uv or vim.loop
+
+local function is_jujutsu_repo()
+  local current_dir = vim.fn.getcwd()
+  local now = uv.now() / 1000
+
+  -- Use cache if valid
   if cache.cwd == current_dir and cache.last_check and (now - cache.last_check) < CACHE_DURATION then
     return cache.is_jj
   end
 
-  -- Check for .jj directory walking up the tree
-  local dir = current_dir
-  while dir and dir ~= "/" do
-    if vim.fn.isdirectory(dir .. "/.jj") == 1 then
-      cache.cwd = current_dir
-      cache.is_jj = true
-      cache.last_check = now
-      return true
-    end
-    dir = vim.fn.fnamemodify(dir, ":h")
-  end
+  -- Use vim.fn.finddir for better performance
+  local jj_dir = vim.fn.finddir(".jj", current_dir .. ";")
 
   cache.cwd = current_dir
-  cache.is_jj = false
+  cache.is_jj = (jj_dir ~= "")
   cache.last_check = now
-  return false
+
+  return cache.is_jj
 end
 
-local function get_jj_bookmark()
-  -- Get the current jj bookmark using jj log command
-  local handle = io.popen("jj log -r @ --no-graph -T bookmarks 2>/dev/null")
-  if not handle then
-    return nil
+-- Async function to get JJ bookmark
+local function get_jj_bookmark_async(callback)
+  -- If we have a pending job, don't start another one
+  if cache.pending_job then
+    callback(cache.branch_info or "jj")
+    return
   end
 
-  local result = handle:read("*a")
-  handle:close()
-
-  if result and result ~= "" then
-    -- Clean up the result and get the first bookmark if multiple exist
-    local bookmark = result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
-    if bookmark ~= "" and bookmark ~= "(empty)" then
-      -- If there are multiple bookmarks, take the first one
-      local first_bookmark = bookmark:match("^([^%s]+)")
-      return first_bookmark or bookmark
+  local output = {}
+  local function on_stdout(_, data)
+    if data then
+      for _, line in ipairs(data) do
+        if line ~= "" then
+          table.insert(output, line)
+        end
+      end
     end
   end
 
-  -- If no bookmark, show the description
-  handle = io.popen("jj log -r @ -T 'description' --no-graph 2>/dev/null")
-  if not handle then
-    return "jj"
+  local function on_exit()
+    cache.pending_job = nil
+    local result = table.concat(output, "\n")
+
+    if result and result ~= "" then
+      local bookmark = result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
+      if bookmark ~= "" and bookmark ~= "(empty)" then
+        local first_bookmark = bookmark:match("^([^%s]+)")
+        callback(first_bookmark or bookmark)
+        return
+      end
+    end
+
+    -- Fallback to description
+    output = {}
+    vim.fn.jobstart("jj log -r @ -T 'description.first_line()' --no-graph 2>/dev/null", {
+      stdout_buffered = true,
+      on_stdout = on_stdout,
+      on_exit = function()
+        local desc_result = table.concat(output, "\n")
+        if desc_result and desc_result ~= "" then
+          local desc = desc_result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
+          if #desc > 20 then
+            desc = desc:sub(1, 17) .. "..."
+          end
+          callback(desc ~= "" and desc or "jj")
+        else
+          callback("jj")
+        end
+      end,
+    })
   end
 
-  result = handle:read("*a")
-  handle:close()
-
-  if result and result ~= "" then
-    local change_id = result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
-    return change_id ~= "" and change_id or "jj"
-  end
-
-  return "jj"
+  cache.pending_job = vim.fn.jobstart("jj log -r @ --no-graph -T bookmarks 2>/dev/null", {
+    stdout_buffered = true,
+    on_stdout = on_stdout,
+    on_exit = on_exit,
+  })
 end
 
-local function get_git_branch()
-  -- Use git symbolic-ref for current branch, fallback to describe for detached HEAD
-  local handle = io.popen(
-    "git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null"
-  )
-  if not handle then
-    return nil
+-- Async function to get Git branch
+local function get_git_branch_async(callback)
+  -- Try fugitive first (synchronous but fast)
+  if vim.fn.exists("*FugitiveHead") == 1 then
+    local branch = vim.fn.FugitiveHead()
+    if branch and branch ~= "" then
+      callback(branch)
+      return
+    end
   end
 
-  local result = handle:read("*a")
-  handle:close()
-
-  if result and result ~= "" then
-    return result:gsub("%s+", ""):gsub("^%s*", ""):gsub("%s*$", "")
+  -- If we have a pending job, don't start another one
+  if cache.pending_job then
+    callback(cache.branch_info or "")
+    return
   end
 
-  return nil
+  local output = {}
+  local function on_stdout(_, data)
+    if data then
+      for _, line in ipairs(data) do
+        if line ~= "" then
+          table.insert(output, line)
+        end
+      end
+    end
+  end
+
+  cache.pending_job = vim.fn.jobstart("git symbolic-ref --short HEAD 2>/dev/null", {
+    stdout_buffered = true,
+    on_stdout = on_stdout,
+    on_exit = function(_, exit_code)
+      cache.pending_job = nil
+      if exit_code == 0 then
+        local result = table.concat(output, "\n")
+        if result and result ~= "" then
+          callback(result:gsub("%s+", ""):gsub("^%s*", ""):gsub("%s*$", ""))
+          return
+        end
+      end
+
+      -- Try for detached HEAD
+      output = {}
+      vim.fn.jobstart("git rev-parse --short HEAD 2>/dev/null", {
+        stdout_buffered = true,
+        on_stdout = on_stdout,
+        on_exit = function(_, code)
+          if code == 0 then
+            local rev = table.concat(output, "\n")
+            if rev and rev ~= "" then
+              callback(rev:gsub("%s+", ""):gsub("^%s*", ""):gsub("%s*$", ""))
+              return
+            end
+          end
+          callback("")
+        end,
+      })
+    end,
+  })
 end
 
-local function branch_component()
+-- Update branch info asynchronously
+local function update_branch_async()
   local current_dir = vim.fn.getcwd()
-  local now = os.time()
-
-  -- Use cached branch info if recent
-  if
-    cache.cwd == current_dir
-    and cache.branch_info
-    and cache.last_check
-    and (now - cache.last_check) < CACHE_DURATION
-  then
-    return cache.branch_info
-  end
-
-  local branch_info = ""
 
   if is_jujutsu_repo() then
-    local bookmark = get_jj_bookmark()
-    if bookmark then
-      branch_info = bookmark
-    else
-      branch_info = "jj"
-    end
+    get_jj_bookmark_async(function(branch)
+      cache.branch_info = branch or "jj"
+      cache.cwd = current_dir
+      cache.last_check = uv.now() / 1000
+      -- Trigger statusline refresh
+      vim.cmd("redrawstatus!")
+    end)
   else
-    local git_branch = get_git_branch()
-    if git_branch then
-      branch_info = git_branch
+    get_git_branch_async(function(branch)
+      cache.branch_info = branch or ""
+      cache.cwd = current_dir
+      cache.last_check = uv.now() / 1000
+      -- Trigger statusline refresh
+      vim.cmd("redrawstatus!")
+    end)
+  end
+end
+
+-- Main component function
+local function branch_component()
+  local current_dir = vim.fn.getcwd()
+  local now = uv.now() / 1000
+
+  -- Check if we need to update
+  if
+    not cache.branch_info
+    or cache.cwd ~= current_dir
+    or not cache.last_check
+    or (now - cache.last_check) >= CACHE_DURATION
+  then
+    -- Start async update if not already pending
+    if not cache.pending_job then
+      -- Schedule async update to run after current event loop
+      vim.schedule(update_branch_async)
     end
+
+    -- Return cached value or placeholder
+    return cache.branch_info or (is_jujutsu_repo() and "jj" or "")
   end
 
-  -- Cache the result
-  cache.cwd = current_dir
-  cache.branch_info = branch_info
-  cache.last_check = now
-
-  return branch_info
+  return cache.branch_info or ""
 end
 
 -- Clear cache when changing directories
 vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
   callback = function()
+    -- Cancel any pending job
+    if cache.pending_job then
+      vim.fn.jobstop(cache.pending_job)
+      cache.pending_job = nil
+    end
+
+    -- Clear cache
     cache.cwd = nil
     cache.is_jj = nil
     cache.branch_info = nil
+    cache.last_check = 0
+
+    -- Trigger async update
+    vim.schedule(update_branch_async)
+  end,
+})
+
+-- Update on focus/resume
+vim.api.nvim_create_autocmd({ "FocusGained", "VimResume" }, {
+  callback = function()
+    -- Just expire the cache, next render will update
     cache.last_check = 0
   end,
 })
@@ -142,8 +231,13 @@ return {
   "nvim-lualine/lualine.nvim",
   opts = {
     options = {
-      section_separators = { left = "", right = "" },
       component_separators = "|",
+      refresh = {
+        statusline = 1000,
+        tabline = 1000,
+        winbar = 1000,
+      },
+      section_separators = { left = "", right = "" },
     },
     extensions = { "nvim-dap-ui", "quickfix", "trouble" },
     sections = {
