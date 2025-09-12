@@ -44,10 +44,7 @@ return {
         icon = "󰃭 ",
         key = "o",
         desc = "Today's Note",
-        action = function()
-          require("lazy").load({ plugins = { "obsidian.nvim" } })
-          vim.cmd("Obsidian today")
-        end,
+        action = "ObsidianTodayAuto",
       })
 
       return opts
