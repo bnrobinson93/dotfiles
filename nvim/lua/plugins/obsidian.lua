@@ -1,4 +1,5 @@
 local vault_path = vim.fn.expand(os.getenv("ZETTELKASTEN") or "")
+local vault_path_alt = vim.fn.expand(os.getenv("ZETTELKASTEN") .. "_2" or "")
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
@@ -143,15 +144,21 @@ return {
         confirm_img_paste = true,
         img_folder = "resources/attachments",
       },
-      workspaces = {
-        {
-          name = "primary",
-          path = vault_path,
-          overrides = {
-            notes_subdir = "0-Inbox",
+      workspaces = (function()
+        local ws = {
+          {
+            name = "primary",
+            path = vault_path,
           },
-        },
-      },
+        }
+        if vault_path_alt and vault_path_alt ~= "" and vim.fn.isdirectory(vault_path_alt) == 1 then
+          table.insert(ws, {
+            name = "alternate",
+            path = vault_path_alt,
+          })
+        end
+        return ws
+      end)(),
       completion = {
         blink = true,
         min_chars = 2,
@@ -167,6 +174,7 @@ return {
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
+      notes_subdir = "0-Inbox",
       templates = {
         folder = "resources/templates",
         date_format = "%Y-%m-%d",
