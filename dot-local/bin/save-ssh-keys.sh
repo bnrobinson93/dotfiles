@@ -120,7 +120,12 @@ save_ssh_key() {
 
   # Generate filename
   local base_filename
-  base_filename=$(get_key_filename "$public_key" "$title")
+  # In save-ssh-keys.sh, add a mapping for special keys
+  if [[ "$title" == "GitHubSigning" ]]; then
+    base_filename="id_ed25519" # Use standard name instead
+  else
+    base_filename=$(get_key_filename "$public_key" "$title")
+  fi
   local private_key_file="$HOME/.ssh/$base_filename"
   local public_key_file="${private_key_file}.pub"
 
@@ -206,3 +211,4 @@ main() {
 
 # Run main function
 main "$@"
+>>>>>>> Conflict 1 of 1 ends
