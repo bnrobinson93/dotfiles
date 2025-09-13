@@ -223,7 +223,7 @@ return {
         return out
       end,
       ui = {
-        enabled = true,
+        enabled = false,
         bullets = {},
       },
     },
