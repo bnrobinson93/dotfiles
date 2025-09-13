@@ -1,12 +1,78 @@
 #!/bin/bash
 
-# Enhanced SSH key saver with better error handling and logging
+# Enhanced SSH key saver with automatic dependency installation and PKCS#8 to OpenSSH conversion
 
 set -euo pipefail
 
 # Function to log messages
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2
+}
+
+# Function to ensure Python and cryptography are installed
+ensure_python_cryptography() {
+  # Check if Python3 is available
+  if ! command -v python3 >/dev/null 2>&1; then
+    log "Python3 not found, attempting to install..."
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS
+      if command -v brew >/dev/null 2>&1; then
+        log "Installing Python3 via Homebrew..."
+        brew install python3 || {
+          log "Failed to install Python3. Please install manually."
+          return 1
+        }
+      else
+        log "Homebrew not found. Please install Python3 manually."
+        return 1
+      fi
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      # Linux
+      if command -v apt-get >/dev/null 2>&1; then
+        log "Installing Python3 via apt..."
+        sudo apt-get update && sudo apt-get install -y python3 python3-pip || {
+          log "Failed to install Python3. Please install manually."
+          return 1
+        }
+      elif command -v yum >/dev/null 2>&1; then
+        log "Installing Python3 via yum..."
+        sudo yum install -y python3 python3-pip || {
+          log "Failed to install Python3. Please install manually."
+          return 1
+        }
+      else
+        log "Package manager not found. Please install Python3 manually."
+        return 1
+      fi
+    fi
+  fi
+
+  # Check if cryptography module is installed
+  if ! python3 -c "import cryptography" >/dev/null 2>&1; then
+    log "Python cryptography module not found, installing..."
+
+    # Try pip3 first
+    if command -v pip3 >/dev/null 2>&1; then
+      pip3 install --user cryptography || {
+        log "Failed to install with pip3, trying python3 -m pip..."
+        python3 -m pip install --user cryptography || {
+          log "Failed to install cryptography module"
+          return 1
+        }
+      }
+    else
+      # Try python3 -m pip
+      python3 -m pip install --user cryptography || {
+        log "Failed to install cryptography module. Please run: pip3 install cryptography"
+        return 1
+      }
+    fi
+
+    log "Successfully installed cryptography module"
+  fi
+
+  return 0
 }
 
 # Function to create SSH directory structure
@@ -55,6 +121,71 @@ get_key_filename() {
     echo "id_unknown_${title// /_}"
     ;;
   esac
+}
+
+# Function to convert PKCS#8 to OpenSSH format
+convert_pkcs8_to_openssh() {
+  local private_key_file="$1"
+
+  # Check if the key is in PKCS#8 format
+  if ! grep -q "BEGIN PRIVATE KEY" "$private_key_file" 2>/dev/null; then
+    log "Key is already in OpenSSH format or unknown format: $private_key_file"
+    return 0
+  fi
+
+  log "Converting PKCS#8 key to OpenSSH format: $private_key_file"
+
+  # Ensure Python and cryptography are available
+  if ! ensure_python_cryptography; then
+    log "Warning: Cannot convert key format without Python cryptography module"
+    return 1
+  fi
+
+  # Try to convert using Python
+  local temp_file="${private_key_file}.openssh.tmp"
+
+  python3 <<PYTHON_SCRIPT 2>/dev/null
+import sys
+try:
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.backends import default_backend
+    
+    with open('$private_key_file', 'rb') as f:
+        private_key = serialization.load_pem_private_key(
+            f.read(), 
+            password=None, 
+            backend=default_backend()
+        )
+    
+    openssh_key = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.OpenSSH,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    
+    with open('$temp_file', 'wb') as f:
+        f.write(openssh_key)
+    
+    print("Conversion successful", file=sys.stderr)
+except ImportError:
+    print("cryptography module not installed", file=sys.stderr)
+    sys.exit(1)
+except Exception as e:
+    print(f"Conversion failed: {e}", file=sys.stderr)
+    sys.exit(1)
+PYTHON_SCRIPT
+
+  if [[ -f "$temp_file" ]]; then
+    # Backup original and replace with converted version
+    cp "$private_key_file" "${private_key_file}.pkcs8.bak"
+    mv "$temp_file" "$private_key_file"
+    chmod 600 "$private_key_file"
+    log "Successfully converted to OpenSSH format"
+    return 0
+  else
+    log "Warning: Conversion failed, key remains in PKCS#8 format"
+    return 1
+  fi
 }
 
 # Function to add key to authorized_keys
@@ -131,18 +262,23 @@ save_ssh_key() {
 
   # Check if files already exist
   if [[ -f "$private_key_file" && -f "$public_key_file" ]]; then
-    log "SSH key files for '$title' already exist, skipping"
+    log "SSH key files for '$title' already exist"
+    # Still try to convert if it's in PKCS#8 format
+    convert_pkcs8_to_openssh "$private_key_file"
     return 0
   fi
 
   # Write key files
   log "Saving private key to: $private_key_file"
-  echo -e "$private_key" >"$private_key_file"
+  echo "$private_key" >"$private_key_file"
   chmod 600 "$private_key_file"
 
   log "Saving public key to: $public_key_file"
   echo "$public_key" >"$public_key_file"
   chmod 644 "$public_key_file"
+
+  # Convert PKCS#8 to OpenSSH format if needed
+  convert_pkcs8_to_openssh "$private_key_file"
 
   # Add to authorized_keys and allowed_signers
   if [[ -n "$email" ]]; then
@@ -170,6 +306,13 @@ main() {
     log "Run 'op signin' first"
     exit 1
   fi
+
+  # Ensure Python and cryptography are installed for key conversion
+  log "Checking Python and cryptography module..."
+  ensure_python_cryptography || {
+    log "Warning: Keys will be saved but remain in PKCS#8 format"
+    log "1Password will still be needed for signing operations"
+  }
 
   # Setup SSH directory structure
   setup_ssh_directory

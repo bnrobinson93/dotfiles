@@ -132,77 +132,12 @@ local italics = function()
   wrap_selection("__", "__")
 end
 
--- Fix for Issue 1: Function to ensure proper conceal level
-local function setup_markdown_concealing()
-  vim.defer_fn(function()
-    if vim.bo.filetype == "markdown" then
-      -- Force render-markdown to reapply its settings
-      local ok, render_markdown = pcall(require, "render-markdown")
-      if ok then
-        -- Trigger a refresh of render-markdown
-        vim.cmd("RenderMarkdown enable")
-      end
-      -- Set the appropriate conceal level
-      vim.opt_local.conceallevel = 2
-      vim.opt_local.concealcursor = ""
-    end
-  end, 50) -- Small delay to ensure plugins are loaded
-end
-
-vim.api.nvim_create_user_command("ObsidianTodayDirect", function(opts)
-  local cwd = vim.fn.getcwd()
-  local vault_to_use = vault_path -- default
-
-  -- Check which vault we're in based on cwd
-  if vault_path_alt ~= "" then
-    local alt_expanded = vim.fn.expand(vault_path_alt)
-    if cwd:find("^" .. vim.pesc(alt_expanded)) then
-      vault_to_use = vault_path_alt
-    end
-  end
-
-  -- Generate today's date in the format your daily notes use
-  local today = os.date("%Y-%m-%d")
-  local daily_note_path = vault_to_use .. "/Periodic/Daily/" .. today .. ".md"
-
-  -- Create directory if it doesn't exist
-  vim.fn.mkdir(vim.fn.fnamemodify(daily_note_path, ":h"), "p")
-
-  -- Open the file
-  vim.cmd("edit " .. vim.fn.fnameescape(daily_note_path))
-
-  -- If the file is new, apply the template
-  if vim.fn.filereadable(daily_note_path) == 0 then
-    local template_path = vault_to_use .. "/resources/templates/daily.md"
-    if vim.fn.filereadable(template_path) == 1 then
-      -- Read template and apply substitutions
-      local template_lines = vim.fn.readfile(template_path)
-      -- Basic template substitutions
-      for i, line in ipairs(template_lines) do
-        template_lines[i] = line:gsub("{{date}}", today)
-        template_lines[i] = template_lines[i]:gsub("{{time}}", os.date("%H:%M"))
-        template_lines[i] = template_lines[i]:gsub("{{title}}", today)
-      end
-      vim.api.nvim_buf_set_lines(0, 0, -1, false, template_lines)
-    end
-  end
-end, { bang = true, bar = true, nargs = "?" })
-
 return {
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
     lazy = true,
     ft = "markdown",
-    cmd = {
-      "ObsidianToday",
-      "ObsidianTodayAuto",
-      "ObsidianTodayDirect",
-      "ObsidianNew",
-      "ObsidianSearch",
-      "ObsidianQuickSwitch",
-      "ObsidianWorkspace",
-    },
     opts = {
       attachments = {
         confirm_img_paste = true,
@@ -288,67 +223,14 @@ return {
         return out
       end,
       ui = {
-        enabled = true,
+        enabled = false,
         bullets = {},
-      },
-      callbacks = {
-        post_setup = function(client)
-          -- Create workspace-aware command
-          vim.api.nvim_create_user_command("ObsidianTodayAuto", function(opts)
-            local cwd = vim.fn.getcwd()
-            local target_workspace = nil
-
-            -- Debug output (uncomment to see what's happening)
-            vim.notify("CWD: " .. cwd, vim.log.levels.INFO)
-
-            -- Find which workspace matches the current working directory
-            for _, ws in ipairs(client.opts.workspaces) do
-              local ws_path = vim.fn.expand(ws.path)
-              vim.notify("Checking workspace: " .. ws.name .. " at " .. ws_path, vim.log.levels.INFO)
-
-              if cwd:find("^" .. vim.pesc(ws_path)) then
-                target_workspace = ws
-                vim.notify("Found matching workspace: " .. ws.name, vim.log.levels.INFO)
-                break
-              end
-            end
-
-            if target_workspace then
-              client:switch_workspace(target_workspace.name)
-              vim.defer_fn(function()
-                client:today()
-              end, 100)
-            else
-              vim.notify("No matching workspace found, using primary", vim.log.levels.WARN)
-              client:switch_workspace("primary")
-              vim.defer_fn(function()
-                client:today()
-              end, 100)
-            end
-          end, { bang = true, bar = true, nargs = "?" })
-        end,
-        -- Fix for Issue 1: Ensure proper rendering when opening notes
-        enter_note = function(client, note)
-          setup_markdown_concealing()
-        end,
       },
     },
     config = function(_, opts)
       require("obsidian").setup(opts)
       vim.keymap.set({ "n", "v", "i" }, "<leader>cb", bold, { desc = "Bold", buffer = true })
       vim.keymap.set({ "n", "v", "i" }, "<leader>ci", italics, { desc = "Italics", buffer = true })
-
-      -- Additional autocmd for dashboard opening
-      vim.api.nvim_create_autocmd("BufReadPost", {
-        pattern = "*.md",
-        callback = function()
-          local file = vim.fn.expand("%:p")
-          -- Check if this is a file in one of your vaults
-          if file:find(vault_path, 1, true) or (vault_path_alt ~= "" and file:find(vault_path_alt, 1, true)) then
-            setup_markdown_concealing()
-          end
-        end,
-      })
     end,
     keys = {
       { "<leader>cb", bold, desc = "Bold", mode = { "n", "v", "i" }, buffer = true },

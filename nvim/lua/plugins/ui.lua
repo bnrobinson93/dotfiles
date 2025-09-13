@@ -14,6 +14,9 @@ return {
         enabled = true,
         view = "cmdline_popup", -- Use traditional: cmdline
       },
+      messages = {
+        enabled = false,
+      },
       presets = {
         inc_rename = true,
         lsp_doc_border = true,
@@ -44,7 +47,14 @@ return {
         icon = "󰃭 ",
         key = "o",
         desc = "Today's Note",
-        action = "ObsidianTodayAuto",
+        action = function()
+          require("lazy").load({ plugins = { "obsidian.nvim" } })
+
+          -- Wait a moment for it to initialize, then call ObsidianToday
+          vim.defer_fn(function()
+            vim.cmd("ObsidianToday")
+          end, 100)
+        end,
       })
 
       return opts

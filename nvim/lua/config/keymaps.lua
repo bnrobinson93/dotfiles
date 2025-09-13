@@ -1,12 +1,14 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
-vim.keymap.del("n", "H")
-vim.keymap.del("n", "L")
+vim.keymap.del("n", "H") -- I want "high" to work
+vim.keymap.del("n", "L") -- I want "low" to work
+vim.keymap.del("n", "<leader>n") -- use noice's instead as it's highlightable
+vim.keymap.del("n", "<leader>l") -- use :Lazy
+vim.keymap.del("n", "<leader>L") -- when do I care about the lazy changelog??
+vim.keymap.del("n", "<leader>K") -- `man` is fine
+vim.keymap.del("n", "<leader>`") -- I don't typically use "other buffer"; just use harpoon
 
 local map = vim.keymap.set
-
--- Your core keymaps from sets/remap.lua
-map("n", "<leader>pv", vim.cmd.Ex, { desc = "Open file explorer" })
 
 -- Move selected lines up/down
 map("v", "<c-j>", ":m '>+1<CR>==gv=gv", { desc = "Move selection down" })
@@ -27,31 +29,11 @@ map({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
 map({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to system clipboard" })
 map("n", "<leader>Y", [["+Y]], { desc = "Yank entire line to system clipboard" })
 
--- Better escape
-map("i", "<C-c>", "<Esc>", { desc = "Escape from insert mode" })
-
 -- Disable Q
 map("n", "Q", "<nop>")
 
 -- Tmux sessionizer (if you use tmux)
 map("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>", { desc = "Open tmux sessionizer" })
-
--- Quickfix navigation
-map("n", "<leader>k", "<cmd>cnext<CR>zz", { desc = "Next quickfix" })
-map("n", "<leader>j", "<cmd>cprev<CR>zz", { desc = "Previous quickfix" })
-
--- Toggle options
-map("n", "<leader>w", "<cmd>set wrap!<CR>", { desc = "Toggle word wrap" })
-map("n", "<leader>l", "<cmd>set relativenumber!<CR>", { desc = "Toggle relative line numbers" })
-
--- Search and replace
--- map("n", "<leader>s", [[:s/\<<C-r><C-w>\>//gI<Left><Left><Left>]], { desc = "Replace word under cursor" })
--- map(
---   "n",
---   "<leader>S",
---   [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]],
---   { desc = "Replace all instances of word under cursor" }
--- )
 
 -- GitHub browse (if you use gh CLI)
 map({ "n", "v" }, "<F5>", function()
