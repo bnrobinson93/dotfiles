@@ -14,6 +14,9 @@ return {
         enabled = true,
         view = "cmdline_popup", -- Use traditional: cmdline
       },
+      messages = {
+        enabled = false,
+      },
       presets = {
         inc_rename = true,
         lsp_doc_border = true,
