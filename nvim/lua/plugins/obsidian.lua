@@ -154,6 +154,7 @@ return {
       },
       completion = {
         blink = true,
+        nvim_cmp = false,
         min_chars = 2,
         create_new = false,
       },
@@ -167,31 +168,6 @@ return {
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
-      templates = {
-        folder = "resources/templates",
-        date_format = "%Y-%m-%d",
-        time_format = "%H:%M",
-        substitutions = {
-          datetime = function()
-            return os.date("%Y%m%d%H%M%S", os.time())
-          end,
-        },
-      },
-      note_id_func = function(title)
-        local titleToUse = ""
-        if title ~= nil then
-          -- Remove quotes first, then process
-          titleToUse = title:gsub("^'", ""):gsub("'$", "") -- Remove single quotes
-          titleToUse = titleToUse:gsub('^"', ""):gsub('"$', "") -- Remove double quotes
-          titleToUse = titleToUse:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
-        else
-          titleToUse = tostring(os.time()) .. "-"
-          for _ = 1, 4 do
-            titleToUse = titleToUse .. "-" .. string.char(math.random(65, 90))
-          end
-        end
-        return titleToUse
-      end,
       note_frontmatter_func = function(note)
         local now = os.date("%Y-%m-%dT%H:%M")
         -- NOTE: the `note.metadata` object contains ONLY:
@@ -222,10 +198,33 @@ return {
         -- return the final result
         return out
       end,
+      note_id_func = function(title)
+        if title ~= nil then
+          -- Remove quotes and only problematic filesystem characters, keep spaces
+          local cleaned = title:gsub("^['\"]", ""):gsub("['\"]$", "") -- Remove surrounding quotes
+          cleaned = cleaned:gsub('[<>:"/\\|?*]', "") -- Remove filesystem-unsafe chars
+          cleaned = cleaned:gsub("^%s+", ""):gsub("%s+$", "") -- Trim whitespace
+          return cleaned
+        else
+          -- Fallback for notes without titles
+          return tostring(os.time())
+        end
+      end,
+      templates = {
+        folder = "resources/templates",
+        date_format = "%Y-%m-%d",
+        time_format = "%H:%M",
+        substitutions = {
+          datetime = function()
+            return os.date("%Y%m%d%H%M%S", os.time())
+          end,
+        },
+      },
       ui = {
-        enabled = true,
+        enabled = false,
         bullets = {},
       },
+      wiki_link_func = "use_alias_only",
     },
     config = function(_, opts)
       require("obsidian").setup(opts)
