@@ -1,5 +1,13 @@
 return {
   {
+    "zbirenbaum/copilot.lua",
+    opts = {
+      filetypes = {
+        markdown = false,
+      },
+    },
+  },
+  {
     "CopilotC-Nvim/CopilotChat.nvim",
     opts = {
       -- For markdown rendering
