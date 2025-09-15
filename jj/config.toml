@@ -4,9 +4,18 @@
 name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
+[revsets]
+log = "@ | bases | mybranches | curbranch::@ | @::nextbranch | downstream(@, branchesandheads)"
+
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~description(exact:"") & (~empty() | merges()))'
+'bases' = 'trunk() | present(develop)'
+'downstream(x,y)' = '(x::y) & y'
+'mybranches' = 'downstream(trunk(), bookmarks()) & mine()'
+'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
+'curbranch' = 'latest(mybranches::@- & mybranches)'
+'nextbranch' = 'roots(@:: & branchesandheads)'
 
 [aliases]
 s = ["status"]
