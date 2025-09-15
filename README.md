@@ -19,6 +19,60 @@ Contains all the dotfiles that I use in my development environment.
 - stow - `sudo apt install stow`
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
+- Zoxide - `brew install zoxide`
+
+## Other nicities
+
+### Pacstall
+
+`sudo apt install pacstall`
+
+- noisetorch-bin
+- pacup
+- zen-browser-bin
+
+### Snap
+
+```sh
+snap install nvim
+snap install raindrop
+snap install ticktick
+```
+
+### Flatpak
+
+Discord Canary
+TLP-UI
+Touché
+Flatseal
+Spotify
+Transmission
+Visual Studio Code
+BibleTime
+Kooha
+Smile
+Blender
+darktable
+GIMP
+WhiteSur-Dark Gtk theme
+WhiteSur-Dark-solid Gtk theme
+Kdenlive
+Krita
+Zoom
+
+### Brew
+
+```sh
+brew install dust fd eza dua-cli ripgrep
+brew install python
+brew install unzip
+brew install glow
+brew install jj lazygit
+brew install zizmor
+brew install pandoc
+brew install sqlite
+brew install k9s helm age agg
+```
 
 ## Usage
 
