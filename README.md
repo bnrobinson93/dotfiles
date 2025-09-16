@@ -44,25 +44,27 @@ snap install ticktick
 
 ### Flatpak
 
-Discord Canary
-TLP-UI
-Touché
-Flatseal
-Spotify
-Transmission
-Visual Studio Code
-BibleTime
-Kooha
-Smile
-Blender
-darktable
-GIMP
-WhiteSur-Dark Gtk theme
-WhiteSur-Dark-solid Gtk theme
-Kdenlive
-Krita
-Zoom
+The following are Flatpak application names. You can install them using the `flatpak install` command. For example:
 
+```sh
+flatpak install flathub com.discordapp.DiscordCanary
+flatpak install flathub org.tlpui.TLPUI
+flatpak install flathub com.github.GradienceTeam.Touché
+flatpak install flathub com.github.tchx84.Flatseal
+flatpak install flathub com.spotify.Client
+flatpak install flathub com.transmissionbt.Transmission
+flatpak install flathub com.visualstudio.code
+flatpak install flathub bibletime.BibleTime
+flatpak install flathub io.github.seadve.Kooha
+flatpak install flathub com.github.smile
+flatpak install flathub org.blender.Blender
+flatpak install flathub org.darktable.Darktable
+flatpak install flathub org.gimp.GIMP
+flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark
+flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark-solid
+flatpak install flathub org.kde.kdenlive
+flatpak install flathub org.kde.krita
+flatpak install flathub us.zoom.Zoom
 ### Brew
 
 ```sh
