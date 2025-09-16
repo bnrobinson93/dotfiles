@@ -21,7 +21,10 @@ Contains all the dotfiles that I use in my development environment.
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
 
-## Other nicities
+## Other niceties
+
+<details>
+  <summary>Click here...</summary>
 
 ### Pacstall
 
@@ -73,6 +76,8 @@ brew install pandoc
 brew install sqlite
 brew install k9s helm age agg
 ```
+
+</details>
 
 ## Usage
 
