@@ -44,25 +44,28 @@ sudo snap install ticktick
 
 ### Flatpak
 
-The following are Flatpak application names. You can install them using the `flatpak install` command. For example:
+You can install these applications from [Flathub](https://flathub.org/). Example installation commands:
 
 ```sh
 flatpak install flathub com.discordapp.DiscordCanary
-flatpak install flathub org.tlpui.TLPUI
-flatpak install flathub com.github.GradienceTeam.Touché
+flatpak install flathub com.github.d4nj1.tlpui
+flatpak install flathub com.github.touchégg.touche
 flatpak install flathub com.github.tchx84.Flatseal
 flatpak install flathub com.spotify.Client
 flatpak install flathub com.transmissionbt.Transmission
 flatpak install flathub com.visualstudio.code
-flatpak install flathub bibletime.BibleTime
+flatpak install flathub org.bibletime.BibleTime
 flatpak install flathub io.github.seadve.Kooha
-flatpak install flathub com.github.smile
+flatpak install flathub it.mijorus.smile
 flatpak install flathub org.blender.Blender
 flatpak install flathub org.darktable.Darktable
 flatpak install flathub org.gimp.GIMP
+flatpak install flathub org.kde.Kdenlive
+flatpak install flathub org.kde.krita
+flatpak install flathub us.zoom.Zoom
+# For GTK themes:
 flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark
 flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark-solid
-flatpak install flathub org.kde.kdenlive
 flatpak install flathub org.kde.krita
 flatpak install flathub us.zoom.Zoom
 ### Brew
