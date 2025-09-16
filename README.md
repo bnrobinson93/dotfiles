@@ -49,7 +49,7 @@ You can install these applications from [Flathub](https://flathub.org/). Example
 ```sh
 flatpak install flathub com.discordapp.DiscordCanary
 flatpak install flathub com.github.d4nj1.tlpui
-flatpak install flathub com.github.touchégg.touche
+flatpak install flathub com.github.touchegg.touche
 flatpak install flathub com.github.tchx84.Flatseal
 flatpak install flathub com.spotify.Client
 flatpak install flathub com.transmissionbt.Transmission
