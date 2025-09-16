@@ -66,8 +66,6 @@ flatpak install flathub us.zoom.Zoom
 # For GTK themes:
 flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark
 flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark-solid
-flatpak install flathub org.kde.krita
-flatpak install flathub us.zoom.Zoom
 ### Brew
 
 ```sh
