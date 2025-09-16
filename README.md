@@ -28,7 +28,7 @@ Contains all the dotfiles that I use in my development environment.
 
 ### Pacstall
 
-`sudo apt install pacstall`
+`sudo bash -c "$(curl -fsSL https://pacstall.dev/q/install)"`
 
 - noisetorch-bin
 - pacup
