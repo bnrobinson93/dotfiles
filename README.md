@@ -37,9 +37,9 @@ Contains all the dotfiles that I use in my development environment.
 ### Snap
 
 ```sh
-snap install nvim
-snap install raindrop
-snap install ticktick
+sudo snap install nvim
+sudo snap install raindrop
+sudo snap install ticktick
 ```
 
 ### Flatpak
