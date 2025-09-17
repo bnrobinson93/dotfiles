@@ -6,6 +6,8 @@ return {
     },
   },
 
+  { "nvim-treesitter/nvim-treesitter-context" },
+
   -- Configure noice to use traditional command line
   {
     "folke/noice.nvim",
