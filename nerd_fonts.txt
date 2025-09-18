@@ -1,0 +1,3 @@
+LGx = line gap, x = S,M,L
+D = dotted zero
+
