@@ -10,6 +10,9 @@ Contains all the dotfiles that I use in my development environment.
 - bat - `brew install bat`
 - starship - `curl -sS https://starship.rs/install.sh | sh`
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
+  - Make sure to install tree sitter CLI: `brew install tree-sitter-cli`
+  - Make sure you have a C compiler
+  - Make sure that `npm` or similar is installed
 - fzf - `sudo apt install fzf`
 - Atuin - `curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh`
 - ripgrep - `sudo apt install ripgrep`
@@ -25,6 +28,10 @@ Contains all the dotfiles that I use in my development environment.
 
 <details>
   <summary>Click here...</summary>
+
+```sh
+brew install node
+```
 
 ### Pacstall
 
@@ -112,3 +119,7 @@ agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/P
 ```
 
 ![demo](./resources/record-demo.gif)
+
+```
+
+```
