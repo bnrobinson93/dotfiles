@@ -53,7 +53,11 @@ return {
         desc = "Today's Note",
         action = function()
           require("lazy").load({ plugins = { "obsidian.nvim" } })
-          vim.cmd("Obsidian today")
+
+          -- Wait a moment for it to initialize, then call ObsidianToday
+          vim.defer_fn(function()
+            vim.cmd("ObsidianToday")
+          end, 100)
         end,
       })
 
