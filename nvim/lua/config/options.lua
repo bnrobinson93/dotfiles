@@ -2,7 +2,6 @@
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 vim.opt.clipboard = ""
 vim.opt.confirm = false
-vim.lsp.inlay_hint.enable(false)
 
 local opt = vim.opt
 
@@ -33,6 +32,3 @@ opt.colorcolumn = "80,120"
 opt.textwidth = 120
 
 opt.scrolloff = 4
-
--- JavaScript alias settings
-vim.cmd([[ set includeexpr=tr(v:fname,'@','.') ]])

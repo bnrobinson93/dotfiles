@@ -1,6 +1,15 @@
 return {
   { "nvim-treesitter/nvim-treesitter-context" },
 
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      inlay_hints = {
+        enabled = false,
+      },
+    },
+  },
+
   -- Configure noice to use traditional command line
   {
     "folke/noice.nvim",
