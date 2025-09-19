@@ -87,3 +87,11 @@ autocmd({ "BufRead", "BufNewFile" }, {
 
 -- Command alias
 vim.cmd([[ command W write ]])
+
+autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.ts", "*.js", "*.tsx", "*.jsx" },
+  desc = "Help javascript aliases find the right path",
+  callback = function()
+    vim.cmd([[set includeexpr=tr(v:fname,'@','.') ]])
+  end,
+})
