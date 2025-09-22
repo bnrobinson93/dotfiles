@@ -5,7 +5,9 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
-log = "@ | @- | bases | mybranches | curbranch::@ | @::nextbranch | downstream(@, branchesandheads)"
+# Shows current, future, and ancestors all the way up to the nearest base, showing each bookmark if there are multiple
+# then displays all heads of unrelated bookmarks
+log = "@ | @- | curbranch::@ | @::nextbranch | bases | (heads(::parents(@) & bookmarks())::@) | mybranches | downstream(@, branchesandheads)"
 
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
@@ -35,7 +37,7 @@ push = [
   "--",
   "sh",
   "-c",
-  "[ -f .husky/pre-commit ] && jj check || true && jj tug && jj git push --allow-new",
+  "[ -f .husky/pre-commit ] && jj check || true && jj git push -c@ --allow-new",
 ]
 
 [commit]
