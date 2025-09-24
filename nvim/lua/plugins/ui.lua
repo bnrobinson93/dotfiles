@@ -1,8 +1,12 @@
 return {
+  { "nvim-treesitter/nvim-treesitter-context" },
+
   {
-    "nvim-lspconfig",
+    "neovim/nvim-lspconfig",
     opts = {
-      inlay_hints = { enabled = false },
+      inlay_hints = {
+        enabled = false,
+      },
     },
   },
 

@@ -1,8 +1,7 @@
 theme = catppuccin-mocha
 font-family = "Dank Mono Nerd Font Propo"
-background-opacity = 0.95
 background-blur-radius = 20
-font-size = 17
+font-size = 20
 window-padding-x = 0
 window-padding-y = 2
 window-padding-balance = true

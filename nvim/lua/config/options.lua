@@ -7,6 +7,8 @@ local opt = vim.opt
 
 -- Your custom options from sets/set.lua
 opt.conceallevel = 1 -- For Obsidian
+vim.cmd([[let g:pencil#conceallevel = 1]])
+
 opt.guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver35-Cursor,r-cr-o:hor30-Cursor"
 opt.mouse = "nv"
 
@@ -30,6 +32,3 @@ opt.colorcolumn = "80,120"
 opt.textwidth = 120
 
 opt.scrolloff = 4
-
--- JavaScript alias settings
-vim.cmd([[ set includeexpr=tr(v:fname,'@','.') ]])

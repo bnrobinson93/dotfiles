@@ -3,13 +3,23 @@
 
 local autocmd = vim.api.nvim_create_autocmd
 
--- Spell checking for text files
-autocmd("FileType", {
-  pattern = { "markdown", "mkd", "text", "COMMIT_EDITMSG" },
-  callback = function()
-    vim.opt_local.spell = true
-  end,
-})
+-- Spell checking for text files + PencilSoft
+vim.cmd([[
+augroup pencil
+  autocmd!
+  autocmd FileType markdown,mkd,text
+                            \   call pencil#init({'wrap': 'soft'})
+                            \ | setl spell spl=en_us fdl=4 
+                            \ | setl fdo+=search
+  autocmd Filetype git,gitsendemail,*commit*,*COMMIT*
+                            \   call pencil#init({'wrap': 'hard', 'textwidth': 72})
+                            \ | setl spell spl=en_us et sw=2 ts=2 noai
+  autocmd Filetype mail         call pencil#init({'wrap': 'hard', 'textwidth': 60})
+                            \ | setl spell spl=en_us et sw=2 ts=2 noai nonu nornu
+  autocmd Filetype html,xml     call pencil#init({'wrap': 'soft'})
+                            \ | setl spell spl=en_us et sw=2 ts=2
+augroup END
+]])
 
 -- YAML trailing whitespace highlighting (from your config)
 autocmd({ "BufRead", "BufNewFile" }, {
@@ -77,3 +87,11 @@ autocmd({ "BufRead", "BufNewFile" }, {
 
 -- Command alias
 vim.cmd([[ command W write ]])
+
+autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.ts", "*.js", "*.tsx", "*.jsx" },
+  desc = "Help javascript aliases find the right path",
+  callback = function()
+    vim.cmd([[set includeexpr=tr(v:fname,'@','.') ]])
+  end,
+})

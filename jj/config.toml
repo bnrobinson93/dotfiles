@@ -4,9 +4,20 @@
 name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
+[revsets]
+# Shows current, future, and ancestors all the way up to the nearest base, showing each bookmark if there are multiple
+# then displays all heads of unrelated bookmarks
+log = "@ | @- | curbranch::@ | @::nextbranch | bases | (heads(::parents(@) & bookmarks())::@) | mybranches | downstream(@, branchesandheads)"
+
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~description(exact:"") & (~empty() | merges()))'
+'bases' = 'trunk() | present(develop) | present(feat/PEP-2386-dsp-v1-integration)'
+'downstream(x,y)' = '(x::y) & y'
+'mybranches' = 'downstream(trunk(), bookmarks()) & mine()'
+'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
+'curbranch' = 'latest(mybranches::@- & mybranches)'
+'nextbranch' = 'roots(@:: & branchesandheads)'
 
 [aliases]
 s = ["status"]
@@ -26,7 +37,7 @@ push = [
   "--",
   "sh",
   "-c",
-  "[ -f .husky/pre-commit ] && jj check || true && jj tug && jj git push --allow-new",
+  "[ -f .husky/pre-commit ] && jj check || true && jj git push -c@ --allow-new",
 ]
 
 [commit]
@@ -41,7 +52,6 @@ default-command = [
   "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))",
 ]
 diff-editor = ":builtin"
-show-cryptographic-signatures = true
 
 [colors]
 signature = "blue"

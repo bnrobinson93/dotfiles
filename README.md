@@ -10,6 +10,9 @@ Contains all the dotfiles that I use in my development environment.
 - bat - `brew install bat`
 - starship - `curl -sS https://starship.rs/install.sh | sh`
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
+  - Make sure to install tree sitter CLI: `brew install tree-sitter-cli`
+  - Make sure you have a C compiler
+  - Make sure that `npm` or similar is installed
 - fzf - `sudo apt install fzf`
 - Atuin - `curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh`
 - ripgrep - `sudo apt install ripgrep`
@@ -19,6 +22,72 @@ Contains all the dotfiles that I use in my development environment.
 - stow - `sudo apt install stow`
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
+- Zoxide - `brew install zoxide`
+
+## Other niceties
+
+<details>
+  <summary>Click here...</summary>
+
+```sh
+brew install node
+```
+
+### Pacstall
+
+`sudo bash -c "$(curl -fsSL https://pacstall.dev/q/install)"`
+
+- noisetorch-bin
+- pacup
+- zen-browser-bin
+
+### Snap
+
+```sh
+sudo snap install nvim
+sudo snap install raindrop
+sudo snap install ticktick
+```
+
+### Flatpak
+
+You can install these applications from [Flathub](https://flathub.org/). Example installation commands:
+
+```sh
+flatpak install flathub com.discordapp.DiscordCanary
+flatpak install flathub com.github.d4nj1.tlpui
+flatpak install flathub com.github.touchegg.touche
+flatpak install flathub com.github.tchx84.Flatseal
+flatpak install flathub com.spotify.Client
+flatpak install flathub com.transmissionbt.Transmission
+flatpak install flathub com.visualstudio.code
+flatpak install flathub org.bibletime.BibleTime
+flatpak install flathub io.github.seadve.Kooha
+flatpak install flathub it.mijorus.smile
+flatpak install flathub org.blender.Blender
+flatpak install flathub org.darktable.Darktable
+flatpak install flathub org.gimp.GIMP
+flatpak install flathub org.kde.Kdenlive
+flatpak install flathub org.kde.krita
+flatpak install flathub us.zoom.Zoom
+# For GTK themes:
+flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark
+flatpak install flathub org.gtk.Gtk3theme.WhiteSur-dark-solid
+### Brew
+
+```sh
+brew install dust fd eza dua-cli ripgrep
+brew install python
+brew install unzip
+brew install glow
+brew install jj lazygit
+brew install zizmor
+brew install pandoc
+brew install sqlite
+brew install k9s helm age agg
+```
+
+</details>
 
 ## Usage
 
@@ -50,3 +119,7 @@ agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/P
 ```
 
 ![demo](./resources/record-demo.gif)
+
+```
+
+```
