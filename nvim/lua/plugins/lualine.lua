@@ -121,7 +121,10 @@ local function get_git_branch_async(callback)
   cache.pending_job = vim.fn.jobstart("git symbolic-ref --short HEAD 2>/dev/null", {
     stdout_buffered = true,
     on_stdout = on_stdout,
-    on_exit = function(_, exit_code)
+    on_exit = function(job_id, exit_code)
+      if job_id and job_id > 0 then
+        vim.fn.jobstop(job_id)
+      end
       cache.pending_job = nil
       if exit_code == 0 then
         local result = table.concat(output, "\n")
@@ -133,10 +136,13 @@ local function get_git_branch_async(callback)
 
       -- Try for detached HEAD
       output = {}
-      vim.fn.jobstart("git rev-parse --short HEAD 2>/dev/null", {
+      local fallback_job = vim.fn.jobstart("git rev-parse --short HEAD 2>/dev/null", {
         stdout_buffered = true,
         on_stdout = on_stdout,
-        on_exit = function(_, code)
+        on_exit = function(fallback_id, code)
+          if fallback_id and fallback_id > 0 then
+            vim.fn.jobstop(fallback_id)
+          end
           if code == 0 then
             local rev = table.concat(output, "\n")
             if rev and rev ~= "" then
