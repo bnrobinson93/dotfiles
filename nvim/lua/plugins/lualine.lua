@@ -1,10 +1,14 @@
 local CACHE_DURATION = 5 -- Increased from 2 seconds
-local cache = {
+
+local M = {}
+M.cache = {
   cwd = nil,
   is_jj = nil,
   branch_info = nil,
   last_check = 0,
+  job_generation = 0,
 }
+local cache = M.cache
 
 -- Debounce timer to prevent rapid updates
 local update_timer = nil
@@ -154,24 +158,66 @@ end
 -- Update branch info asynchronously
 local function update_branch_async()
   local current_dir = vim.fn.getcwd()
+  cache.job_generation = (cache.job_generation or 0) + 1
+  local this_generation = cache.job_generation
 
   if is_jujutsu_repo() then
     get_jj_bookmark_async(function(branch)
+      if this_generation ~= cache.job_generation then
+        return
+      end
       cache.branch_info = branch or "jj"
       cache.cwd = current_dir
       cache.last_check = uv.now() / 1000
-      -- Trigger statusline refresh
       vim.cmd("redrawstatus!")
     end)
   else
     get_git_branch_async(function(branch)
+      if this_generation ~= cache.job_generation then
+        return
+      end
       cache.branch_info = branch or ""
       cache.cwd = current_dir
       cache.last_check = uv.now() / 1000
-      -- Trigger statusline refresh
       vim.cmd("redrawstatus!")
     end)
   end
+end
+
+local function debounce_update()
+  if update_timer ~= nil then
+    if update_timer.stop then
+      pcall(function()
+        update_timer:stop()
+      end)
+    end
+    if update_timer.close then
+      pcall(function()
+        update_timer:close()
+      end)
+    end
+    update_timer = nil
+  end
+  update_timer = uv.new_timer()
+  if update_timer == nil then
+    update_branch_async()
+    return
+  end
+  update_timer:start(
+    UPDATE_DELAY,
+    0,
+    vim.schedule_wrap(function()
+      update_branch_async()
+      if update_timer ~= nil then
+        if update_timer.close then
+          pcall(function()
+            update_timer:close()
+          end)
+        end
+        update_timer = nil
+      end
+    end)
+  )
 end
 
 -- Main component function
@@ -188,8 +234,7 @@ local function branch_component()
   then
     -- Start async update if not already pending
     if not cache.pending_job then
-      -- Schedule async update to run after current event loop
-      vim.schedule(update_branch_async)
+      debounce_update()
     end
 
     -- Return cached value or placeholder
@@ -199,12 +244,18 @@ local function branch_component()
   return cache.branch_info or ""
 end
 
+local function expire_cache()
+  cache.last_check = 0
+end
+
 -- Clear cache when changing directories
 vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
   callback = function()
     -- Cancel any pending job
     if cache.pending_job then
-      vim.fn.jobstop(cache.pending_job)
+      pcall(function()
+        vim.fn.jobstop(cache.pending_job)
+      end)
       cache.pending_job = nil
     end
 
@@ -214,8 +265,10 @@ vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
     cache.branch_info = nil
     cache.last_check = 0
 
-    -- Trigger async update
-    vim.schedule(update_branch_async)
+    -- Just expire the cache, next render will update
+    expire_cache()
+
+    debounce_update()
   end,
 })
 
