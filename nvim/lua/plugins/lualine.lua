@@ -255,13 +255,8 @@ vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
       cache.pending_job = nil
     end
 
-    -- Clear cache
-    cache.cwd = nil
-    cache.is_jj = nil
-    cache.branch_info = nil
-    cache.last_check = 0
+    expire_cache()
 
-    -- Just expire the cache, next render will update
     debounce_update()
   end,
 })
