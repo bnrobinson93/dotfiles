@@ -125,7 +125,7 @@ local function get_git_branch_async(callback)
   cache.pending_job = vim.fn.jobstart("git symbolic-ref --short HEAD 2>/dev/null", {
     stdout_buffered = true,
     on_stdout = on_stdout,
-    on_exit = function(job_id, exit_code)
+    on_exit = function(_, exit_code)
       cache.pending_job = nil
       if exit_code == 0 then
         local result = table.concat(output, "\n")
@@ -137,10 +137,10 @@ local function get_git_branch_async(callback)
 
       -- Try for detached HEAD
       output = {}
-      local fallback_job = vim.fn.jobstart("git rev-parse --short HEAD 2>/dev/null", {
+      vim.fn.jobstart("git rev-parse --short HEAD 2>/dev/null", {
         stdout_buffered = true,
         on_stdout = on_stdout,
-        on_exit = function(fallback_id, code)
+        on_exit = function(_, code)
           if code == 0 then
             local rev = table.concat(output, "\n")
             if rev and rev ~= "" then
@@ -184,7 +184,7 @@ local function update_branch_async()
   end
 end
 
-local function debounce_update()
+local function cleanup_update_timer()
   if update_timer ~= nil then
     if update_timer.stop then
       pcall(function()
@@ -198,6 +198,10 @@ local function debounce_update()
     end
     update_timer = nil
   end
+end
+
+local function debounce_update()
+  cleanup_update_timer()
   update_timer = uv.new_timer()
   if update_timer == nil then
     update_branch_async()
@@ -208,14 +212,7 @@ local function debounce_update()
     0,
     vim.schedule_wrap(function()
       update_branch_async()
-      if update_timer ~= nil then
-        if update_timer.close then
-          pcall(function()
-            update_timer:close()
-          end)
-        end
-        update_timer = nil
-      end
+      cleanup_update_timer()
     end)
   )
 end
@@ -253,9 +250,7 @@ vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
   callback = function()
     -- Cancel any pending job
     if cache.pending_job then
-      pcall(function()
-        vim.fn.jobstop(cache.pending_job)
-      end)
+      vim.fn.jobstop(cache.pending_job)
       cache.pending_job = nil
     end
 
