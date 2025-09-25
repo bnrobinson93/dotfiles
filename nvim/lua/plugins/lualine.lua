@@ -1,14 +1,12 @@
 local CACHE_DURATION = 5 -- Increased from 2 seconds
 
-local M = {}
-M.cache = {
+local cache = {
   cwd = nil,
   is_jj = nil,
   branch_info = nil,
   last_check = 0,
   job_generation = 0,
 }
-local cache = M.cache
 
 -- Debounce timer to prevent rapid updates
 local update_timer = nil
@@ -158,7 +156,7 @@ end
 -- Update branch info asynchronously
 local function update_branch_async()
   local current_dir = vim.fn.getcwd()
-  cache.job_generation = (cache.job_generation or 0) + 1
+  cache.job_generation = cache.job_generation + 1
   local this_generation = cache.job_generation
 
   if is_jujutsu_repo() then
@@ -242,6 +240,9 @@ local function branch_component()
 end
 
 local function expire_cache()
+  cache.cwd = nil
+  cache.is_jj = nil
+  cache.branch_info = nil
   cache.last_check = 0
 end
 
@@ -261,8 +262,6 @@ vim.api.nvim_create_autocmd({ "DirChanged", "BufEnter" }, {
     cache.last_check = 0
 
     -- Just expire the cache, next render will update
-    expire_cache()
-
     debounce_update()
   end,
 })
