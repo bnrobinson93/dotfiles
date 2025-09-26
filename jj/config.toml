@@ -11,7 +11,7 @@ log = "@ | @- | curbranch::@ | @::nextbranch | bases | (heads(::parents(@) & boo
 
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
-'closest_pushable(to)' = 'heads(::to & mutable() & ~description(exact:"") & (~empty() | merges()))'
+'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
 'bases' = 'trunk() | present(develop) | present(feat/PEP-2386-dsp-v1-integration)'
 'downstream(x,y)' = '(x::y) & y'
 'mybranches' = 'downstream(trunk(), bookmarks()) & mine()'
