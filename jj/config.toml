@@ -37,7 +37,15 @@ push = [
   "--",
   "sh",
   "-c",
-  "[ -f .husky/pre-commit ] && jj check || true && jj git push -c@",
+  """
+  [ -f .husky/pre-commit ] && jj check || true
+  bookmark=$(jj log -r @ --no-graph -T 'bookmarks.join(" ")' | head -1 | tr -d '*')
+  if [ -n "$bookmark" ]; then
+    jj git push -b "$bookmark"
+  else
+    jj git push -c@ --allow-new
+  fi
+  """,
 ]
 
 [commit]
