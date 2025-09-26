@@ -20,6 +20,17 @@ log = "@ | @- | curbranch::@ | @::nextbranch | bases | (heads(::parents(@) & boo
 'nextbranch' = 'roots(@:: & branchesandheads)'
 
 [aliases]
+s = ["status"]
+l = ["log", "--limit", "15"]
+tug = [
+  "bookmark",
+  "move",
+  "--from",
+  "closest_bookmark(@)",
+  "--to",
+  "closest_pushable(@)",
+]
+check = ["util", "exec", "--", ".husky/pre-commit"]
 push = [
   "util",
   "exec",
@@ -36,17 +47,6 @@ push = [
   fi
   """,
 ]
-s = ["status"]
-l = ["log", "--limit", "15"]
-tug = [
-  "bookmark",
-  "move",
-  "--from",
-  "closest_bookmark(@)",
-  "--to",
-  "closest_pushable(@)",
-]
-check = ["util", "exec", "--", ".husky/pre-commit"]
 
 [commit]
 sign = true
