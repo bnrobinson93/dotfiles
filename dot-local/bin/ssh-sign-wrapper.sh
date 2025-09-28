@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ssh-sign-wrapper.sh - Wrapper that works with both Git and JJ
+# ssh-sign-wrapper.sh - Simplified wrapper for Git and JJ
 
 set -euo pipefail
 
@@ -18,63 +18,17 @@ else
   exit 1
 fi
 
-# Always log for debugging
-exec 2>>"$LOG_FILE"
+# Simple logging
 log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >&2
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >>"$LOG_FILE"
 }
 
-# Parse arguments - Git passes: -Y sign -n git -f keyfile messagefile
-# JJ passes: -Y sign -n git -f keyfile (message via stdin)
-mode=""
-namespace="git"
-key_input=""
-message_file=""
+log "Called with args: $*"
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-  -Y)
-    mode="$2"
-    shift 2
-    ;;
-  -n)
-    namespace="$2"
-    shift 2
-    ;;
-  -f)
-    key_input="$2"
-    shift 2
-    # Check if there's a message file argument (Git style)
-    if [[ $# -gt 0 && -f "$1" && "$1" != -* ]]; then
-      message_file="$1"
-      shift
-    fi
-    ;;
-  *)
-    # Any remaining file is likely the message file
-    if [[ -f "$1" ]]; then
-      message_file="$1"
-    fi
-    shift
-    ;;
-  esac
-done
+# Check if we have local keys (just for caching, not for signing)
+target_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
+found_local_key=false
 
-log "Mode: $mode, Namespace: $namespace, Key: $key_input, Message file: $message_file"
-
-# Get the key fingerprint we're looking for
-# Git creates a temp file with the public key, JJ uses our configured key
-if [[ -f "$key_input" ]]; then
-  # Read the key from the file
-  target_key=$(cat "$key_input" | head -1 | awk '{print $1" "$2}')
-  log "Read key from file: ${target_key:0:50}..."
-else
-  # Use the known key
-  target_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
-  log "Using known key: ${target_key:0:50}..."
-fi
-
-# Check if we have this key locally
 for private_key in "$SSH_DIR"/id_*; do
   [[ ! -f "$private_key" ]] && continue
   [[ "$private_key" == *.pub ]] && continue
@@ -84,86 +38,21 @@ for private_key in "$SSH_DIR"/id_*; do
   if [[ -f "$pub_key" ]]; then
     stored_key=$(awk '{print $1" "$2}' "$pub_key" 2>/dev/null)
     if [[ "$stored_key" == "$target_key" ]]; then
-      log "Found matching local key: $private_key"
-
-      # Check if it's OpenSSH format (can use ssh-keygen directly)
-      if grep -q "BEGIN OPENSSH PRIVATE KEY" "$private_key" 2>/dev/null; then
-        log "Key is in OpenSSH format, using ssh-keygen directly"
-
-        # Determine input source
-        if [[ -n "$message_file" && -f "$message_file" ]]; then
-          # Git style - message is in a file
-          log "Signing file content with ssh-keygen"
-          ssh-keygen -Y sign -f "$private_key" -n "$namespace" <"$message_file"
-        else
-          # JJ style - message comes from stdin
-          log "Signing stdin content with ssh-keygen"
-          ssh-keygen -Y sign -f "$private_key" -n "$namespace"
-        fi
-        exit $?
-
-      else
-        # Key is PKCS#8 format, use 1Password
-        log "Key is in PKCS#8 format, using 1Password"
-
-        # Prepare key file for 1Password if needed
-        if [[ ! -f "$key_input" ]]; then
-          temp_key=$(mktemp)
-          echo "$target_key 31802085+bnrobinson93@users.noreply.github.com" >"$temp_key"
-          key_input="$temp_key"
-        fi
-
-        # Sign with 1Password
-        if [[ -n "$message_file" && -f "$message_file" ]]; then
-          log "Signing file with 1Password: $message_file"
-          "$OPSIGN" -Y "$mode" -n "$namespace" -f "$key_input" <"$message_file"
-          exit_code=$?
-        else
-          log "Signing stdin with 1Password"
-          input_data=$(mktemp)
-          cat >"$input_data"
-          "$OPSIGN" -Y "$mode" -n "$namespace" -f "$key_input" <"$input_data"
-          exit_code=$?
-          rm -f "$input_data"
-        fi
-
-        [[ -n "${temp_key:-}" ]] && rm -f "$temp_key"
-        exit $exit_code
-      fi
+      found_local_key=true
+      log "Found cached local key: $private_key"
+      break
     fi
   fi
 done
 
-# Key not found locally - sync from 1Password
-log "Key not found locally, syncing from 1Password"
-
-if [[ -x "$SAVE_KEYS_SCRIPT" ]]; then
-  "$SAVE_KEYS_SCRIPT" >/dev/null 2>&1 || log "Sync failed"
+# If no local key, sync from 1Password
+if [[ "$found_local_key" == "false" ]]; then
+  log "No local key found, syncing from 1Password"
+  if [[ -x "$SAVE_KEYS_SCRIPT" ]]; then
+    "$SAVE_KEYS_SCRIPT" >/dev/null 2>&1 || log "Sync failed"
+  fi
 fi
 
-# Use 1Password for signing
+# Always use 1Password for signing (since keys are PKCS#8)
 log "Using 1Password for signing"
-
-# Prepare key file if needed
-if [[ ! -f "$key_input" ]]; then
-  temp_key=$(mktemp)
-  echo "$target_key 31802085+bnrobinson93@users.noreply.github.com" >"$temp_key"
-  key_input="$temp_key"
-fi
-
-# Sign with 1Password
-if [[ -n "$message_file" && -f "$message_file" ]]; then
-  log "Final: Signing file with 1Password: $message_file"
-  "$OPSIGN" -Y "$mode" -n "$namespace" -f "$key_input" <"$message_file"
-  exit_code=$?
-else
-  log "Final: Signing stdin with 1Password"
-  input_data=$(mktemp)
-  cat >"$input_data"
-  "$OPSIGN" -Y "$mode" -n "$namespace" -f "$key_input" <"$input_data"
-  exit_code=$?
-  rm -f "$input_data"
-fi
-
-[[ -n "${temp_key:-}" ]] && rm -f "$temp_key"
-exit $exit_code
+exec "$OPSIGN" "$@"
