@@ -136,7 +136,7 @@ return {
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
-    lazy = true,
+    priority = 100,
     ft = "markdown",
     opts = {
       attachments = {
@@ -220,10 +220,7 @@ return {
           end,
         },
       },
-      ui = {
-        enabled = false,
-        bullets = {},
-      },
+      ui = { enable = false },
       wiki_link_func = "use_alias_only",
     },
     config = function(_, opts)

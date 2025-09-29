@@ -1,6 +1,7 @@
 return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
+    priority = 1000,
     dependencies = { "nvim-treesitter/nvim-treesitter" },
     ft = { "markdown", "Avante", "vimwiki", "help", "copilot-chat" },
     opts = {
