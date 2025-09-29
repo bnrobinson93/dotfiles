@@ -136,7 +136,7 @@ return {
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
-    lazy = true,
+    priority = 100,
     ft = "markdown",
     opts = {
       attachments = {
