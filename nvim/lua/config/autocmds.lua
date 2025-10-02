@@ -13,11 +13,8 @@ augroup pencil
                             \ | setl fdo+=search
   autocmd Filetype git,gitsendemail,*commit*,*COMMIT*
                             \   call pencil#init({'wrap': 'hard', 'textwidth': 72})
-                            \ | setl spell spl=en_us et sw=2 ts=2 noai
   autocmd Filetype mail         call pencil#init({'wrap': 'hard', 'textwidth': 60})
-                            \ | setl spell spl=en_us et sw=2 ts=2 noai nonu nornu
   autocmd Filetype html,xml     call pencil#init({'wrap': 'soft'})
-                            \ | setl spell spl=en_us et sw=2 ts=2
 augroup END
 ]])
 
