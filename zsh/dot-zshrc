@@ -32,7 +32,7 @@ ASSORTED_BIN_DIRS=$(ls --zero -d $HOME/.*/bin | tr '\0' ':') # .local, .bun, etc
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 
 # Essential PATH - single assignment
-export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_FOLDERS:$HOMEBREW_DIRS"
+export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
 # Basic settings
 set -o emacs
