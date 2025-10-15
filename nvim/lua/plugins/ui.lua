@@ -45,7 +45,8 @@ return {
         end,
       }
 
-      opts.picker.matcher = { frecency = true }
+      opts.picker.win.input.delay = 100 -- debounce search
+      opts.picker.matcher = { frecency = true, cwd_bonus = true }
 
       opts.scroll = { enabled = false }
 
