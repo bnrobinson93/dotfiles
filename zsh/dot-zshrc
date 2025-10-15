@@ -39,7 +39,7 @@ set -o emacs
 unsetopt no_match
 
 # Fix jj pager
-LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
+export LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
 # Essential aliases
 alias vi=$EDITOR
