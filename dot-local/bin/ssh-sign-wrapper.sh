@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# ssh-sign-wrapper.sh - Simplified wrapper for Git and JJ
 
 set -euo pipefail
 
@@ -30,7 +29,7 @@ target_key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQ
 found_local_key=false
 
 for private_key in "$SSH_DIR"/id_*; do
-  [[ ! -f "$private_key" ]] && continue
+  [ ! -f "$private_key" ] && continue
   [[ "$private_key" == *.pub ]] && continue
   [[ "$private_key" == *.bak ]] && continue
 

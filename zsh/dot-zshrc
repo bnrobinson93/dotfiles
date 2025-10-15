@@ -23,13 +23,16 @@ else
    export EDITOR='nvim'
 fi
 
-# Essential PATH - single assignment
-export PATH="$PATH:$HOME/.local/bin:$HOME/.pulumi/bin:$HOME/.rd/bin:$HOME/.bun/bin:$HOME/.local/share/pnpm:/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin:$HOME/.atuin/bin"
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
+ASSORTED_BIN_DIRS=$(ls --zero -d $HOME/.*/bin | tr '\0' ':') # .local, .bun, etc
+HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
+
+# Essential PATH - single assignment
+export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
 # Basic settings
 set -o emacs
