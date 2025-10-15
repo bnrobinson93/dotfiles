@@ -38,6 +38,9 @@ export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 set -o emacs
 unsetopt no_match
 
+# Fix jj pager
+export LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
+
 # Essential aliases
 alias vi=$EDITOR
 grep="grep --color=always"
