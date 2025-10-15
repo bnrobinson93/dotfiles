@@ -28,7 +28,7 @@ fi
 export ZETTELKASTEN=$HOME/Documents/Vault
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
-ASSORTED_BIN_DIRS=$(find "$HOME" -type d -maxdepth 2 -name "bin" -print0 | tr '\0' ':') # .local, .bun, etc
+ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" -print0 | tr '\0' ':') # .local, .bun, etc
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 
 # Essential PATH - single assignment
