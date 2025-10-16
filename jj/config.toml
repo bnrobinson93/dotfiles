@@ -12,9 +12,9 @@ log = "bases | latest(curbranch::@, 5) | @::nextbranch | all_my_bookmark_tips | 
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
 'bases' = 'trunk() | present(develop) | present(feat/PEP-2386-dsp-v1-integration)'
-'downstream(x,y)' = 'x::y & y'
+'downstream(x,y)' = 'x::y'
 
-# Fixed: just your bookmarks
+# All bookmarks owned by the current user
 'mybranches' = 'bookmarks() & mine()'
 
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
