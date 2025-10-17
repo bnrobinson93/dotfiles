@@ -125,11 +125,11 @@ local function wrap_selection(before, after)
 end
 
 local bold = function()
-  wrap_selection("**", "**")
+  wrap_selection("__", "__")
 end
 
 local italics = function()
-  wrap_selection("__", "__")
+  wrap_selection("_", "_")
 end
 
 return {
@@ -177,7 +177,7 @@ return {
         local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
 
         -- Add things I may want
-        if note.url then
+        if note.durl then
           out.url = note.url
         end
 
