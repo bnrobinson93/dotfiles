@@ -15,7 +15,7 @@ return {
         ["markdownlint-cli2"] = {
           args = {
             "--config",
-            vim.fn.stdpath("config") .. "lua/plugins/global.markdownlint-cli2.jsonc",
+            vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
             "--",
           },
         },
