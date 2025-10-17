@@ -223,14 +223,9 @@ return {
       ui = { enable = false },
       wiki_link_func = "use_alias_only",
     },
-    config = function(_, opts)
-      require("obsidian").setup(opts)
-      vim.keymap.set({ "n", "v", "i" }, "<leader>cb", bold, { desc = "Bold", buffer = true })
-      vim.keymap.set({ "n", "v", "i" }, "<leader>ci", italics, { desc = "Italics", buffer = true })
-    end,
     keys = {
-      { "<leader>cb", bold, desc = "Bold", mode = { "n", "v", "i" }, buffer = true },
-      { "<leader>ci", italics, desc = "Italics", mode = { "n", "v", "i" }, buffer = true },
+      { "<leader>cb", bold, desc = "Bold", mode = { "n", "v" }, buffer = true },
+      { "<leader>ci", italics, desc = "Italics", mode = { "n", "v" }, buffer = true },
       {
         "<F1>",
         function()
