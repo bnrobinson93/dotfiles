@@ -1,4 +1,7 @@
-# Ultra-fast zshrc - fixed starship initialization
+# Ghostty shell integration (pending migration to WezTerm)
+if [ -n "${GHOSTTY_RESOURCES_DIR}" ]; then
+    builtin source "${GHOSTTY_RESOURCES_DIR}/shell-integration/zsh/ghostty-integration"
+fi
 
 # FAST compinit
 autoload -Uz compinit
