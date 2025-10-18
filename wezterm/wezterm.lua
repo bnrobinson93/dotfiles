@@ -271,6 +271,14 @@ return {
 	allow_square_glyphs_to_overflow_width = "Always",
 	warn_about_missing_glyphs = false,
 
+	default_cursor_style = "BlinkingBar",
+	mouse_bindings = {
+		{
+			event = { Down = { streak = 3, button = "Left" } },
+			action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
+			mods = "NONE",
+		},
+	},
 	window_content_alignment = {
 		horizontal = "Center",
 		vertical = "Center",
@@ -345,5 +353,18 @@ return {
 
 		-- Misc
 		{ key = "F11", action = act.ToggleFullScreen },
+		-- Jump to previous prompt (scroll backward through command history)
+		{
+			key = "UpArrow",
+			mods = "SHIFT",
+			action = wezterm.action.ScrollToPrompt(-1),
+		},
+
+		-- Jump to next prompt (scroll forward through command history)
+		{
+			key = "DownArrow",
+			mods = "SHIFT",
+			action = wezterm.action.ScrollToPrompt(1),
+		},
 	},
 }
