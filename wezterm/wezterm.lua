@@ -119,7 +119,8 @@ wezterm.on("update-right-status", function(window, _)
 	local cwd = pane:get_current_working_dir()
 	local cwd_str = ""
 	if cwd then
-		cwd_str = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", ""):gsub(".*/", "")
+		local path = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
+		cwd_str = path:match("[^/]+$") or path
 	end
 
 	local leader_active = window:leader_is_active()
@@ -284,10 +285,10 @@ return {
 		vertical = "Center",
 	},
 	window_padding = {
-		left = "0",
-		right = "0",
-		top = "0",
-		bottom = "0",
+		left = 0,
+		right = 0,
+		top = 0,
+		bottom = 0,
 	},
 
 	-- Font
