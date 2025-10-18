@@ -64,6 +64,8 @@ end
 -- =============== Theme Variables ===============
 local TEXT_COLOR = "#262626"
 local BG_COLOR = "#1e1e2e"
+local PILL_BG_COLOR = "#313244"
+local ACTIVE_PILL_BG_COLOR = "#45475a"
 local ACCENT_GREEN = "Green"
 local ACCENT_YELLOW = "Yellow"
 local ACCENT_RED = "Red"
@@ -117,7 +119,8 @@ wezterm.on("update-right-status", function(window, _)
 	local cwd = pane:get_current_working_dir()
 	local cwd_str = ""
 	if cwd then
-		cwd_str = cwd.file_path:gsub(os.getenv("HOME"), "~")
+		local path = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
+		cwd_str = path:match("[^/]+$") or path
 	end
 
 	local leader_active = window:leader_is_active()
@@ -226,10 +229,10 @@ wezterm.on("format-tab-title", function(tab, tabs)
 	if tab.is_active then
 		return {
 			"ResetAttributes",
-			{ Foreground = { AnsiColor = ACCENT_GREY } },
+			{ Foreground = { Color = ACTIVE_PILL_BG_COLOR } },
 			{ Background = { Color = BG_COLOR } },
 			{ Text = FORMATTED_ROUND_LEFT },
-			{ Background = { AnsiColor = ACCENT_GREY } },
+			{ Background = { Color = ACTIVE_PILL_BG_COLOR } },
 			{ Foreground = { AnsiColor = ACCENT_SILVER } },
 			{ Text = title .. " " },
 			{ Foreground = { Color = TEXT_COLOR } },
@@ -242,17 +245,17 @@ wezterm.on("format-tab-title", function(tab, tabs)
 	end
 	return {
 		"ResetAttributes",
-		{ Foreground = { Color = TEXT_COLOR } },
+		{ Foreground = { Color = PILL_BG_COLOR } },
 		{ Background = { Color = BG_COLOR } },
 		{ Text = FORMATTED_ROUND_LEFT },
-		{ Background = { Color = TEXT_COLOR } },
+		{ Background = { Color = PILL_BG_COLOR } },
 		{ Foreground = { AnsiColor = ACCENT_SILVER } },
 		{ Text = title .. " " },
 		{ Foreground = { Color = TEXT_COLOR } },
-		{ Background = { AnsiColor = ACCENT_WHITE } },
+		{ Background = { AnsiColor = ACCENT_SILVER } },
 		{ Text = " " .. id },
 		{ Background = { Color = BG_COLOR } },
-		{ Foreground = { AnsiColor = ACCENT_WHITE } },
+		{ Foreground = { AnsiColor = ACCENT_SILVER } },
 		{ Text = ROUND_RIGHT .. " " },
 	}
 end)
@@ -269,8 +272,27 @@ return {
 	allow_square_glyphs_to_overflow_width = "Always",
 	warn_about_missing_glyphs = false,
 
+	default_cursor_style = "BlinkingBar",
+	mouse_bindings = {
+		{
+			event = { Down = { streak = 3, button = "Left" } },
+			action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
+			mods = "NONE",
+		},
+	},
+	window_content_alignment = {
+		horizontal = "Center",
+		vertical = "Center",
+	},
+	window_padding = {
+		left = 0,
+		right = 0,
+		top = 0,
+		bottom = 0,
+	},
+
 	-- Font
-	font = wezterm.font_with_fallback({ "DankMono Nerd Font", "Fira Code", "JetBrains Mono" }),
+	font = wezterm.font_with_fallback({ "DankMono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
 	font_size = 18,
 
 	-- Tab bar
@@ -332,5 +354,18 @@ return {
 
 		-- Misc
 		{ key = "F11", action = act.ToggleFullScreen },
+		-- Jump to previous prompt (scroll backward through command history)
+		{
+			key = "UpArrow",
+			mods = "SHIFT",
+			action = wezterm.action.ScrollToPrompt(-1),
+		},
+
+		-- Jump to next prompt (scroll forward through command history)
+		{
+			key = "DownArrow",
+			mods = "SHIFT",
+			action = wezterm.action.ScrollToPrompt(1),
+		},
 	},
 }
