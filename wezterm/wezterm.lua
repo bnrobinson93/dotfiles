@@ -64,6 +64,8 @@ end
 -- =============== Theme Variables ===============
 local TEXT_COLOR = "#262626"
 local BG_COLOR = "#1e1e2e"
+local PILL_BG_COLOR = "#313244"
+local ACTIVE_PILL_BG_COLOR = "#45475a"
 local ACCENT_GREEN = "Green"
 local ACCENT_YELLOW = "Yellow"
 local ACCENT_RED = "Red"
@@ -226,10 +228,10 @@ wezterm.on("format-tab-title", function(tab, tabs)
 	if tab.is_active then
 		return {
 			"ResetAttributes",
-			{ Foreground = { AnsiColor = ACCENT_GREY } },
+			{ Foreground = { Color = ACTIVE_PILL_BG_COLOR } },
 			{ Background = { Color = BG_COLOR } },
 			{ Text = FORMATTED_ROUND_LEFT },
-			{ Background = { AnsiColor = ACCENT_GREY } },
+			{ Background = { Color = ACTIVE_PILL_BG_COLOR } },
 			{ Foreground = { AnsiColor = ACCENT_SILVER } },
 			{ Text = title .. " " },
 			{ Foreground = { Color = TEXT_COLOR } },
@@ -242,17 +244,17 @@ wezterm.on("format-tab-title", function(tab, tabs)
 	end
 	return {
 		"ResetAttributes",
-		{ Foreground = { Color = TEXT_COLOR } },
+		{ Foreground = { Color = PILL_BG_COLOR } },
 		{ Background = { Color = BG_COLOR } },
 		{ Text = FORMATTED_ROUND_LEFT },
-		{ Background = { Color = TEXT_COLOR } },
+		{ Background = { Color = PILL_BG_COLOR } },
 		{ Foreground = { AnsiColor = ACCENT_SILVER } },
 		{ Text = title .. " " },
 		{ Foreground = { Color = TEXT_COLOR } },
-		{ Background = { AnsiColor = ACCENT_WHITE } },
+		{ Background = { AnsiColor = ACCENT_SILVER } },
 		{ Text = " " .. id },
 		{ Background = { Color = BG_COLOR } },
-		{ Foreground = { AnsiColor = ACCENT_WHITE } },
+		{ Foreground = { AnsiColor = ACCENT_SILVER } },
 		{ Text = ROUND_RIGHT .. " " },
 	}
 end)
@@ -270,7 +272,7 @@ return {
 	warn_about_missing_glyphs = false,
 
 	-- Font
-	font = wezterm.font_with_fallback({ "DankMono Nerd Font", "Fira Code", "JetBrains Mono" }),
+	font = wezterm.font_with_fallback({ "DankMono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
 	font_size = 18,
 
 	-- Tab bar
