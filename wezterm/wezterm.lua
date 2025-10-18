@@ -119,7 +119,7 @@ wezterm.on("update-right-status", function(window, _)
 	local cwd = pane:get_current_working_dir()
 	local cwd_str = ""
 	if cwd then
-		cwd_str = cwd.file_path:gsub(os.getenv("HOME"), "~")
+		cwd_str = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", ""):gsub(".*/", "")
 	end
 
 	local leader_active = window:leader_is_active()
@@ -270,6 +270,17 @@ return {
 	color_scheme = "Catppuccin Mocha",
 	allow_square_glyphs_to_overflow_width = "Always",
 	warn_about_missing_glyphs = false,
+
+	window_content_alignment = {
+		horizontal = "Center",
+		vertical = "Center",
+	},
+	window_padding = {
+		left = "0",
+		right = "0",
+		top = "0",
+		bottom = "0",
+	},
 
 	-- Font
 	font = wezterm.font_with_fallback({ "DankMono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
