@@ -125,7 +125,7 @@ local function wrap_selection(before, after)
 end
 
 local bold = function()
-  wrap_selection("__", "__")
+  wrap_selection("**", "**")
 end
 
 local italics = function()
