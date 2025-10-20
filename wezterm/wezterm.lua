@@ -51,6 +51,7 @@ sessionizer.toggle = function(window, pane)
 				else
 					wezterm.log_info("Selected " .. label)
 					win:perform_action(act.SwitchToWorkspace({ name = id, spawn = { cwd = label } }), pane)
+					win:perform_action(act.SendKey({ key = "", mods = "" }), pane)
 				end
 			end),
 			fuzzy = true,
@@ -331,6 +332,16 @@ return {
 		{ mods = "LEADER", key = "8", action = act.ActivateTab(7) },
 		{ mods = "LEADER", key = "9", action = act.ActivateTab(8) },
 
+		-- Quick places
+		{
+			mods = "LEADER|SHIFT",
+			key = "V",
+			action = act.SwitchToWorkspace({
+				name = "Vault",
+				spawn = { cwd = os.getenv("HOME") .. "/Documents/Vault" },
+			}),
+		},
+
 		-- Splits (like tmux)
 		{ mods = "LEADER|SHIFT", key = "|", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
 		{ mods = "LEADER", key = "-", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
@@ -346,10 +357,10 @@ return {
 		{ mods = "LEADER", key = "l", action = act.ActivatePaneDirection("Right") },
 
 		-- Pane resizing
-		{ mods = "LEADER", key = "RightArrow", action = act.AdjustPaneSize({ "Right", 5 }) },
-		{ mods = "LEADER", key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 5 }) },
-		{ mods = "LEADER", key = "DownArrow", action = act.AdjustPaneSize({ "Down", 5 }) },
-		{ mods = "LEADER", key = "UpArrow", action = act.AdjustPaneSize({ "Up", 5 }) },
+		{ mods = "LEADER|ALT", key = "RightArrow", action = act.AdjustPaneSize({ "Right", 5 }) },
+		{ mods = "LEADER|ALT", key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 5 }) },
+		{ mods = "LEADER|ALT", key = "DownArrow", action = act.AdjustPaneSize({ "Down", 5 }) },
+		{ mods = "LEADER|ALT", key = "UpArrow", action = act.AdjustPaneSize({ "Up", 5 }) },
 
 		-- Misc
 		{ key = "F11", action = act.ToggleFullScreen },
