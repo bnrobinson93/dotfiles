@@ -263,7 +263,6 @@ end)
 -- =============== Config ===============
 return {
 	-- Display
-	enable_wayland = true,
 	window_background_opacity = 0.99,
 	macos_window_background_blur = 50,
 	initial_cols = 200,
@@ -292,7 +291,7 @@ return {
 	},
 
 	-- Font
-	font = wezterm.font_with_fallback({ "DankMono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
+	font = wezterm.font_with_fallback({ "Dank Mono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
 	font_size = 18,
 
 	-- Tab bar
