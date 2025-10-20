@@ -177,7 +177,7 @@ return {
         local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
 
         -- Add things I may want
-        if note.durl then
+        if note.url then
           out.url = note.url
         end
 
