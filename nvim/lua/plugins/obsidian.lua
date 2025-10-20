@@ -129,7 +129,7 @@ local bold = function()
 end
 
 local italics = function()
-  wrap_selection("__", "__")
+  wrap_selection("_", "_")
 end
 
 return {
