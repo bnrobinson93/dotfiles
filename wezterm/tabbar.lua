@@ -37,9 +37,8 @@ local BAT_CHARGING_ICON = utf8.char(0xf0084)
 -- Update window title to show workspace name only
 wezterm.on("format-window-title", function(tab, pane, tabs, panes, config)
 	if not pane then
-		return "WezTerm"
+		return "New Session"
 	end
-
 	local workspace = pane:get_current_working_dir()
 	if workspace then
 		workspace = workspace.file_path:match("([^/]+)$") or workspace.file_path
@@ -53,13 +52,19 @@ wezterm.on("format-window-title", function(tab, pane, tabs, panes, config)
 		end
 	end
 
-	return "WezTerm"
+	return "New Session"
 end)
 
 wezterm.on("update-right-status", function(window, _)
 	local workspace = window:active_workspace()
 	local pane = window:active_pane()
-	local cwd = pane:get_current_working_dir()
+	local cwd
+	if pane then
+		cwd = pane:get_current_working_dir()
+	else
+		cwd = "New Session"
+	end
+
 	local cwd_str = ""
 	if cwd then
 		local path = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
@@ -70,7 +75,7 @@ wezterm.on("update-right-status", function(window, _)
 
 	-- Left status: corner + icon highlighted, text normal
 	local bg_color = leader_active and ACCENT_RED or ACCENT_GREEN
-	
+
 	-- Show workspace name, or fallback to "default" if none set
 	local display_workspace = workspace or "default"
 	if display_workspace == "default" then
