@@ -25,19 +25,24 @@ sessionizer.toggle = function(window, pane)
 			"1",
 			"-type",
 			"d",
+			"(",
 			"-not",
 			"-name",
 			".*",
 			"-o",
 			"-name",
 			".dotfiles",
+			")",
 		})
-
 		if success then
 			for line in stdout:gmatch("[^\n]+") do
 				if line ~= "" and line ~= search_path then
 					local id = line:gsub(".*/", "")
-					table.insert(projects, { label = line, id = id })
+					-- Sanitize workspace name by removing leading dot
+					local safe_id = id:gsub("^%.", "")
+					if safe_id ~= "" then
+						table.insert(projects, { label = line, id = safe_id })
+					end
 				end
 			end
 		end
@@ -50,8 +55,8 @@ sessionizer.toggle = function(window, pane)
 					wezterm.log_info("Cancelled")
 				else
 					wezterm.log_info("Selected " .. label)
+					wezterm.sleep_ms(50)
 					win:perform_action(act.SwitchToWorkspace({ name = id, spawn = { cwd = label } }), pane)
-					win:perform_action(act.SendKey({ key = "", mods = "" }), pane)
 				end
 			end),
 			fuzzy = true,
@@ -333,6 +338,14 @@ return {
 		{ mods = "LEADER", key = "9", action = act.ActivateTab(8) },
 
 		-- Quick places
+		{
+			mods = "LEADER|SHIFT",
+			key = "C",
+			action = act.SwitchToWorkspace({
+				name = "Code",
+				spawn = { cwd = os.getenv("HOME") .. "/Documents/code" },
+			}),
+		},
 		{
 			mods = "LEADER|SHIFT",
 			key = "V",
