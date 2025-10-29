@@ -1,52 +1,83 @@
--- ~.config/wezterm/sessionizer.lua
-local wezterm = require 'wezterm'
+local wezterm = require("wezterm")
 local act = wezterm.action
 
-local M = {}
+-- =============== Sessionizer ===============
+local sessionizer = {}
 
-local fd = '/usr/local/bin/fd'
+sessionizer.toggle = function(window, pane)
+	local projects = {}
 
-M.toggle = function(window, pane)
-  local projects = {}
+	local search_paths = {
+		os.getenv("HOME"),
+		os.getenv("HOME") .. "/Documents",
+		os.getenv("HOME") .. "/Downloads",
+		os.getenv("HOME") .. "/Documents/code",
+		os.getenv("HOME") .. "/Documents/code/integrations-monorepo/integrations",
+		os.getenv("HOME") .. "/Documents/code/js-lib-monorepo/libraries",
+	}
 
-  local success, stdout, stderr = wezterm.run_child_process {
-    fd,
-    '-HI',
-    '--max-depth=1',
-    '--prune',
-    os.getenv 'HOME',
-    os.getenv 'HOME' .. '/Downloads',
-    os.getenv 'HOME' .. '/Documents',
-  }
+	-- Add ~/.dotfiles as a direct option (not its children)
+	local dotfiles_path = os.getenv("HOME") .. "/.dotfiles"
+	table.insert(projects, { label = dotfiles_path, id = "dotfiles" })
 
-  if not success then
-    wezterm.log_error('Failed to run fd: ' .. stderr)
-    return
-  end
+	-- Search for child directories in all paths
+	for _, search_path in ipairs(search_paths) do
+		local success, stdout, stderr = wezterm.run_child_process({
+			"fd",
+			"-t",
+			"d",
+			"",
+			search_path,
+			"-Hi",
+			"--prune",
+		})
 
-  for line in stdout:gmatch '([^\n]*)\n?' do
-    local project = line:gsub('/.git.*$', '')
-    local label = project
-    local id = project:gsub('.*/', '')
-    table.insert(projects, { label = tostring(label), id = tostring(id) })
-  end
+		-- fall back to find
+		if not success then
+			success, stdout = wezterm.run_child_process({
+				"find",
+				search_path,
+				"-maxdepth",
+				"1",
+				"-type",
+				"d",
+			})
+		end
 
-  window:perform_action(
-    act.InputSelector {
-      action = wezterm.action_callback(function(win, _, id, label)
-        if not id and not label then
-          wezterm.log_info 'Cancelled'
-        else
-          wezterm.log_info('Selected ' .. label)
-          win:perform_action(act.SwitchToWorkspace { name = id, spawn = { cwd = label } }, pane)
-        end
-      end),
-      fuzzy = true,
-      title = 'Select project',
-      choices = projects,
-    },
-    pane
-  )
+		if success then
+			for line in stdout:gmatch("[^\n]+") do
+				if line ~= "" and line ~= search_path and line ~= dotfiles_path then
+					-- Extract directory name from path
+					local id = line:match("([^/]+)/?$")
+					if not id or id == "" then
+						id = "unnamed"  -- fallback
+					end
+					table.insert(projects, { label = line, id = id })
+				end
+			end
+		end
+	end
+
+	window:perform_action(
+		act.InputSelector({
+			action = wezterm.action_callback(function(win, _, id, label)
+				if not id and not label then
+					-- Selection cancelled
+				else
+					win:perform_action(act.SwitchToWorkspace({ 
+						name = id, 
+						spawn = { 
+							cwd = label
+						} 
+					}), pane)
+				end
+			end),
+			fuzzy = true,
+			title = "Select project",
+			choices = projects,
+		}),
+		pane
+	)
 end
 
-return M
+return sessionizer
