@@ -76,7 +76,7 @@ map("n", "<C-n>", function()
   end
 
   -- Create the new note first
-  vim.cmd("ObsidianNew " .. note_name)
+  vim.cmd("Obsidian new_from_template " .. note_name .. " zettle")
 
   vim.defer_fn(function()
     -- Use the cleaned name for the link
