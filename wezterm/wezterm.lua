@@ -49,7 +49,7 @@ local config = {
 	window_decorations = "TITLE|RESIZE",
 
 	-- =============== Keybindings (tmux-style) ===============
-	leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 },
+	leader = { mods = "CTRL", key = "a", timeout_milliseconds = 1000 },
 	keys = {
 		-- New tab/window (like tmux 'c')
 		{ mods = "LEADER", key = "c", action = act.SpawnTab("CurrentPaneDomain") },
@@ -82,6 +82,24 @@ local config = {
 		{ mods = "LEADER", key = "8", action = act.ActivateTab(7) },
 		{ mods = "LEADER", key = "9", action = act.ActivateTab(8) },
 
+		-- Quick places
+		{
+			mods = "LEADER|SHIFT",
+			key = "C",
+			action = act.SwitchToWorkspace({
+				name = "Code",
+				spawn = { cwd = os.getenv("HOME") .. "/Documents/code" },
+			}),
+		},
+		{
+			mods = "LEADER|SHIFT",
+			key = "V",
+			action = act.SwitchToWorkspace({
+				name = "Vault",
+				spawn = { cwd = os.getenv("HOME") .. "/Documents/Vault" },
+			}),
+		},
+
 		-- Splits (like tmux)
 		{ mods = "LEADER|SHIFT", key = "|", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
 		{ mods = "LEADER", key = "-", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
@@ -97,10 +115,10 @@ local config = {
 		{ mods = "LEADER", key = "l", action = act.ActivatePaneDirection("Right") },
 
 		-- Pane resizing
-		{ mods = "LEADER", key = "RightArrow", action = act.AdjustPaneSize({ "Right", 5 }) },
-		{ mods = "LEADER", key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 5 }) },
-		{ mods = "LEADER", key = "DownArrow", action = act.AdjustPaneSize({ "Down", 5 }) },
-		{ mods = "LEADER", key = "UpArrow", action = act.AdjustPaneSize({ "Up", 5 }) },
+		{ mods = "LEADER|ALT", key = "RightArrow", action = act.AdjustPaneSize({ "Right", 5 }) },
+		{ mods = "LEADER|ALT", key = "LeftArrow", action = act.AdjustPaneSize({ "Left", 5 }) },
+		{ mods = "LEADER|ALT", key = "DownArrow", action = act.AdjustPaneSize({ "Down", 5 }) },
+		{ mods = "LEADER|ALT", key = "UpArrow", action = act.AdjustPaneSize({ "Up", 5 }) },
 
 		-- Misc
 		{ key = "F11", action = act.ToggleFullScreen },
