@@ -21,8 +21,8 @@ return {
   {
     "tokyonight.nvim",
     priority = 1000,
-    style = "storm",
     opts = {
+      style = "storm",
       cache = true,
       transparent = true,
       on_highlights = function(hl, c)
