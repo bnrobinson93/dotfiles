@@ -10,17 +10,27 @@ return  {
     "mfussenegger/nvim-lint",
     optional = true,
     opts = function()
-     local yamlLinters = getYamlLinters()
-
      return {
-      linters_by_ft = {
-        typescript = { "eslint_d" },
-        typescriptreact = { "eslint_d" },
-        javascript = { "eslint_d" },
-        javascriptreact = { "eslint_d" },
-        yaml = yamlLinters,
-        ["yaml.ghaction"] = { "actionlint", "zizmor" },
-      },
+           linters_by_ft = {
+             typescript = { "eslint_d" },
+             typescriptreact = { "eslint_d" },
+             javascript = { "eslint_d" },
+             javascriptreact = { "eslint_d" },
+             yaml = {},
+           },
+           setup_autocmd = function()
+              vim.api.nvim_create_autocmd("BufEnter", {
+                 pattern = "*.yaml",
+                 callback = function()
+                   local bufname = vim.api.nvim_buf_get_name(0)
+                   if bufname:match("/.github/workflows/") then
+                     require("lint").linters_by_ft.yaml = { "actionlint", "zizmor" }
+                   else
+                     require("lint").linters_by_ft.yaml = {}
+                   end
+                 end,
+              })
+           end,
       linters = {
         ["markdownlint-cli2"] = {
           args = {
