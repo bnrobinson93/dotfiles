@@ -1,14 +1,24 @@
-return {
-  {
+ function getYamlLinters()
+  local bufname = vim.api.nvim_buf_get_name(0)
+  if bufname:match("/.github/workflows/") then
+    return { "actionlint", "zizmor" }
+  end
+  return {}
+end
+
+return  {
     "mfussenegger/nvim-lint",
     optional = true,
-    opts = {
+    opts = function()
+     local yamlLinters = getYamlLinters()
+
+     return {
       linters_by_ft = {
         typescript = { "eslint_d" },
         typescriptreact = { "eslint_d" },
         javascript = { "eslint_d" },
         javascriptreact = { "eslint_d" },
-        yaml = { "actionlint", "zizmor" },
+        yaml = yamlLinters,
         ["yaml.ghaction"] = { "actionlint", "zizmor" },
       },
       linters = {
@@ -20,7 +30,8 @@ return {
           },
         },
       },
-    },
+    }
+   end,
     keys = {
       {
         "<leader>cl",
