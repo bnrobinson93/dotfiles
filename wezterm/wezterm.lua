@@ -51,6 +51,10 @@ local config = {
 	-- =============== Keybindings (tmux-style) ===============
 	leader = { mods = "CTRL", key = "a", timeout_milliseconds = 1000 },
 	keys = {
+		-- Send Ctrl+A to terminal when pressed twice (like tmux prefix passthrough)
+		{ mods = "LEADER", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
+		{ mods = "LEADER|CTRL", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
+
 		-- New tab/window (like tmux 'c')
 		{ mods = "LEADER", key = "c", action = act.SpawnTab("CurrentPaneDomain") },
 
