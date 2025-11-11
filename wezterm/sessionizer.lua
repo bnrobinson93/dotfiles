@@ -14,7 +14,7 @@ local function find_fd_command()
 	}
 
 	for _, cmd in ipairs(possible_paths) do
-		local ok, success, _, _ = pcall(wezterm.run_child_process, { cmd, "--version" })
+		local ok, success = pcall(wezterm.run_child_process, { cmd, "--version" })
 		if ok and success then
 			return cmd
 		end

@@ -59,7 +59,18 @@ wezterm.on("update-right-status", function(window, _)
 	if pane then
 		local cwd_uri = pane:get_current_working_dir()
 		if cwd_uri then
-			local cwd_path = cwd_uri.file_path or tostring(cwd_uri)
+			local cwd_path
+			if cwd_uri.file_path then
+				cwd_path = cwd_uri.file_path
+			else
+				-- Extract path from URI string (e.g., file:///home/user -> /home/user)
+				local uri_str = tostring(cwd_uri)
+				cwd_path = uri_str:match("^file://([^?]+)") or uri_str
+				-- Ensure leading slash
+				if not cwd_path:match("^/") then
+					cwd_path = "/" .. cwd_path
+				end
+			end
 			local path = cwd_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
 			cwd_str = path:match("[^/]+$") or path
 		end
