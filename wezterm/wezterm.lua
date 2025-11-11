@@ -67,6 +67,9 @@ local config = {
 		{ mods = "LEADER", key = "f", action = wezterm.action_callback(sessionizer.toggle) },
 		{ mods = "CTRL", key = "f", action = wezterm.action_callback(sessionizer.toggle) },
 
+		-- Copy mode (like tmux copy-mode with vim keys)
+		{ mods = "LEADER", key = "[", action = act.ActivateCopyMode },
+
 		-- Tab navigation (like tmux 'n' and 'b' for next/prev)
 		{ mods = "LEADER", key = "n", action = act.ActivateTabRelative(1) },
 		{ mods = "LEADER", key = "b", action = act.ActivateTabRelative(-1) },
