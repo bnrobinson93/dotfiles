@@ -4,6 +4,25 @@ local act = wezterm.action
 -- =============== Sessionizer ===============
 local sessionizer = {}
 
+-- Find fd command in common locations
+local function find_fd_command()
+	local possible_paths = {
+		"fd",  -- Try PATH first
+		"/home/linuxbrew/.linuxbrew/bin/fd",  -- Linux Homebrew
+		"/opt/homebrew/bin/fd",  -- macOS Apple Silicon
+		"/usr/local/bin/fd",  -- macOS Intel / other Linux
+	}
+
+	for _, cmd in ipairs(possible_paths) do
+		local ok, success, _, _ = pcall(wezterm.run_child_process, { cmd, "--version" })
+		if ok and success then
+			return cmd
+		end
+	end
+
+	return nil  -- fd not found
+end
+
 sessionizer.toggle = function(window, pane)
 	local projects = {}
 
@@ -20,17 +39,25 @@ sessionizer.toggle = function(window, pane)
 	local dotfiles_path = os.getenv("HOME") .. "/.dotfiles"
 	table.insert(projects, { label = dotfiles_path, id = "dotfiles" })
 
+	-- Find fd command once
+	local fd_cmd = find_fd_command()
+
 	-- Search for child directories in all paths
 	for _, search_path in ipairs(search_paths) do
-		local success, stdout, stderr = wezterm.run_child_process({
-			"fd",
-			"-t",
-			"d",
-			"",
-			search_path,
-			"-Hi",
-			"--prune",
-		})
+		local success, stdout, stderr
+
+		-- Try fd first if available
+		if fd_cmd then
+			success, stdout, stderr = wezterm.run_child_process({
+				fd_cmd,
+				"-t",
+				"d",
+				"",
+				search_path,
+				"-Hi",
+				"--prune",
+			})
+		end
 
 		-- fall back to find
 		if not success then

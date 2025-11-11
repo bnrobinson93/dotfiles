@@ -39,10 +39,6 @@ wezterm.on("format-window-title", function(tab, pane, tabs, panes, config)
 	if not pane then
 		return "New Session"
 	end
-	local workspace = pane:get_current_working_dir()
-	if workspace then
-		workspace = workspace.file_path:match("([^/]+)$") or workspace.file_path
-	end
 
 	local mux_window = tab.window
 	if mux_window then
@@ -58,17 +54,15 @@ end)
 wezterm.on("update-right-status", function(window, _)
 	local workspace = window:active_workspace()
 	local pane = window:active_pane()
-	local cwd
-	if pane then
-		cwd = pane:get_current_working_dir()
-	else
-		cwd = "New Session"
-	end
-
 	local cwd_str = ""
-	if cwd then
-		local path = cwd.file_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
-		cwd_str = path:match("[^/]+$") or path
+
+	if pane then
+		local cwd_uri = pane:get_current_working_dir()
+		if cwd_uri then
+			local cwd_path = cwd_uri.file_path or tostring(cwd_uri)
+			local path = cwd_path:gsub(os.getenv("HOME"), "~"):gsub("/$", "")
+			cwd_str = path:match("[^/]+$") or path
+		end
 	end
 
 	local leader_active = window:leader_is_active()
