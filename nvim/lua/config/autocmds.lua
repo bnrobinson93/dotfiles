@@ -24,12 +24,17 @@ autocmd({ "BufRead", "BufNewFile" }, {
   desc = "Highlight trailing whitespace in YAML files",
   callback = function()
     -- check linters for github
-    local bufname = vim.api.nvim_buf_get_name(0)
-    bufname = bufname:gsub("\\", "/")
-    if bufname:match("/.github/workflows/") then
-      require("lint").linters_by_ft.yaml = { "actionlint", "zizmor" }
+    local bufnr = vim.api.nvim_get_current_buf()
+    -- Cache the normalized buffer path in a buffer-local variable
+    if vim.b[bufnr].normalized_path == nil then
+      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      vim.b[bufnr].normalized_path = bufname:gsub("\\", "/")
+    end
+    local normalized_path = vim.b[bufnr].normalized_path
+    if normalized_path and normalized_path:match("/.github/workflows/") then
+      vim.b.lint_linters = { "actionlint", "zizmor" }
     else
-      require("lint").linters_by_ft.yaml = {}
+      vim.b.lint_linters = {}
     end
 
     -- alert on trailing whitespace
