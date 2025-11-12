@@ -1,11 +1,3 @@
- function getYamlLinters()
-  local bufname = vim.api.nvim_buf_get_name(0)
-  if bufname:match("/.github/workflows/") then
-    return { "actionlint", "zizmor" }
-  end
-  return {}
-end
-
 return  {
     "mfussenegger/nvim-lint",
     optional = true,
@@ -20,7 +12,7 @@ return  {
            },
            setup_autocmd = function()
               vim.api.nvim_create_autocmd("BufEnter", {
-                 pattern = "*.yaml",
+                 pattern = "*.{yaml,yml}",
                  callback = function()
                    local bufname = vim.api.nvim_buf_get_name(0)
                    if bufname:match("/.github/workflows/") then
