@@ -20,11 +20,15 @@ local config = {
 	warn_about_missing_glyphs = false,
 
 	default_cursor_style = "BlinkingBar",
+	-- Custom mouse bindings (adds to defaults, doesn't replace them)
+	-- Note: Alt+click cursor positioning is NOT supported by WezTerm (see issue #1175)
 	mouse_bindings = {
+		-- Override triple-click to select semantic zone (command output)
+		-- instead of default line selection
 		{
 			event = { Down = { streak = 3, button = "Left" } },
 			action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
-			mods = "NONE",
+			mods = "CTRL",
 		},
 	},
 	window_content_alignment = {
@@ -48,6 +52,20 @@ local config = {
 	use_fancy_tab_bar = false,
 	window_decorations = "TITLE|RESIZE",
 
+	-- Skip close confirmation when at shell prompt
+	skip_close_confirmation_for_processes_named = {
+		"bash",
+		"sh",
+		"zsh",
+		"fish",
+		"tmux",
+		"nu",
+	},
+	-- Preserve working directory when spawning new panes/tabs
+	default_cwd = wezterm.home_dir,
+	-- Allow prompt reflow on window resize (complex prompts redraw correctly)
+	canonicalize_pasted_newlines = "None",
+
 	-- =============== Keybindings (tmux-style) ===============
 	leader = { mods = "CTRL", key = "a", timeout_milliseconds = 1000 },
 	keys = {
@@ -55,7 +73,7 @@ local config = {
 		{ mods = "LEADER", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
 		{ mods = "LEADER|CTRL", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
 
-		-- New tab/window (like tmux 'c')
+		-- New tab/window (like tmux 'c') - inherits CWD from current pane
 		{ mods = "LEADER", key = "c", action = act.SpawnTab("CurrentPaneDomain") },
 
 		-- Close pane (like tmux 'x')
@@ -107,7 +125,7 @@ local config = {
 			}),
 		},
 
-		-- Splits (like tmux)
+		-- Splits (like tmux) - inherit CWD from current pane
 		{ mods = "LEADER|SHIFT", key = "|", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
 		{ mods = "LEADER", key = "-", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
 

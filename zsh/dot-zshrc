@@ -97,7 +97,6 @@ fi
 
 if type zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
-  alias cd="z" # note this will override the uutils version as well
 fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
@@ -324,5 +323,13 @@ else
   get_completions
 fi
 
-[[ -s ${HOME}/.config/wezterm/wezterm.sh ]] && . ${HOME}/.config/wezterm/wezterm.sh
+# Wezterm shell integration (enables semantic zones, prompt tracking, Alt+click, etc.)
+if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
+  # Source official wezterm shell integration
+  # Download from:
+  # https://raw.githubusercontent.com/wezterm/wezterm/refs/heads/main/assets/shell-integration/wezterm.sh
+  if [[ -f "${HOME}/.local/bin/wezterm-shell-integration.sh" ]]; then
+    source "${HOME}/.local/bin/wezterm-shell-integration.sh"
+  fi
+fi
 
