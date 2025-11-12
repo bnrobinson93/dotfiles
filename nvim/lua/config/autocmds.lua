@@ -19,6 +19,7 @@ augroup END
 ]])
 
 -- YAML
+local lint = pcall(require("lint"))
 autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*.yaml", "*.yml" },
   desc = "Highlight trailing whitespace in YAML files",
