@@ -21,7 +21,8 @@ local config = {
 
 	default_cursor_style = "BlinkingBar",
 	-- Custom mouse bindings (adds to defaults, doesn't replace them)
-	-- Note: Alt+click cursor positioning is NOT supported by WezTerm (see wezterm/wezterm#1175)
+	-- Note: Alt+click cursor positioning is supported if shell integration is enabled.
+	-- See: https://wezfurlong.org/wezterm/shell-integration.html#altclick-cursor-positioning
 	mouse_bindings = {
 		-- Override triple-click to select semantic zone (command output)
 		-- instead of default line selection
@@ -63,7 +64,7 @@ local config = {
 	},
 	-- Preserve working directory when spawning new panes/tabs
 	default_cwd = wezterm.home_dir,
-	-- Allow prompt reflow on window resize (complex prompts redraw correctly)
+	-- Preserve original newline formatting when pasting text
 	canonicalize_pasted_newlines = "None",
 
 	-- =============== Keybindings (tmux-style) ===============
