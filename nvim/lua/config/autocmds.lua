@@ -18,11 +18,21 @@ augroup pencil
 augroup END
 ]])
 
--- YAML trailing whitespace highlighting (from your config)
+-- YAML
 autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*.yaml", "*.yml" },
   desc = "Highlight trailing whitespace in YAML files",
   callback = function()
+    -- check linters for github
+    local bufname = vim.api.nvim_buf_get_name(0)
+    bufname = bufname:gsub("\\", "/")
+    if bufname:match("/.github/workflows/") then
+      require("lint").linters_by_ft.yaml = { "actionlint", "zizmor" }
+    else
+      require("lint").linters_by_ft.yaml = {}
+    end
+
+    -- alert on trailing whitespace
     local bufnr = vim.api.nvim_get_current_buf()
     local ns = vim.api.nvim_create_namespace("YAML")
 

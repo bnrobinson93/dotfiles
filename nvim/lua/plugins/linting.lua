@@ -10,20 +10,6 @@ return  {
              javascriptreact = { "eslint_d" },
              yaml = {},
            },
-           setup_autocmd = function()
-              vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-                 pattern = "*.{yaml,yml}",
-                 callback = function()
-                   local bufname = vim.api.nvim_buf_get_name(0)
-                   bufname = bufname:gsub("\\", "/")
-                   if bufname:match("/.github/workflows/") then
-                     require("lint").linters_by_ft.yaml = { "actionlint", "zizmor" }
-                   else
-                     require("lint").linters_by_ft.yaml = {}
-                   end
-                 end,
-              })
-           end,
       linters = {
         ["markdownlint-cli2"] = {
           args = {

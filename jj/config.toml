@@ -70,7 +70,7 @@ unsigned = "cyan"
 [signing]
 behavior = "drop"
 # Use local key file directly instead of SSH agent
-key = "~/.ssh/id_ed25519"
+key = "~/.ssh/id_ed25519_GitHubSigning"
 backend = "ssh"
 
 [core]
