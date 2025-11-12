@@ -21,14 +21,14 @@ local config = {
 
 	default_cursor_style = "BlinkingBar",
 	-- Custom mouse bindings (adds to defaults, doesn't replace them)
-	-- Note: Alt+click cursor positioning is NOT supported by WezTerm (see issue #1175)
+	-- Note: Alt+click cursor positioning is NOT supported by WezTerm (see wezterm/wezterm#1175)
 	mouse_bindings = {
 		-- Override triple-click to select semantic zone (command output)
 		-- instead of default line selection
 		{
 			event = { Down = { streak = 3, button = "Left" } },
 			action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
-			mods = "CTRL",
+			mods = "NONE",
 		},
 	},
 	window_content_alignment = {
