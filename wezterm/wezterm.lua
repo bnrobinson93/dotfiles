@@ -20,7 +20,12 @@ local config = {
 	warn_about_missing_glyphs = false,
 
 	default_cursor_style = "BlinkingBar",
+	-- Custom mouse bindings (adds to defaults, doesn't replace them)
+	-- Note: Alt+click cursor positioning is supported if shell integration is enabled.
+	-- See: https://wezfurlong.org/wezterm/shell-integration.html#altclick-cursor-positioning
 	mouse_bindings = {
+		-- Override triple-click to select semantic zone (command output)
+		-- instead of default line selection
 		{
 			event = { Down = { streak = 3, button = "Left" } },
 			action = wezterm.action.SelectTextAtMouseCursor("SemanticZone"),
@@ -48,10 +53,28 @@ local config = {
 	use_fancy_tab_bar = false,
 	window_decorations = "TITLE|RESIZE",
 
+	-- Skip close confirmation when at shell prompt
+	skip_close_confirmation_for_processes_named = {
+		"bash",
+		"sh",
+		"zsh",
+		"fish",
+		"tmux",
+		"nu",
+	},
+	-- Preserve working directory when spawning new panes/tabs
+	default_cwd = wezterm.home_dir,
+	-- Preserve original newline formatting when pasting text
+	canonicalize_pasted_newlines = "None",
+
 	-- =============== Keybindings (tmux-style) ===============
 	leader = { mods = "CTRL", key = "a", timeout_milliseconds = 1000 },
 	keys = {
-		-- New tab/window (like tmux 'c')
+		-- Send Ctrl+A to terminal when pressed twice (like tmux prefix passthrough)
+		{ mods = "LEADER", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
+		{ mods = "LEADER|CTRL", key = "a", action = act.SendKey({ mods = "CTRL", key = "a" }) },
+
+		-- New tab/window (like tmux 'c') - inherits CWD from current pane
 		{ mods = "LEADER", key = "c", action = act.SpawnTab("CurrentPaneDomain") },
 
 		-- Close pane (like tmux 'x')
@@ -66,6 +89,9 @@ local config = {
 		-- Sessionizer/project picker (like tmux sessionizer)
 		{ mods = "LEADER", key = "f", action = wezterm.action_callback(sessionizer.toggle) },
 		{ mods = "CTRL", key = "f", action = wezterm.action_callback(sessionizer.toggle) },
+
+		-- Copy mode (like tmux copy-mode with vim keys)
+		{ mods = "LEADER", key = "[", action = act.ActivateCopyMode },
 
 		-- Tab navigation (like tmux 'n' and 'b' for next/prev)
 		{ mods = "LEADER", key = "n", action = act.ActivateTabRelative(1) },
@@ -100,7 +126,7 @@ local config = {
 			}),
 		},
 
-		-- Splits (like tmux)
+		-- Splits (like tmux) - inherit CWD from current pane
 		{ mods = "LEADER|SHIFT", key = "|", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
 		{ mods = "LEADER", key = "-", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
 

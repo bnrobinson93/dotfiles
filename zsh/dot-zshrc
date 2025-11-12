@@ -97,7 +97,6 @@ fi
 
 if type zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
-  alias cd="z" # note this will override the uutils version as well
 fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
@@ -161,7 +160,7 @@ zsh_load_deferred() {
   autoload -U up-line-or-beginning-search down-line-or-beginning-search
   zle -N up-line-or-beginning-search
   zle -N down-line-or-beginning-search
-  
+
   # Essential key bindings
   bindkey -v
   [[ -n "${terminfo[khome]}" ]] && bindkey -- "${terminfo[khome]}" beginning-of-line
@@ -169,6 +168,30 @@ zsh_load_deferred() {
   [[ -n "${terminfo[kcuu1]}" ]] && bindkey -- "${terminfo[kcuu1]}" history-beginning-search-backward
   [[ -n "${terminfo[kcud1]}" ]] && bindkey -- "${terminfo[kcud1]}" history-beginning-search-forward
   [[ -n "${terminfo[kdch1]}" ]] && bindkey -- "${terminfo[kdch1]}" delete-char
+
+  # Emacs-style bindings in vi insert mode
+  bindkey -M viins '^A' beginning-of-line
+  bindkey -M viins '^E' end-of-line
+
+  # Cursor shape changes for vi mode
+  function zle-keymap-select {
+    case $KEYMAP in
+      vicmd)      echo -ne '\e[1 q';; # block cursor for normal mode
+      viins|main) echo -ne '\e[5 q';; # line cursor for insert mode
+    esac
+  }
+  zle -N zle-keymap-select
+
+  # Initialize cursor to line for insert mode
+  function zle-line-init {
+    echo -ne '\e[5 q'
+  }
+  zle -N zle-line-init
+
+  # Reset cursor to line after each command
+  preexec() {
+    echo -ne '\e[5 q'
+  }
 
   # Colors
   if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
@@ -300,5 +323,13 @@ else
   get_completions
 fi
 
-[[ -s ${HOME}/.config/wezterm/wezterm.sh ]] && . ${HOME}/.config/wezterm/wezterm.sh
+# Wezterm shell integration (enables semantic zones, prompt tracking, Alt+click, etc.)
+if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
+  # Source official wezterm shell integration
+  # Download from:
+  # https://raw.githubusercontent.com/wezterm/wezterm/refs/heads/main/assets/shell-integration/wezterm.sh
+  if [[ -f "${HOME}/.local/bin/wezterm-shell-integration.sh" ]]; then
+    source "${HOME}/.local/bin/wezterm-shell-integration.sh"
+  fi
+fi
 
