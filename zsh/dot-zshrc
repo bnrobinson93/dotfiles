@@ -125,9 +125,9 @@ function ignore-g {
 function ignore {
     for dir in "$@"; do
         [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
-        root=$(git rev-parse --show-toplevel)
-        echo Adding ignore to ${root:-HOME}/.gitignore
-        echo "$dir" >> ${root:-HOME}/.gitignore
+        root=$(git rev-parse --show-toplevel 2>/dev/null)
+        echo Adding ignore to ${root:-$HOME}/.gitignore
+        echo "$dir" >> ${root:-$HOME}/.gitignore
     done
 }
 
