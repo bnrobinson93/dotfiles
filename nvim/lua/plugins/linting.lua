@@ -1,26 +1,30 @@
-return  {
+return {
+  {
     "mfussenegger/nvim-lint",
     optional = true,
+    event = "LazyFile",
     opts = function()
-     return {
-           linters_by_ft = {
-             typescript = { "eslint_d" },
-             typescriptreact = { "eslint_d" },
-             javascript = { "eslint_d" },
-             javascriptreact = { "eslint_d" },
-             yaml = {},
-           },
-      linters = {
-        ["markdownlint-cli2"] = {
-          args = {
-            "--config",
-            vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
-            "--",
+      return {
+        -- Event to trigger linters
+        events = { "BufWritePost", "BufReadPost", "InsertLeave" },
+        linters_by_ft = {
+          typescript = { "eslint_d" },
+          typescriptreact = { "eslint_d" },
+          javascript = { "eslint_d" },
+          javascriptreact = { "eslint_d" },
+          yaml = {},
+        },
+        linters = {
+          ["markdownlint-cli2"] = {
+            args = {
+              "--config",
+              vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
+              "--",
+            },
           },
         },
-      },
-    }
-   end,
+      }
+    end,
     keys = {
       {
         "<leader>cl",
