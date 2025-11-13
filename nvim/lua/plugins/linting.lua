@@ -1,16 +1,15 @@
-return {
-  {
+return  {
     "mfussenegger/nvim-lint",
     optional = true,
-    opts = {
-      linters_by_ft = {
-        typescript = { "eslint_d" },
-        typescriptreact = { "eslint_d" },
-        javascript = { "eslint_d" },
-        javascriptreact = { "eslint_d" },
-        yaml = { "actionlint", "zizmor" },
-        ["yaml.ghaction"] = { "actionlint", "zizmor" },
-      },
+    opts = function()
+     return {
+           linters_by_ft = {
+             typescript = { "eslint_d" },
+             typescriptreact = { "eslint_d" },
+             javascript = { "eslint_d" },
+             javascriptreact = { "eslint_d" },
+             yaml = {},
+           },
       linters = {
         ["markdownlint-cli2"] = {
           args = {
@@ -20,7 +19,8 @@ return {
           },
         },
       },
-    },
+    }
+   end,
     keys = {
       {
         "<leader>cl",
