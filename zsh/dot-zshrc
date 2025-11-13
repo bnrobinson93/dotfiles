@@ -116,10 +116,18 @@ if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   }
 fi
 
-function ignore {
+function ignore-g {
     for dir in "$@"; do
         [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
         echo "$dir" >> ~/.gitignore
+    done
+}
+function ignore {
+    for dir in "$@"; do
+        [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
+        root=$(git rev-parse --show-toplevel)
+        echo Adding ignore to ${root:-HOME}/.gitignore
+        echo "$dir" >> ${root:-HOME}/.gitignore
     done
 }
 
