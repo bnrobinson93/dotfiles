@@ -60,34 +60,25 @@ fi
 
 # Check if the key file exists locally
 if [[ -n "$key_file" && -f "$key_file" ]]; then
-  log "Attempting to sign with local key: $key_file"
+  log "Found key file: $key_file"
 
-  # Try to sign with ssh-keygen using the local key
-  if ssh-keygen "$@" 2>>"$LOG_FILE"; then
-    log "Successfully signed with local key"
-    exit 0
+  # Test if ssh-keygen can read this key format (quick test)
+  # Try to extract the public key from the private key
+  if ssh-keygen -y -f "$key_file" >/dev/null 2>&1; then
+    log "Key is in compatible format, attempting to sign with local key"
+
+    # Try to sign with ssh-keygen using the local key
+    if ssh-keygen "$@" 2>>"$LOG_FILE"; then
+      log "Successfully signed with local key"
+      exit 0
+    else
+      log "Local key signing failed, falling back to 1Password"
+    fi
   else
-    log "Local key signing failed, falling back to 1Password"
+    log "Key format incompatible with ssh-keygen (likely PKCS#8), using 1Password"
   fi
 else
   log "Local key not found: $key_file"
-
-  # If no local key, try to sync from 1Password
-  if [[ -x "$SAVE_KEYS_SCRIPT" ]]; then
-    log "Syncing keys from 1Password"
-    "$SAVE_KEYS_SCRIPT" >/dev/null 2>&1 || log "Sync failed"
-
-    # Retry with local key after sync
-    if [[ -n "$key_file" && -f "$key_file" ]]; then
-      log "Retrying with synced local key"
-      if ssh-keygen "$@" 2>>"$LOG_FILE"; then
-        log "Successfully signed with synced local key"
-        exit 0
-      fi
-    fi
-  fi
-
-  log "Falling back to 1Password for signing"
 fi
 
 # Fallback to 1Password for signing
