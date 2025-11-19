@@ -70,10 +70,11 @@ autocmd({ "BufRead", "BufNewFile" }, {
 
     update_diagnostics()
 
+    local timer
     autocmd("TextChanged", {
       buffer = bufnr,
       callback = function()
-        vim.fn.timer_start(
+        timer = vim.fn.timer_start(
           500,
           vim.schedule_wrap(function()
             if vim.api.nvim_buf_is_valid(bufnr) then
@@ -87,7 +88,7 @@ autocmd({ "BufRead", "BufNewFile" }, {
     autocmd("BufDelete", {
       buffer = bufnr,
       callback = function()
-        vim.fn.timer_stopall()
+        vim.fn.timer_stop(timer)
       end,
     })
   end,
