@@ -19,7 +19,6 @@ augroup END
 ]])
 
 -- YAML
-local lint = pcall(require("lint"))
 autocmd({ "BufRead", "BufNewFile" }, {
   pattern = { "*.yaml", "*.yml" },
   desc = "Highlight trailing whitespace in YAML files",
@@ -71,13 +70,11 @@ autocmd({ "BufRead", "BufNewFile" }, {
 
     update_diagnostics()
 
-    local timer = vim.loop.new_timer()
     autocmd("TextChanged", {
       buffer = bufnr,
       callback = function()
-        timer:start(
+        vim.fn.timer_start(
           500,
-          0,
           vim.schedule_wrap(function()
             if vim.api.nvim_buf_is_valid(bufnr) then
               update_diagnostics()
@@ -90,7 +87,7 @@ autocmd({ "BufRead", "BufNewFile" }, {
     autocmd("BufDelete", {
       buffer = bufnr,
       callback = function()
-        timer:close()
+        vim.fn.timer_stopall()
       end,
     })
   end,
