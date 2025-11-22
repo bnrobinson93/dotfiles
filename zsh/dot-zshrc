@@ -28,6 +28,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" -print0 2>/dev/null | tr '\0' ':') # .local, .bun, etc
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
+HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
 # Essential PATH - single assignment
 export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
