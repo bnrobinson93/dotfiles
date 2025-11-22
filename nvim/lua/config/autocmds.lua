@@ -4,7 +4,8 @@
 local autocmd = vim.api.nvim_create_autocmd
 
 -- Spell checking for text files + PencilSoft
-vim.cmd([[
+if not vim.g.vscode then
+  vim.cmd([[
 augroup pencil
   autocmd!
   autocmd FileType markdown,mkd,text
@@ -18,81 +19,82 @@ augroup pencil
 augroup END
 ]])
 
--- YAML
-autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { "*.yaml", "*.yml" },
-  desc = "Highlight trailing whitespace in YAML files",
-  callback = function()
-    -- check linters for github
-    local bufnr = vim.api.nvim_get_current_buf()
-    if vim.b[bufnr].normalized_path == nil then
-      local bufname = vim.api.nvim_buf_get_name(bufnr)
-      vim.b[bufnr].normalized_path = bufname:gsub("\\", "/")
-    end
-    local normalized_path = vim.b[bufnr].normalized_path
-    if normalized_path and normalized_path:match("/.github/workflows/") then
-      vim.b.lint_linters = { "actionlint", "zizmor" }
-    else
-      vim.b.lint_linters = {}
-    end
-
-    -- alert on trailing whitespace
-    local ns = vim.api.nvim_create_namespace("YAML")
-
-    vim.opt_local.list = true
-    vim.opt_local.listchars:append("trail:·")
-    vim.cmd("hi def link ExtraWhitespace RedrawDebugRecompose")
-    vim.fn.matchadd("ExtraWhitespace", "\\s\\+$")
-
-    local update_diagnostics
-    update_diagnostics = function()
-      local diagnostics = {}
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-
-      for i, line in ipairs(lines) do
-        local trailing = line:match("%s+$")
-        if trailing then
-          table.insert(diagnostics, {
-            bufnr = bufnr,
-            lnum = i - 1,
-            col = #line - #trailing,
-            end_lnum = i - 1,
-            end_col = #line,
-            severity = vim.diagnostic.severity.HINT,
-            message = "Trailing whitespace detected",
-            source = "YAML",
-          })
-        end
+  -- YAML
+  autocmd({ "BufRead", "BufNewFile" }, {
+    pattern = { "*.yaml", "*.yml" },
+    desc = "Highlight trailing whitespace in YAML files",
+    callback = function()
+      -- check linters for github
+      local bufnr = vim.api.nvim_get_current_buf()
+      if vim.b[bufnr].normalized_path == nil then
+        local bufname = vim.api.nvim_buf_get_name(bufnr)
+        vim.b[bufnr].normalized_path = bufname:gsub("\\", "/")
+      end
+      local normalized_path = vim.b[bufnr].normalized_path
+      if normalized_path and normalized_path:match("/.github/workflows/") then
+        vim.b.lint_linters = { "actionlint", "zizmor" }
+      else
+        vim.b.lint_linters = {}
       end
 
-      vim.diagnostic.set(ns, bufnr, diagnostics)
-    end
+      -- alert on trailing whitespace
+      local ns = vim.api.nvim_create_namespace("YAML")
 
-    update_diagnostics()
+      vim.opt_local.list = true
+      vim.opt_local.listchars:append("trail:·")
+      vim.cmd("hi def link ExtraWhitespace RedrawDebugRecompose")
+      vim.fn.matchadd("ExtraWhitespace", "\\s\\+$")
 
-    local timer
-    autocmd("TextChanged", {
-      buffer = bufnr,
-      callback = function()
-        timer = vim.fn.timer_start(
-          500,
-          vim.schedule_wrap(function()
-            if vim.api.nvim_buf_is_valid(bufnr) then
-              update_diagnostics()
-            end
-          end)
-        )
-      end,
-    })
+      local update_diagnostics
+      update_diagnostics = function()
+        local diagnostics = {}
+        local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-    autocmd("BufDelete", {
-      buffer = bufnr,
-      callback = function()
-        vim.fn.timer_stop(timer)
-      end,
-    })
-  end,
-})
+        for i, line in ipairs(lines) do
+          local trailing = line:match("%s+$")
+          if trailing then
+            table.insert(diagnostics, {
+              bufnr = bufnr,
+              lnum = i - 1,
+              col = #line - #trailing,
+              end_lnum = i - 1,
+              end_col = #line,
+              severity = vim.diagnostic.severity.HINT,
+              message = "Trailing whitespace detected",
+              source = "YAML",
+            })
+          end
+        end
+
+        vim.diagnostic.set(ns, bufnr, diagnostics)
+      end
+
+      update_diagnostics()
+
+      local timer
+      autocmd("TextChanged", {
+        buffer = bufnr,
+        callback = function()
+          timer = vim.fn.timer_start(
+            500,
+            vim.schedule_wrap(function()
+              if vim.api.nvim_buf_is_valid(bufnr) then
+                update_diagnostics()
+              end
+            end)
+          )
+        end,
+      })
+
+      autocmd("BufDelete", {
+        buffer = bufnr,
+        callback = function()
+          vim.fn.timer_stop(timer)
+        end,
+      })
+    end,
+  })
+end
 
 -- Command alias
 vim.cmd([[ command W write ]])
