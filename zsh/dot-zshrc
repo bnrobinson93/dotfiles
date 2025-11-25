@@ -106,7 +106,6 @@ fi
 # type z > /dev/null 2>&1 && alias cd="z"
 # type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
-alias code='open -a "Visual Studio Code"'
 
 # recording
 if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
