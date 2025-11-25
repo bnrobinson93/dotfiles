@@ -331,6 +331,14 @@ else
   get_completions
 fi
 
+if type jj >/dev/null 2>&1; then
+  bookmark() {
+    if jj workspace root >/dev/null; then 
+      jj log -r 'closest_bookmark(@)' -T 'bookmarks' -G | sed 's/*$//'
+    fi
+  }
+fi
+
 # Wezterm shell integration (enables semantic zones, prompt tracking, Alt+click, etc.)
 if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
   # Source official wezterm shell integration
