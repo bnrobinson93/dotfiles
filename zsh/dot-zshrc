@@ -28,6 +28,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" -print0 2>/dev/null | tr '\0' ':') # .local, .bun, etc
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
+export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
 # Essential PATH - single assignment
 export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
@@ -328,6 +329,14 @@ if test carapace >/dev/null 2>&1; then
   source <(carapace _carapace)
 else
   get_completions
+fi
+
+if type jj >/dev/null 2>&1; then
+  bookmark() {
+    if jj workspace root >/dev/null 2>&1; then 
+      jj log -r 'closest_bookmark(@)' -T 'bookmarks.map(|b| b.name())' -G
+    fi
+  }
 fi
 
 # Wezterm shell integration (enables semantic zones, prompt tracking, Alt+click, etc.)
