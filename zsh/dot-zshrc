@@ -333,8 +333,8 @@ fi
 
 if type jj >/dev/null 2>&1; then
   bookmark() {
-    if jj workspace root >/dev/null; then 
-      jj log -r 'closest_bookmark(@)' -T 'bookmarks' -G | sed 's/*$//'
+    if jj workspace root >/dev/null 2>&1; then 
+      jj log -r 'closest_bookmark(@)' -T 'bookmarks.map(|b| b.name())' -G
     fi
   }
 fi
