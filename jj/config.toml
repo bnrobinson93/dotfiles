@@ -45,9 +45,9 @@ push = [
   fi
   bookmark=$(jj log -r @ --no-graph -T 'bookmarks.join(" ")' | awk 'NR==1{gsub(/^\\*/,"",$1); gsub(/\\*$/, "", $1); print $1}')
   if [ -n "$bookmark" ]; then
-    jj git push -b "$bookmark" --allow-new
+    jj git push -b "$bookmark"
   else
-    jj git push -c@ --allow-new
+    jj git push -c@
   fi
   """,
 ]
@@ -61,7 +61,11 @@ default-command = [
   "-T",
   "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))",
 ]
-diff-editor = ["nvim", "-c", "DiffEditor $left $right $output"]
+diff-editor = ":builtin"
+
+[merge-tools.nvim]
+program = "nvim"
+merge-args = ["-c", "DiffEditor $left $right $output"]
 
 [colors]
 signature = "blue"
