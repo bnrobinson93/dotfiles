@@ -61,6 +61,7 @@ default-command = [
   "-T",
   "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))",
 ]
+diff-editor = ["nvim", "-c", "DiffEditor $left $right $output"]
 
 [colors]
 signature = "blue"
@@ -82,8 +83,11 @@ program = "ssh-sign-wrapper.sh"
 allowed_signers = "~/.ssh/allowed_signers"
 
 [git]
-auto-local-bookmark = true
 sign-on-push = true
+private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
-git_push_bookmark = '"" ++ change_id.short()'
+git_push_bookmark = '"temp/" ++ change_id.short()'
+
+[remotes.origin]
+auto-track-bookmarks = "glob:*"
