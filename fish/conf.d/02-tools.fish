@@ -40,17 +40,12 @@ end
 # This plugin handles lazy loading and .nvmrc detection automatically
 # No manual configuration needed!
 
-# Homebrew - lazy load with official shellenv
-function brew
-    if not set -q BREW_LOADED
-        if test -d /opt/homebrew
-            eval (/opt/homebrew/bin/brew shellenv)
-        else if test -d /home/linuxbrew/.linuxbrew
-            eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-        end
-        set -gx BREW_LOADED 1
-    end
-    command brew $argv
+# Homebrew - load immediately (only ~15ms overhead, worth having available)
+# Supports macOS Apple Silicon and Linux
+if test -d /opt/homebrew
+    eval (/opt/homebrew/bin/brew shellenv)
+else if test -d /home/linuxbrew/.linuxbrew
+    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
 
 # Go lazy PATH addition
