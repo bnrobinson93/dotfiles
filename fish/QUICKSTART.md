@@ -24,12 +24,6 @@ chsh -s $(which fish)
 
 ## Quick Fixes
 
-### Atuin shows full interface instead of compact
-```bash
-# Edit ~/.config/atuin/config.toml, change:
-style = "compact"
-```
-
 ### Fish greeting appears
 ```fish
 set -U fish_greeting
