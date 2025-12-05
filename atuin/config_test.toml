@@ -1,0 +1,10 @@
+## Minimal test config
+style = "compact"
+inline_height = 5
+show_help = false
+show_tabs = false
+show_preview = false
+enter_accept = true
+
+[theme]
+name = "mocha"
