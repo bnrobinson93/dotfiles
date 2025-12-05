@@ -4,8 +4,8 @@
 # Editor
 abbr -a vi $EDITOR
 
-# Kubectl (if installed)
-if type -q kubectl
+# Kubectl (if installed) - using command -v instead of type -q for speed
+command -v kubectl >/dev/null 2>&1 && begin
     abbr -a k kubectl
     abbr -a kgp 'kubectl get pods'
 end
@@ -20,11 +20,8 @@ end
 # abbr -a gd 'git diff'
 # abbr -a gco 'git checkout'
 
-# Nala (better apt frontend)
-if type -q nala
-    abbr -a apt nala
-    # Note: 'sudo ' alias not needed - fish handles this better
-end
+# Nala (better apt frontend) - using command -v for speed
+command -v nala >/dev/null 2>&1 && abbr -a apt nala
 
 # Tmux sessionizer (if you use it)
 # abbr -a tms tmux-sessionizer

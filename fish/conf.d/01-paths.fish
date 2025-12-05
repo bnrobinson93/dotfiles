@@ -1,8 +1,18 @@
 # PATH Configuration
 # Fish uses fish_add_path which automatically deduplicates and handles PATH correctly
 
-# Find all bin directories (mimics your zsh logic)
-for dir in $HOME/*/bin $HOME/.*/bin
+# Find all bin directories - optimized to avoid 200ms+ glob scanning
+# Only scan common locations instead of using expensive wildcards
+set -l common_bin_dirs \
+    $HOME/go/bin \
+    $HOME/.atuin/bin \
+    $HOME/.cargo/bin \
+    $HOME/.docker/bin \
+    $HOME/.rd/bin \
+    $HOME/.rvm/bin \
+    $HOME/.yarn/bin
+
+for dir in $common_bin_dirs
     test -d $dir && fish_add_path $dir
 end
 

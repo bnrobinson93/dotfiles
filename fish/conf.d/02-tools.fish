@@ -1,5 +1,10 @@
 # Tool Integrations
 # Sets up modern CLI tools and their configurations
+# Tool Integrations - Optimized for Fast Startup
+# Only load in interactive shells
+if not status is-interactive
+    exit
+end
 
 # Starship prompt (fish handles this efficiently with psub)
 if type -q starship
@@ -40,17 +45,12 @@ end
 # This plugin handles lazy loading and .nvmrc detection automatically
 # No manual configuration needed!
 
-# Homebrew - lazy load with official shellenv
-function brew
-    if not set -q BREW_LOADED
-        if test -d /opt/homebrew
-            eval (/opt/homebrew/bin/brew shellenv)
-        else if test -d /home/linuxbrew/.linuxbrew
-            eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-        end
-        set -gx BREW_LOADED 1
-    end
-    command brew $argv
+# Homebrew - load immediately (only ~15ms overhead, worth having available)
+# Supports macOS Apple Silicon and Linux
+if test -d /opt/homebrew
+    eval (/opt/homebrew/bin/brew shellenv)
+else if test -d /home/linuxbrew/.linuxbrew
+    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
 
 # Go lazy PATH addition
@@ -74,6 +74,11 @@ if test -d $HOME/.rbenv
 end
 
 # Wezterm shell integration (enables Alt+click, semantic zones, etc.)
+# Starship prompt - Load immediately (required for prompt)
+# No type check - if missing, fish will show error and use default prompt
+command -v starship >/dev/null 2>&1 && starship init fish | source
+
+# Wezterm shell integration (fast, load immediately)
 if test "$TERM_PROGRAM" = "WezTerm"
     set -l wezterm_integration $HOME/.local/bin/wezterm-shell-integration.fish
     if test -f $wezterm_integration
@@ -84,4 +89,37 @@ end
 # Envman (if you use it)
 if test -s $HOME/.config/envman/load.fish
     source $HOME/.config/envman/load.fish
+end
+
+# Lazy-load heavy tools on first use (saves 2+ seconds on startup!)
+# Wrapper functions that load the real tool only when first called
+
+# Atuin - lazy load on first invocation
+function atuin --description "atuin lazy loader"
+    functions --erase atuin
+    fish_add_path $HOME/.atuin/bin
+    command atuin init fish --disable-up-arrow | source
+    # Bind Ctrl+R after loading
+    bind \cr _atuin_search
+    # Call the real atuin
+    command atuin $argv
+end
+
+# Zoxide - lazy load on first 'z' or 'zi' command
+function z --description "zoxide lazy loader"
+    functions --erase z zi
+    command zoxide init fish | source
+    z $argv
+end
+
+function zi --description "zoxide interactive lazy loader"
+    functions --erase z zi
+    command zoxide init fish | source
+    zi $argv
+end
+
+# Carapace - load after first command (for completions)
+function __carapace_delayed_load --on-event fish_postexec
+    functions --erase __carapace_delayed_load
+    command -v carapace >/dev/null 2>&1 && carapace _carapace fish | source
 end

@@ -32,7 +32,17 @@ set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
 set -gx LESSUTFCHARDEF "E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
 # Colors - Fish handles LS_COLORS well, but vivid provides better themes
+# Cache vivid output to avoid 900ms startup delay on every shell
 if type -q vivid
-    set -gx LS_COLORS (vivid generate catppuccin-mocha)
+    set -l vivid_cache $HOME/.cache/fish/vivid-catppuccin-mocha.txt
+
+    # Generate cache if missing or older than 7 days
+    if not test -f $vivid_cache; or test (find $vivid_cache -mtime +7 2>/dev/null)
+        mkdir -p (dirname $vivid_cache)
+        vivid generate catppuccin-mocha > $vivid_cache
+    end
+
+    # Load from cache (instant)
+    set -gx LS_COLORS (cat $vivid_cache)
     set -gx EZA_COLORS $LS_COLORS
 end
