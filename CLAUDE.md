@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a dotfiles repository managing a complete Linux development environment using **GNU Stow** for symlink management. The configuration supports Neovim (LazyVim-based), Wezterm, Tmux, Zsh with extensive tooling integration.
+This is a dotfiles repository managing a complete Linux development environment using **GNU Stow** for symlink management. The configuration supports Neovim (LazyVim-based), Wezterm, Tmux, and both Zsh and Fish shells with extensive tooling integration.
 
 ## Common Commands
 
@@ -17,11 +17,15 @@ stow -v2 .
 # Deploy local scripts to ~/.local
 stow -v2 -t ~/.local -S dot-local --dotfiles
 
-# Deploy home directory configs (zsh, gitmux)
-stow -v2 -t ~ -S zsh gitmux --dotfiles
+# Deploy home directory configs (zsh or fish, gitmux)
+stow -v2 -t ~ -S zsh gitmux --dotfiles  # For zsh
+# OR for fish (config goes to ~/.config/fish automatically with default stow target)
+stow -v2 .  # fish included in default deployment
 
-# Set zsh as default shell
-chsh -s /bin/zsh
+# Set shell as default
+chsh -s /bin/zsh   # For zsh
+# OR
+chsh -s $(which fish)  # For fish
 
 # Reload tmux config
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
@@ -76,14 +80,14 @@ agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/P
 
 Each top-level directory (except special cases) is a **stow package** that gets symlinked:
 
-- **Target: `~/.config/`** (default via `.stowrc`): alacritty, atuin, bat, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
+- **Target: `~/.config/`** (default via `.stowrc`): alacritty, atuin, bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
 - **Target: `~/.local/`**: dot-local package (contains bin/ with custom scripts)
 - **Target: `~/`**: zsh, gitmux (use `--dotfiles` flag to convert `dot-*` to `.*)
 
 The `.stowrc` file defines:
 - Default target: `~/.config`
 - `--dotfiles` mode (dot-prefixed files become hidden)
-- Ignore patterns: `dot-local`, `nvim.lazy`, `resources`
+- Ignore patterns: `dot-local`, `nvim.lazy`, `resources`, `zsh` (zsh goes to ~ instead)
 
 ### Neovim Plugin Architecture
 
@@ -120,7 +124,9 @@ Modular Lua config split into 4 files:
 - `workspace_manager.lua` - Tmux-like workspace switching
 - `tabbar.lua` - Custom tab bar with workspace indicators
 
-### Shell Configuration (Zsh)
+### Shell Configuration
+
+#### Zsh (Traditional)
 
 **Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup
 - `dot-zshrc` - Main config with lazy-load functions for:
@@ -131,6 +137,20 @@ Modular Lua config split into 4 files:
   - go (Go toolchain)
 - `dot-zshenv` - Environment variables
 - Integrations: Atuin (history), carapace (completions), Starship (prompt), zap (plugin manager)
+
+#### Fish (Modern Alternative)
+
+**Modular Configuration**: Split into organized files for maintainability
+- `config.fish` - Main entry point (minimal, loads conf.d/)
+- `conf.d/` - Auto-loaded configuration modules:
+  - `00-env.fish` - Environment variables
+  - `01-paths.fish` - PATH configuration (uses fish_add_path)
+  - `02-tools.fish` - Tool integrations (starship, atuin, zoxide, etc.)
+  - `03-abbreviations.fish` - Abbreviations (better than aliases)
+- `functions/` - Auto-loaded functions (la, ll, rec, ignore, bookmark, etc.)
+- **Setup**: Install fisher plugin manager, then `fisher install jorgebucaran/nvm.fish`
+- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Atuin, Starship
+- **Performance**: 4-10x faster startup than zsh (~30-50ms vs ~200-500ms)
 
 ### Version Control Dual Setup
 

@@ -80,7 +80,7 @@ command -v starship >/dev/null 2>&1 && starship init fish | source
 
 # Wezterm shell integration (fast, load immediately)
 if test "$TERM_PROGRAM" = "WezTerm"
-    set -l wezterm_integration $HOME/.local/bin/wezterm-shell-integration.fish
+    set -l wezterm_integration $HOME/.local/bin/wezterm-shell-integration.sh
     if test -f $wezterm_integration
         source $wezterm_integration
     end
