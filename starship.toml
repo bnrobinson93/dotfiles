@@ -1,5 +1,6 @@
 scan_timeout = 10
 command_timeout = 500
+# Add environment caching for faster reuse
 
 format = """$directory\
 ${custom.jj}\
@@ -164,9 +165,8 @@ jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 -
   )
 '
 '''
-when = 'jj root >/dev/null 2>&1'
-ignore_timeout = true
+when = 'jj root --ignore-working-copy &>/dev/null'
+ignore_timeout = false
 description = "The current jj status"
 symbol = " "
 style = "bold lavender"
-detect_folders = [".jj"]

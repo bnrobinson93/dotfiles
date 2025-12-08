@@ -5,7 +5,9 @@ Contains all the dotfiles that I use in my development environment.
 ## Install Tools - Requirements
 
 - git - `sudo apt install git`
-- zsh - `sudo apt install zsh`
+- **Shell** (choose one):
+  - zsh - `sudo apt install zsh`
+  - fish - `sudo apt install fish` (modern alternative, 4-10x faster startup)
 - carapace - `brew install carapace`
 - bat - `brew install bat`
 - starship - `curl -sS https://starship.rs/install.sh | sh`
@@ -92,10 +94,29 @@ brew install k9s helm age agg
 ## Usage
 
 ```sh
+# Deploy all configs to ~/.config (includes fish, nvim, tmux, wezterm, etc.)
 stow -v2 .
+
+# Deploy local scripts to ~/.local/bin
 stow -v2 -t ~/.local -S dot-local --dotfiles
+
+# Deploy shell config (choose one):
+
+# Option 1: Zsh (traditional)
 stow -v2 -t ~ -S zsh gitmux --dotfiles
 chsh -s /bin/zsh
+
+# Option 2: Fish (modern, faster)
+# Fish config already deployed via 'stow -v2 .' above
+# Install fisher plugin manager:
+curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+# Install NVM for fish:
+fisher install jorgebucaran/nvm.fish
+# Set as default shell:
+chsh -s $(which fish)
+
+# Finalize setup (either shell)
+stow -v2 -t ~ -S gitmux --dotfiles
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 bat cache --build
 ```
