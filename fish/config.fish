@@ -24,3 +24,6 @@ bind -M insert \cb backward-char
 
 # Load conf.d files (loaded automatically, but being explicit)
 # Order: 00-env.fish → 01-paths.fish → 02-tools.fish → 03-abbreviations.fish
+if status is-interactive
+    # Commands to run in interactive sessions can go here
+end
