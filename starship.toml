@@ -1,5 +1,5 @@
 scan_timeout = 10
-command_timeout = 500
+command_timeout = 1500
 # Add environment caching for faster reuse
 
 format = """$directory\
