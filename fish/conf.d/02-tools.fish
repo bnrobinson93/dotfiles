@@ -94,17 +94,6 @@ end
 # Lazy-load heavy tools on first use (saves 2+ seconds on startup!)
 # Wrapper functions that load the real tool only when first called
 
-# Atuin - lazy load on first invocation
-function atuin --description "atuin lazy loader"
-    functions --erase atuin
-    fish_add_path $HOME/.atuin/bin
-    command atuin init fish --disable-up-arrow | source
-    # Bind Ctrl+R after loading
-    bind \cr _atuin_search
-    # Call the real atuin
-    command atuin $argv
-end
-
 # Zoxide - lazy load on first 'z' or 'zi' command
 function z --description "zoxide lazy loader"
     functions --erase z zi
