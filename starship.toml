@@ -28,8 +28,9 @@ disabled = true
 
 [directory]
 style = "green"
-truncation_length = 5
-truncate_to_repo = false
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true
 # fish_style_pwd_dir_length = 1
 
 [gcloud]
