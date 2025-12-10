@@ -78,6 +78,7 @@ augroup END
           -- Stop previous timer to prevent leak
           if timer then
             vim.fn.timer_stop(timer)
+            timer = nil
           end
           timer = vim.fn.timer_start(
             500,
@@ -95,6 +96,7 @@ augroup END
         callback = function()
           if timer then
             vim.fn.timer_stop(timer)
+            timer = nil
           end
         end,
       })
