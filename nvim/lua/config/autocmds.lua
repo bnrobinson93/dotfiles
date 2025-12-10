@@ -23,6 +23,13 @@ augroup END
   local yaml_timers = {}
   local yaml_group = vim.api.nvim_create_augroup("YAMLTrailingWhitespace", { clear = true })
 
+  local function cleanup_yaml_timer(bufnr)
+    if yaml_timers[bufnr] then
+      vim.fn.timer_stop(yaml_timers[bufnr])
+      yaml_timers[bufnr] = nil
+    end
+  end
+
   autocmd({ "BufRead", "BufNewFile" }, {
     group = yaml_group,
     pattern = { "*.yaml", "*.yml" },
@@ -32,10 +39,7 @@ augroup END
 
       -- Clean up stale state on buffer reload before reinitializing
       if vim.b[bufnr].yaml_whitespace_initialized then
-        if yaml_timers[bufnr] then
-          vim.fn.timer_stop(yaml_timers[bufnr])
-          yaml_timers[bufnr] = nil
-        end
+        cleanup_yaml_timer(bufnr)
         vim.b[bufnr].yaml_whitespace_initialized = nil
       end
       vim.b[bufnr].yaml_whitespace_initialized = true
@@ -90,9 +94,7 @@ augroup END
         buffer = bufnr,
         callback = function()
           -- Cancel previous timer to prevent accumulation
-          if yaml_timers[bufnr] then
-            vim.fn.timer_stop(yaml_timers[bufnr])
-          end
+          cleanup_yaml_timer(bufnr)
           yaml_timers[bufnr] = vim.fn.timer_start(
             500,
             vim.schedule_wrap(function()
@@ -108,10 +110,7 @@ augroup END
         group = yaml_group,
         buffer = bufnr,
         callback = function()
-          if yaml_timers[bufnr] then
-            vim.fn.timer_stop(yaml_timers[bufnr])
-          end
-          yaml_timers[bufnr] = nil
+          cleanup_yaml_timer(bufnr)
         end,
       })
     end,
