@@ -19,13 +19,31 @@ augroup pencil
 augroup END
 ]])
 
-  -- YAML
+  -- YAML: Per-buffer timer tracking to prevent leaks
+  local yaml_timers = {}
+  local yaml_group = vim.api.nvim_create_augroup("YAMLTrailingWhitespace", { clear = true })
+
+  local function cleanup_yaml_timer(bufnr)
+    if yaml_timers[bufnr] then
+      vim.fn.timer_stop(yaml_timers[bufnr])
+      yaml_timers[bufnr] = nil
+    end
+  end
+
   autocmd({ "BufRead", "BufNewFile" }, {
+    group = yaml_group,
     pattern = { "*.yaml", "*.yml" },
     desc = "Highlight trailing whitespace in YAML files",
     callback = function()
-      -- check linters for github
       local bufnr = vim.api.nvim_get_current_buf()
+
+      -- Clean up stale state on buffer reload before reinitializing
+      if vim.b[bufnr].yaml_whitespace_initialized then
+        cleanup_yaml_timer(bufnr)
+        vim.b[bufnr].yaml_whitespace_initialized = nil
+      end
+      vim.b[bufnr].yaml_whitespace_initialized = true
+
       if vim.b[bufnr].normalized_path == nil then
         local bufname = vim.api.nvim_buf_get_name(bufnr)
         vim.b[bufnr].normalized_path = bufname:gsub("\\", "/")
@@ -71,11 +89,13 @@ augroup END
 
       update_diagnostics()
 
-      local timer
       autocmd("TextChanged", {
+        group = yaml_group,
         buffer = bufnr,
         callback = function()
-          timer = vim.fn.timer_start(
+          -- Cancel previous timer to prevent accumulation
+          cleanup_yaml_timer(bufnr)
+          yaml_timers[bufnr] = vim.fn.timer_start(
             500,
             vim.schedule_wrap(function()
               if vim.api.nvim_buf_is_valid(bufnr) then
@@ -87,9 +107,10 @@ augroup END
       })
 
       autocmd("BufDelete", {
+        group = yaml_group,
         buffer = bufnr,
         callback = function()
-          vim.fn.timer_stop(timer)
+          cleanup_yaml_timer(bufnr)
         end,
       })
     end,
