@@ -30,13 +30,13 @@ augroup END
     callback = function()
       local bufnr = vim.api.nvim_get_current_buf()
 
-      -- Prevent duplicate initialization, clean up stale timer on reload
+      -- Clean up stale state on buffer reload before reinitializing
       if vim.b[bufnr].yaml_whitespace_initialized then
         if yaml_timers[bufnr] then
           vim.fn.timer_stop(yaml_timers[bufnr])
           yaml_timers[bufnr] = nil
         end
-        return
+        vim.b[bufnr].yaml_whitespace_initialized = nil
       end
       vim.b[bufnr].yaml_whitespace_initialized = true
 
