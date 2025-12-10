@@ -75,6 +75,10 @@ augroup END
       autocmd("TextChanged", {
         buffer = bufnr,
         callback = function()
+          -- Stop previous timer to prevent leak
+          if timer then
+            vim.fn.timer_stop(timer)
+          end
           timer = vim.fn.timer_start(
             500,
             vim.schedule_wrap(function()
@@ -89,7 +93,9 @@ augroup END
       autocmd("BufDelete", {
         buffer = bufnr,
         callback = function()
-          vim.fn.timer_stop(timer)
+          if timer then
+            vim.fn.timer_stop(timer)
+          end
         end,
       })
     end,
