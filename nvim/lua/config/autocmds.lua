@@ -82,6 +82,7 @@ augroup END
       update_diagnostics()
 
       autocmd("TextChanged", {
+        group = yaml_group,
         buffer = bufnr,
         callback = function()
           -- Cancel previous timer to prevent accumulation
@@ -100,6 +101,7 @@ augroup END
       })
 
       autocmd("BufDelete", {
+        group = yaml_group,
         buffer = bufnr,
         callback = function()
           if yaml_timers[bufnr] then
