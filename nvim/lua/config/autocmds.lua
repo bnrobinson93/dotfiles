@@ -30,8 +30,12 @@ augroup END
     callback = function()
       local bufnr = vim.api.nvim_get_current_buf()
 
-      -- Prevent duplicate initialization if autocmd fires multiple times
+      -- Prevent duplicate initialization, clean up stale timer on reload
       if vim.b[bufnr].yaml_whitespace_initialized then
+        if yaml_timers[bufnr] then
+          vim.fn.timer_stop(yaml_timers[bufnr])
+          yaml_timers[bufnr] = nil
+        end
         return
       end
       vim.b[bufnr].yaml_whitespace_initialized = true
