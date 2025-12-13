@@ -22,6 +22,8 @@ set -gx PNPM_HOME $HOME/.local/share/pnpm
 set -gx NVM_DIR $HOME/.nvm
 set -gx ANDROID_SDK $HOME/Android/sdk
 
+set -gx TRY_PATH $HOME/Documents/code/tries
+
 # Homebrew auto-update (4 hours)
 set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 
@@ -39,7 +41,7 @@ if type -q vivid
     # Generate cache if missing or older than 7 days
     if not test -f $vivid_cache; or test (find $vivid_cache -mtime +7 2>/dev/null)
         mkdir -p (dirname $vivid_cache)
-        vivid generate catppuccin-mocha > $vivid_cache
+        vivid generate catppuccin-mocha >$vivid_cache
     end
 
     # Load from cache (instant)
