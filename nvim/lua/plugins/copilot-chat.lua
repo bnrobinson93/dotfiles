@@ -75,8 +75,12 @@ return {
               end)
             )
 
+            -- Store autocmd IDs for cleanup
+            local autocmd_ids = {}
+
             -- Clean up timer when LSP client detaches
             local cleanup_timer = function()
+              -- Clean up timer
               if copilot_timers[client.id] then
                 local t = copilot_timers[client.id]
                 if not t:is_closing() then
@@ -85,10 +89,16 @@ return {
                 end
                 copilot_timers[client.id] = nil
               end
+
+              -- Clean up autocmds to prevent accumulation
+              for _, id in ipairs(autocmd_ids) do
+                pcall(vim.api.nvim_del_autocmd, id)
+              end
+              autocmd_ids = {}
             end
 
             -- Register cleanup on client detach
-            vim.api.nvim_create_autocmd("LspDetach", {
+            local detach_id = vim.api.nvim_create_autocmd("LspDetach", {
               buffer = bufnr,
               callback = function(args)
                 if args.data and args.data.client_id == client.id then
@@ -96,13 +106,15 @@ return {
                 end
               end,
             })
+            table.insert(autocmd_ids, detach_id)
 
             -- Also cleanup on buffer delete
-            vim.api.nvim_create_autocmd("BufDelete", {
+            local buf_delete_id = vim.api.nvim_create_autocmd("BufDelete", {
               buffer = bufnr,
               callback = cleanup_timer,
               once = true,
             })
+            table.insert(autocmd_ids, buf_delete_id)
           end
         end,
       },
@@ -121,7 +133,7 @@ return {
         "#system:`fd --full-path $(git rev-parse --show-toplevel) --type f --exclude .git --exclude node_modules`",
       },
       selection = function(source)
-        return require("CopilotChat#selection").visual(source) or require("CopilotChat#selection").line(source)
+        return require("CopilotChat.selection").visual(source) or require("CopilotChat.selection").line(source)
       end,
       insert_at_end = false,
       prompts = {
