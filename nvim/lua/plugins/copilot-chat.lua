@@ -5,6 +5,46 @@ return {
       filetypes = {
         markdown = false,
       },
+      server_opts_overrides = {
+        -- Connection management to prevent GitHub handle leaks
+        settings = {
+          advanced = {
+            timeout = 10000, -- 10 seconds instead of indefinite
+          },
+        },
+        flags = {
+          debounce_text_changes = 500, -- Reduce API calls
+          allow_incremental_sync = false, -- Force clean syncs
+        },
+        on_attach = function(client, bufnr)
+          -- Check file handle count every 30 minutes and restart if excessive
+          local timer = vim.uv.new_timer()
+          if timer then
+            timer:start(
+              1800000, -- 30 minutes
+              1800000, -- repeat every 30 minutes
+              vim.schedule_wrap(function()
+                -- Get handle count for copilot process
+                local handle = io.popen("lsof -p " .. client.rpc.pid .. " 2>/dev/null | wc -l")
+                if handle then
+                  local count = tonumber(handle:read("*a"):match("%d+")) or 0
+                  handle:close()
+                  -- If > 100 handles, restart the language server
+                  if count > 100 then
+                    vim.notify(
+                      "Copilot: Restarting language server (handle leak detected: " .. count .. ")",
+                      vim.log.levels.WARN
+                    )
+                    vim.lsp.stop_client(client.id)
+                    timer:stop()
+                    timer:close()
+                  end
+                end
+              end)
+            )
+          end
+        end,
+      },
     },
   },
   {
@@ -22,7 +62,7 @@ return {
       selection = function(source)
         return require("CopilotChat#selection").visual(source) or require("CopilotChat#selection").line(source)
       end,
-      insert_at_end = true,
+      insert_at_end = false,
       prompts = {
         Help = {
           description = "Talk with me like a senior developer",
