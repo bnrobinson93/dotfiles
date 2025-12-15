@@ -1,3 +1,6 @@
+-- Track timers per client to prevent leaks on restart
+local copilot_timers = {}
+
 return {
   {
     "zbirenbaum/copilot.lua",
@@ -17,31 +20,89 @@ return {
           allow_incremental_sync = false, -- Force clean syncs
         },
         on_attach = function(client, bufnr)
-          -- Check file handle count every 30 minutes and restart if excessive
+          local TIMER_VALUE = 30 * 60 * 1000 -- 30 minutes in milliseconds
+          local MAX_FILE_HANDLES = 100
+
+          -- Clean up any existing timer for this client
+          if copilot_timers[client.id] then
+            local old_timer = copilot_timers[client.id]
+            if not old_timer:is_closing() then
+              old_timer:stop()
+              old_timer:close()
+            end
+            copilot_timers[client.id] = nil
+          end
+
+          -- Create new timer
           local timer = vim.uv.new_timer()
           if timer then
+            copilot_timers[client.id] = timer
+
             timer:start(
-              1800000, -- 30 minutes
-              1800000, -- repeat every 30 minutes
+              TIMER_VALUE,
+              TIMER_VALUE,
               vim.schedule_wrap(function()
+                -- Verify client is still valid
+                if not vim.lsp.get_client_by_id(client.id) then
+                  if timer and not timer:is_closing() then
+                    timer:stop()
+                    timer:close()
+                  end
+                  copilot_timers[client.id] = nil
+                  return
+                end
+
                 -- Get handle count for copilot process
                 local handle = io.popen("lsof -p " .. client.rpc.pid .. " 2>/dev/null | wc -l")
                 if handle then
                   local count = tonumber(handle:read("*a"):match("%d+")) or 0
                   handle:close()
-                  -- If > 100 handles, restart the language server
-                  if count > 100 then
+                  -- If too many handles, restart the language server
+                  if count > MAX_FILE_HANDLES then
                     vim.notify(
                       "Copilot: Restarting language server (handle leak detected: " .. count .. ")",
                       vim.log.levels.WARN
                     )
+                    -- Clean up timer before stopping client
+                    if timer and not timer:is_closing() then
+                      timer:stop()
+                      timer:close()
+                    end
+                    copilot_timers[client.id] = nil
                     vim.lsp.stop_client(client.id)
-                    timer:stop()
-                    timer:close()
                   end
                 end
               end)
             )
+
+            -- Clean up timer when LSP client detaches
+            local cleanup_timer = function()
+              if copilot_timers[client.id] then
+                local t = copilot_timers[client.id]
+                if not t:is_closing() then
+                  t:stop()
+                  t:close()
+                end
+                copilot_timers[client.id] = nil
+              end
+            end
+
+            -- Register cleanup on client detach
+            vim.api.nvim_create_autocmd("LspDetach", {
+              buffer = bufnr,
+              callback = function(args)
+                if args.data and args.data.client_id == client.id then
+                  cleanup_timer()
+                end
+              end,
+            })
+
+            -- Also cleanup on buffer delete
+            vim.api.nvim_create_autocmd("BufDelete", {
+              buffer = bufnr,
+              callback = cleanup_timer,
+              once = true,
+            })
           end
         end,
       },
