@@ -42,8 +42,9 @@ return {
               TIMER_VALUE,
               TIMER_VALUE,
               vim.schedule_wrap(function()
-                -- Verify client is still valid
-                if not vim.lsp.get_client_by_id(client.id) then
+                -- Verify client is still valid and has an active RPC process
+                local active_client = vim.lsp.get_client_by_id(client.id)
+                if not active_client or not active_client.rpc or not active_client.rpc.pid then
                   if timer and not timer:is_closing() then
                     timer:stop()
                     timer:close()
@@ -53,7 +54,7 @@ return {
                 end
 
                 -- Get handle count for copilot process
-                local handle = io.popen("lsof -p " .. client.rpc.pid .. " 2>/dev/null | wc -l")
+                local handle = io.popen("lsof -p " .. active_client.rpc.pid .. " 2>/dev/null | wc -l")
                 if handle then
                   local count = tonumber(handle:read("*a"):match("%d+")) or 0
                   handle:close()
