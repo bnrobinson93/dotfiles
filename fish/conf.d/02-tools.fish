@@ -37,7 +37,7 @@ end
 
 # 1Password SSH signing setup
 if type -q op; and not test -f $HOME/.ssh/allowed_signers
-    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
+    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
 end
 
 # NVM - use fisher plugin (cleanest approach)
@@ -79,7 +79,7 @@ end
 command -v starship >/dev/null 2>&1 && starship init fish | source
 
 # Wezterm shell integration (fast, load immediately)
-if test "$TERM_PROGRAM" = WezTerm
+if test "$TERM_PROGRAM" = "WezTerm"
     set -l wezterm_integration $HOME/.local/bin/wezterm-shell-integration.sh
     if test -f $wezterm_integration
         source $wezterm_integration
