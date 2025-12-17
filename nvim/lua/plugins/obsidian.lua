@@ -164,7 +164,7 @@ return {
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
-        template = "daily.md",
+        template = "Daily-nvim Template.md",
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
