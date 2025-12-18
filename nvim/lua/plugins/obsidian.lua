@@ -132,6 +132,10 @@ local italics = function()
   wrap_selection("_", "_")
 end
 
+local internalLink = function()
+  wrap_selection("[[", "]]")
+end
+
 return {
   {
     "obsidian-nvim/obsidian.nvim",
@@ -212,6 +216,12 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         substitutions = {
+          yesterday = function()
+            return os.date("%Y-%m-%d", os.time() - 24 * 60 * 60)
+          end,
+          tomorrow = function()
+            return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
+          end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
           end,
@@ -223,6 +233,7 @@ return {
     keys = {
       { "<leader>cb", bold, desc = "Bold", mode = { "n", "v" }, buffer = true },
       { "<leader>ci", italics, desc = "Italics", mode = { "n", "v" }, buffer = true },
+      { "<M-L>", internalLink, desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
       {
         "<F1>",
         function()
