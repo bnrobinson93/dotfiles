@@ -217,14 +217,12 @@ return {
         time_format = "%H:%M",
         substitutions = {
           yesterday = function()
-            local t = os.date("*t")
-            t.day = t.day - 1
-            return os.date("%Y-%m-%d", os.time(t))
+            local yesterday_ts = os.time() - 86400
+            return os.date("%Y-%m-%d", yesterday_ts)
           end,
           tomorrow = function()
-            local t = os.date("*t")
-            t.day = t.day + 1
-            return os.date("%Y-%m-%d", os.time(t))
+            local tomorrow_ts = os.time() + 86400
+            return os.date("%Y-%m-%d", tomorrow_ts)
           end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
@@ -237,7 +235,7 @@ return {
     keys = {
       { "<leader>cb", bold, desc = "Bold", mode = { "n", "v" }, buffer = true },
       { "<leader>ci", italics, desc = "Italics", mode = { "n", "v" }, buffer = true },
-      { "A-S-l", internalLink, desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
+      { "<M-S-l>", internalLink, desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
       {
         "<F1>",
         function()
