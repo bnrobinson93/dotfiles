@@ -217,10 +217,14 @@ return {
         time_format = "%H:%M",
         substitutions = {
           yesterday = function()
-            return os.date("%Y-%m-%d", os.time() - 24 * 60 * 60)
+            local t = os.date("*t")
+            t.day = t.day - 1
+            return t.year .. "-" .. t.month .. "-" .. t.day
           end,
           tomorrow = function()
-            return os.date("%Y-%m-%d", os.time() + 24 * 60 * 60)
+            local t = os.date("*t")
+            t.day = t.day + 1
+            return t.year .. "-" .. t.month .. "-" .. t.day
           end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
