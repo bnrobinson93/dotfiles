@@ -1,4 +1,4 @@
-local vault_path = os.getenv("ZETTLEKASTEN") or os.getenv("HOME") .. "/Documents/Vault"
+local vault_path = os.getenv("ZETTELKASTEN") or os.getenv("HOME") .. "/Documents/Vault"
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
