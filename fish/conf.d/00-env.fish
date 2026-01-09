@@ -35,6 +35,13 @@ else
     if set -q SSH_AUTH_SOCK; and string match -q '*/.1password/agent.sock' -- $SSH_AUTH_SOCK
         set -e SSH_AUTH_SOCK
     end
+    # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
+    if test (uname) = "Darwin"; and not set -q SSH_AUTH_SOCK
+        set -l lsock (launchctl getenv SSH_AUTH_SOCK ^/dev/null)
+        if test -n "$lsock"
+            set -gx SSH_AUTH_SOCK $lsock
+        end
+    end
 end
 
 # Fix jj pager for unicode

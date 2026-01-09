@@ -104,7 +104,7 @@ sudo snap install ticktick
 
 You can install these applications from [Flathub](https://flathub.org/). Example installation commands:
 
-```sh
+````sh
 flatpak install flathub com.discordapp.DiscordCanary
 flatpak install flathub com.github.d4nj1.tlpui
 flatpak install flathub com.github.touchegg.touche
@@ -136,13 +136,13 @@ brew install zizmor
 brew install pandoc
 brew install sqlite
 brew install k9s helm age agg
-```
+````
 
 </details>
 
 ## Usage
 
-```sh
+````sh
 # Deploy all configs to ~/.config (includes fish, nvim, tmux, wezterm, etc.)
 stow -v2 .
 
@@ -190,7 +190,8 @@ Temporarily use 1Password agent for this shell session:
 export USE_1PASSWORD_SSH=1  # zsh/bash
 # or: set -Ux USE_1PASSWORD_SSH 1  # fish
 ```
-```
+
+````
 
 ## Note for WSL
 
@@ -201,7 +202,7 @@ Run the below, then restart the terminal/tmux session.
 ```sh
 sudo apt-get install language-pack-en language-pack-en-base manpages
 sudo update-locale LANG=en_US.UTF8
-```
+````
 
 # Recording
 

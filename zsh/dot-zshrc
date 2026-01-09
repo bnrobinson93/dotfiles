@@ -142,6 +142,13 @@ else
   if [[ "${SSH_AUTH_SOCK:-}" == *"/.1password/agent.sock" ]]; then
     unset SSH_AUTH_SOCK
   fi
+  # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
+  if [[ -z "${SSH_AUTH_SOCK:-}" && "$OSTYPE" == darwin* ]]; then
+    launchctl_sock=$(launchctl getenv SSH_AUTH_SOCK 2>/dev/null)
+    if [[ -n "$launchctl_sock" ]]; then
+      export SSH_AUTH_SOCK="$launchctl_sock"
+    fi
+  fi
 fi
 
 # SYNCHRONOUS deferred loading - no background jobs

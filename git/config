@@ -21,7 +21,7 @@
 [gpg]
 	format = ssh
 [gpg "ssh"]
-	program = "ssh-keygen"
+  program = "~/.local/bin/ssh-sign-wrapper.sh"
 	allowedSignersFile = "~/.ssh/allowed_signers"
 [user]
 	signingkey = "~/.ssh/id_ed25519_GitHubSigning.pub"
