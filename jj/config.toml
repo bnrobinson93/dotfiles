@@ -82,7 +82,6 @@ backend = "ssh"
 excludesfile = "~/.gitignore"
 
 [signing.backends.ssh]
-# Wrapper will use local key if available, fallback to 1Password
 program = "ssh-sign-wrapper.sh"
 allowed_signers = "~/.ssh/allowed_signers"
 
