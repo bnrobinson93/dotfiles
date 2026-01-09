@@ -1,4 +1,4 @@
-local vault_path = vim.fn.expand(os.getenv("ZETTELKASTEN") or "~/Documents/Vault")
+local vault_path = os.getenv("ZETTELKASTEN") or os.getenv("HOME") .. "/Documents/Vault"
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
@@ -21,7 +21,7 @@ local function wrap_selection(before, after)
     -- Get the text around the selection to check for existing markers
     local line_start = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1] or ""
     local line_end = start_row == end_row and line_start
-      or (vim.api.nvim_buf_get_lines(bufnr, end_row, end_row + 1, false)[1] or "")
+        or (vim.api.nvim_buf_get_lines(bufnr, end_row, end_row + 1, false)[1] or "")
 
     local before_len = #before
     local after_len = #after
@@ -97,8 +97,8 @@ local function wrap_selection(before, after)
 
     -- Check if the word already has the markers
     local has_markers = #current_word >= before_len + after_len
-      and current_word:sub(1, before_len) == before
-      and current_word:sub(-after_len) == after
+        and current_word:sub(1, before_len) == before
+        and current_word:sub(-after_len) == after
 
     if has_markers then
       -- Remove the markers from within the word
@@ -134,6 +134,53 @@ end
 
 local internalLink = function()
   wrap_selection("[[", "]]")
+end
+local function insert_footnote()
+  -- Your footnote logic here (from your obsidian config)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local max_footnote = 0
+
+  for _, line in ipairs(lines) do
+    for num in line:gmatch("%[%^(%d+)%]") do
+      max_footnote = math.max(max_footnote, tonumber(num))
+    end
+  end
+
+  local next_footnote = max_footnote + 1
+  local footnote_text = "[^" .. next_footnote .. "]"
+  vim.api.nvim_put({ footnote_text }, "c", false, true)
+
+  vim.cmd("normal! m'")
+
+  local cursor_pos = vim.api.nvim_win_get_cursor(0)
+  local para_start = cursor_pos[1]
+  local para_end = cursor_pos[1]
+
+  while para_start > 1 and lines[para_start - 1] ~= "" do
+    para_start = para_start - 1
+  end
+
+  while para_end < #lines and lines[para_end + 1] ~= "" do
+    para_end = para_end + 1
+  end
+
+  local footnote_end = para_end
+
+  while
+    footnote_end + 2 <= #lines
+    and lines[footnote_end + 1] == ""
+    and lines[footnote_end + 2]:match("^%[%^%d+%]:")
+  do
+    footnote_end = footnote_end + 2
+  end
+
+  local insertion_line = footnote_end
+  local reftext = "[^" .. next_footnote .. "]: "
+  vim.api.nvim_buf_set_lines(0, insertion_line, insertion_line, false, { "", reftext })
+  insertion_line = insertion_line + 2
+
+  vim.api.nvim_win_set_cursor(0, { insertion_line, string.len(reftext) + #tostring(next_footnote) })
+  vim.cmd("startinsert")
 end
 
 return {
@@ -203,8 +250,8 @@ return {
         if title ~= nil then
           -- Remove quotes and only problematic filesystem characters, keep spaces
           local cleaned = title:gsub("^['\"]", ""):gsub("['\"]$", "") -- Remove surrounding quotes
-          cleaned = cleaned:gsub('[<>:"/\\|?*]', "") -- Remove filesystem-unsafe chars
-          cleaned = cleaned:gsub("^%s+", ""):gsub("%s+$", "") -- Trim whitespace
+          cleaned = cleaned:gsub('[<>:"/\\|?*]', "")                  -- Remove filesystem-unsafe chars
+          cleaned = cleaned:gsub("^%s+", ""):gsub("%s+$", "")         -- Trim whitespace
           return cleaned
         else
           -- Fallback for notes without titles
@@ -233,62 +280,13 @@ return {
       wiki_link_func = "use_alias_only",
     },
     keys = {
-      { "<leader>cb", bold, desc = "Bold", mode = { "n", "v" }, buffer = true },
-      { "<leader>ci", italics, desc = "Italics", mode = { "n", "v" }, buffer = true },
-      { "<M-S-l>", internalLink, desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
-      {
-        "<F1>",
-        function()
-          -- Your footnote logic here (from your obsidian config)
-          local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-          local max_footnote = 0
-
-          for _, line in ipairs(lines) do
-            for num in line:gmatch("%[%^(%d+)%]") do
-              max_footnote = math.max(max_footnote, tonumber(num))
-            end
-          end
-
-          local next_footnote = max_footnote + 1
-          local footnote_text = "[^" .. next_footnote .. "]"
-          vim.api.nvim_put({ footnote_text }, "c", false, true)
-
-          vim.cmd("normal! m'")
-
-          local cursor_pos = vim.api.nvim_win_get_cursor(0)
-          local para_start = cursor_pos[1]
-          local para_end = cursor_pos[1]
-
-          while para_start > 1 and lines[para_start - 1] ~= "" do
-            para_start = para_start - 1
-          end
-
-          while para_end < #lines and lines[para_end + 1] ~= "" do
-            para_end = para_end + 1
-          end
-
-          local footnote_end = para_end
-
-          while
-            footnote_end + 2 <= #lines
-            and lines[footnote_end + 1] == ""
-            and lines[footnote_end + 2]:match("^%[%^%d+%]:")
-          do
-            footnote_end = footnote_end + 2
-          end
-
-          local insertion_line = footnote_end
-          local reftext = "[^" .. next_footnote .. "]: "
-          vim.api.nvim_buf_set_lines(0, insertion_line, insertion_line, false, { "", reftext })
-          insertion_line = insertion_line + 2
-
-          vim.api.nvim_win_set_cursor(0, { insertion_line, string.len(reftext) + #tostring(next_footnote) })
-          vim.cmd("startinsert")
-        end,
-        desc = "Insert footnote",
-        ft = "markdown",
-        mode = "i",
-      },
+      { "<M-S-d>",    "<cmd>Obsidian Today<cr>",          desc = "Open Daily Note",      mode = { "n" },      buffer = true },
+      { "<M-S-t>",    "<cmd>ObsidianTemplate<cr>",        desc = "Insert template",      mode = { "n", "i" }, buffer = true },
+      { "<M-n>",      "<cmd>ObsidianNewFromTemplate<cr>", desc = "New from template",    mode = { "n" },      buffer = true },
+      { "<M-S-l>",    internalLink,                       desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
+      { "<leader>cb", bold,                               desc = "Bold",                 mode = { "n", "v" }, buffer = true },
+      { "<leader>ci", italics,                            desc = "Italics",              mode = { "n", "v" }, buffer = true },
+      { "<F1>",       insert_footnote,                    desc = "Insert footnote",      mode = "i",          buffer = true },
     },
   },
 }
