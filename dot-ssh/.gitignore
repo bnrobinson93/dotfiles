@@ -1,0 +1,6 @@
+# Guardrail: never commit secrets if dropped here
+id_*
+known_hosts*
+authorized_keys
+*.bak
+*.tmp
