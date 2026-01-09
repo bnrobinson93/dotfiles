@@ -30,6 +30,11 @@ set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 # SSH agent (1Password) - optional via USE_1PASSWORD_SSH
 if set -q USE_1PASSWORD_SSH
     set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
+else
+    # Guardrail: if a lingering 1Password socket is set as a universal/parent var, clear it
+    if set -q SSH_AUTH_SOCK; and string match -q '*/.1password/agent.sock' -- $SSH_AUTH_SOCK
+        set -e SSH_AUTH_SOCK
+    end
 end
 
 # Fix jj pager for unicode
