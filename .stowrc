@@ -1,6 +1,7 @@
 --target=~/.config
 --dotfiles
 --ignore=dot-local
+--ignore=dot-ssh
 --ignore=DS_Store
 --ignore=.git
 --ignore=.gitignore

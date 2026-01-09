@@ -27,8 +27,10 @@ set -gx TRY_PATH $HOME/Documents/code/tries
 # Homebrew auto-update (4 hours)
 set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 
-# SSH agent (1Password)
-set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
+# SSH agent (1Password) - optional via USE_1PASSWORD_SSH
+if set -q USE_1PASSWORD_SSH
+    set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
+end
 
 # Fix jj pager for unicode
 set -gx LESSUTFCHARDEF "E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"

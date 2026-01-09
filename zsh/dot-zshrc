@@ -131,9 +131,12 @@ function ignore {
     done
 }
 
-export SSH_AUTH_SOCK=~/.1password/agent.sock
-if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
-  op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+# Optional: use 1Password SSH agent when explicitly enabled
+if [[ -n "${USE_1PASSWORD_SSH:-}" ]]; then
+  export SSH_AUTH_SOCK=~/.1password/agent.sock
+  if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
+    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+  fi
 fi
 
 # SYNCHRONOUS deferred loading - no background jobs
@@ -352,3 +355,7 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="$HOME/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

@@ -36,8 +36,10 @@ if type -q jj
 end
 
 # 1Password SSH signing setup
-if type -q op; and not test -f $HOME/.ssh/allowed_signers
-    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+if set -q USE_1PASSWORD_SSH
+    if type -q op; and not test -f $HOME/.ssh/allowed_signers
+        op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+    end
 end
 
 # NVM - use fisher plugin (cleanest approach)

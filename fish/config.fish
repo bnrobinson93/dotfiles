@@ -27,3 +27,12 @@ bind -M insert \cb backward-char
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "$HOME/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+
+# Go private module configuration for virtru-corp repos
+set -gx GOPRIVATE "github.com/virtru-corp/*"
+set -gx GONOPROXY "github.com/virtru-corp/*"
+set -gx GONOSUMDB "github.com/virtru-corp/*"
