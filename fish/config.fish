@@ -27,4 +27,5 @@ bind -M insert \cb backward-char
 if status is-interactive
     # Commands to run in interactive sessions can go here
 end
-eval (~/.local/try.rb init ~/src/tries | string collect)
+
+eval (~/.local/try.rb init ~/Documents/code/tries | string collect)
