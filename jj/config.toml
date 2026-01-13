@@ -117,6 +117,8 @@ patterns = [
   "glob:'**/*.md'",
   "glob:'**/*.yaml'",
   "glob:'**/*.yml'",
+  "glob:'**/*.css'",
+  "glob:'**/*.scss'",
 ]
 
 [fix.tools.stylua]
