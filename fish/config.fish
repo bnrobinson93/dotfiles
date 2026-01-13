@@ -26,5 +26,10 @@ bind -M insert \cb backward-char
 # Order: 00-env.fish → 01-paths.fish → 02-tools.fish → 03-abbreviations.fish
 if status is-interactive
     # Commands to run in interactive sessions can go here
-    eval (~/.local/try.rb init ~/Documents/code/tries | string collect)
+
+    # If try-cli exists, set the dir for it and initialize
+    if test -f ~/.local/try.rb
+        set -gx TRY_CLI_DIR ~/Documents/code/tries
+        eval (~/.local/try.rb init $TRY_CLI_DIR | string collect)
+    end
 end
