@@ -119,6 +119,11 @@ patterns = [
   "glob:'**/*.yml'",
   "glob:'**/*.css'",
   "glob:'**/*.scss'",
+  "glob:'**/*.html'",
+  "glob:'**/*.graphql'",
+  "glob:'**/*.gql'",
+  "glob:'**/.prettierrc'",
+  "glob:'**/.prettierrc.*'",
 ]
 
 [fix.tools.stylua]
