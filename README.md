@@ -26,6 +26,55 @@ Contains all the dotfiles that I use in my development environment.
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
 
+## SSH, Signing, and 1Password
+
+This repo defaults to OpenSSH agent + (on macOS) Keychain, with SSH commit signing for both Git and JJ.
+
+- Default agent: system ssh-agent (macOS Keychain, Linux desktop keyring)
+- Optional 1Password agent: set `USE_1PASSWORD_SSH=1` to route via 1Password
+
+Files and scripts:
+
+- dot-ssh/config — stowable SSH config enabling AddKeysToAgent, UseKeychain, and IdentityFile defaults
+- git/config — enables SSH signing in Git with ssh-keygen + allowed_signers
+- jj/config.toml — uses `ssh-sign-wrapper.sh` for signing; defaults to ssh-keygen unless `USE_1PASSWORD_SSH=1`
+- dot-local/bin/ssh-setup-github.sh — create/load key and upload to GitHub via `gh`
+- dot-local/bin/op-ssh-migrate.sh — migrate key(s) from 1Password to ~/.ssh and agent/keychain
+
+macOS Keychain setup (recommended)
+
+- ~/.ssh/config (stowed) contains:
+  - AddKeysToAgent yes
+  - UseKeychain yes
+  - IdentityFile ~/.ssh/id_ed25519_GitHub
+  - IdentityFile ~/.ssh/id_ed25519_GitHubSigning
+- Remove any IdentityAgent pointing to 1Password if present in your personal ~/.ssh/config
+- Add keys to Keychain once:
+  - `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_GitHub`
+  - `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_GitHubSigning`
+
+Linux agent/keyring
+
+- Ensure a user ssh-agent is running (desktop sessions do by default). The migration script adds to the agent.
+- For persistence across logins without a desktop keyring, use a systemd user unit or a helper like `keychain`.
+
+Signing trust (allowed_signers)
+
+- Git/JJ verify signatures using `~/.ssh/allowed_signers`
+- Format: `email@example.com ssh-ed25519 AAAA...`
+- Populate automatically via migration script (using 1Password item’s email field) or manually append.
+
+Using 1Password optionally
+
+- Set `USE_1PASSWORD_SSH=1` to use 1Password agent and signing.
+- Unset to use system agent/Keychain.
+
+Verification
+
+- SSH: `ssh -T git@github.com`
+- Git: `git commit --allow-empty -m test && git log -1 --show-signature`
+- JJ: `jj git push -c@` (see signature indicators in templates)
+
 ## Other niceties
 
 <details>
@@ -55,7 +104,7 @@ sudo snap install ticktick
 
 You can install these applications from [Flathub](https://flathub.org/). Example installation commands:
 
-```sh
+````sh
 flatpak install flathub com.discordapp.DiscordCanary
 flatpak install flathub com.github.d4nj1.tlpui
 flatpak install flathub com.github.touchegg.touche
@@ -87,13 +136,13 @@ brew install zizmor
 brew install pandoc
 brew install sqlite
 brew install k9s helm age agg
-```
+````
 
 </details>
 
 ## Usage
 
-```sh
+````sh
 # Deploy all configs to ~/.config (includes fish, nvim, tmux, wezterm, etc.)
 stow -v2 .
 
@@ -104,6 +153,7 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 
 # Option 1: Zsh (traditional)
 stow -v2 -t ~ -S zsh gitmux --dotfiles
+stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 chsh -s /bin/zsh
 
 # Option 2: Fish (modern, faster)
@@ -119,7 +169,29 @@ chsh -s $(which fish)
 stow -v2 -t ~ -S gitmux --dotfiles
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 bat cache --build
+
+### Default SSH key setup (no 1Password)
+
+Uses `ssh-setup-github.sh` to create or load a key and upload to GitHub (via gh):
+
+```sh
+~/.local/bin/ssh-setup-github.sh -t "$(hostname)-$(date +%Y%m%d)" -e "you@example.com"
+````
+
+If you already store keys in 1Password and want to migrate them locally and add to the agent/keychain:
+
+```sh
+~/.local/bin/op-ssh-migrate.sh "GitHub" "GitHub Signing"
 ```
+
+Temporarily use 1Password agent for this shell session:
+
+```sh
+export USE_1PASSWORD_SSH=1  # zsh/bash
+# or: set -Ux USE_1PASSWORD_SSH 1  # fish
+```
+
+````
 
 ## Note for WSL
 
@@ -130,7 +202,7 @@ Run the below, then restart the terminal/tmux session.
 ```sh
 sudo apt-get install language-pack-en language-pack-en-base manpages
 sudo update-locale LANG=en_US.UTF8
-```
+````
 
 # Recording
 
