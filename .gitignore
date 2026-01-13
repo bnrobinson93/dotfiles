@@ -4,3 +4,5 @@ tmux/plugins/**
 nvim/lazy-lock.json
 *.log
 nvim/spell/**
+dot-local/bin/fabric
+dot-local/bin/webi
