@@ -1,0 +1,12 @@
+## Managed by dotfiles (stow). Safe to edit.
+#
+# Default: use system ssh-agent everywhere; use macOS Keychain when available.
+# Linux safely ignores UseKeychain via IgnoreUnknown.
+
+Host *
+  IgnoreUnknown UseKeychain
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519_GitHub
+  IdentityFile ~/.ssh/id_ed25519_GitHubSigning
+

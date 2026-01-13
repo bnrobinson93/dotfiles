@@ -26,4 +26,19 @@ bind -M insert \cb backward-char
 # Order: 00-env.fish → 01-paths.fish → 02-tools.fish → 03-abbreviations.fish
 if status is-interactive
     # Commands to run in interactive sessions can go here
+
+    # If try-cli exists, set the dir for it and initialize
+    if test -f ~/.local/try.rb
+        set -gx TRY_CLI_DIR ~/Documents/code/tries
+        eval (~/.local/try.rb init $TRY_CLI_DIR | string collect)
+    end
 end
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "$HOME/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+
+# Go private module configuration for virtru-corp repos
+set -gx GOPRIVATE "github.com/virtru-corp/*"
+set -gx GONOPROXY "github.com/virtru-corp/*"
+set -gx GONOSUMDB "github.com/virtru-corp/*"

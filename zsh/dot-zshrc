@@ -131,9 +131,24 @@ function ignore {
     done
 }
 
-export SSH_AUTH_SOCK=~/.1password/agent.sock
-if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
-  op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+# Optional: use 1Password SSH agent when explicitly enabled
+if [[ -n "${USE_1PASSWORD_SSH:-}" ]]; then
+  export SSH_AUTH_SOCK=~/.1password/agent.sock
+  if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
+    op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
+  fi
+else
+  # Guardrail: if a lingering 1Password socket is set, unset it unless explicitly opted in
+  if [[ "${SSH_AUTH_SOCK:-}" == *"/.1password/agent.sock" ]]; then
+    unset SSH_AUTH_SOCK
+  fi
+  # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
+  if [[ -z "${SSH_AUTH_SOCK:-}" && "$OSTYPE" == darwin* ]]; then
+    launchctl_sock=$(launchctl getenv SSH_AUTH_SOCK 2>/dev/null)
+    if [[ -n "$launchctl_sock" ]]; then
+      export SSH_AUTH_SOCK="$launchctl_sock"
+    fi
+  fi
 fi
 
 # SYNCHRONOUS deferred loading - no background jobs
@@ -352,3 +367,7 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="$HOME/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
