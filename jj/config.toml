@@ -40,9 +40,15 @@ push = [
   "bash",
   "-c",
   """
+  # Format files before pushing
+  jj fix
+
+  # Run pre-commit hook if it exists
   if [[ -f .husky/pre-commit ]]; then
     jj check
   fi
+
+  # Extract bookmark and push
   bookmark=$(jj log -r @ --no-graph -T 'bookmarks.join(" ")' | awk 'NR==1{gsub(/^\\*/,"",$1); gsub(/\\*$/, "", $1); print $1}')
   if [ -n "$bookmark" ]; then
     jj git push -b "$bookmark"
@@ -94,3 +100,32 @@ git_push_bookmark = '"temp/" ++ change_id.short()'
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
+
+# Code formatting tools for jj fix
+[fix.tools.gofmt]
+command = ["gofmt"]
+patterns = ["glob:'**/*.go'"]
+
+[fix.tools.prettier]
+command = ["pnpx", "prettier", "--stdin-filepath", "$path"]
+patterns = [
+  "glob:'**/*.js'",
+  "glob:'**/*.jsx'",
+  "glob:'**/*.ts'",
+  "glob:'**/*.tsx'",
+  "glob:'**/*.json'",
+  "glob:'**/*.md'",
+  "glob:'**/*.yaml'",
+  "glob:'**/*.yml'",
+  "glob:'**/*.css'",
+  "glob:'**/*.scss'",
+  "glob:'**/*.html'",
+  "glob:'**/*.graphql'",
+  "glob:'**/*.gql'",
+  "glob:'**/.prettierrc'",
+  "glob:'**/.prettierrc.*'",
+]
+
+[fix.tools.stylua]
+command = ["stylua", "--stdin-filepath", "$path", "-"]
+patterns = ["glob:'**/*.lua'"]
