@@ -33,3 +33,12 @@ if status is-interactive
         eval (~/.local/try.rb init $TRY_CLI_DIR | string collect)
     end
 end
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "$HOME/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+
+# Go private module configuration for virtru-corp repos
+set -gx GOPRIVATE "github.com/virtru-corp/*"
+set -gx GONOPROXY "github.com/virtru-corp/*"
+set -gx GONOSUMDB "github.com/virtru-corp/*"
