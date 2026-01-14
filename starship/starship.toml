@@ -166,7 +166,7 @@ jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 -
   )
 '
 '''
-when = 'jj root --ignore-working-copy &>/dev/null'
+when = '[ -d .jj ] || jj root --ignore-working-copy >/dev/null 2>&1'
 ignore_timeout = false
 description = "The current jj status"
 symbol = " "
