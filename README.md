@@ -146,6 +146,9 @@ brew install k9s helm age agg
 # Deploy all configs to ~/.config (includes fish, nvim, tmux, wezterm, etc.)
 stow -v2 .
 
+# Starship prompt
+stow -v2 starship
+
 # Deploy local scripts to ~/.local/bin
 stow -v2 -t ~/.local -S dot-local --dotfiles
 
