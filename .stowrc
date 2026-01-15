@@ -11,4 +11,5 @@
 --ignore=.stowrc
 --ignore=zsh
 --ignore=resources
+--ignore=^\.env$
 --ignore=starship

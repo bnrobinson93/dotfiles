@@ -9,8 +9,13 @@ else
   git pull
 fi
 
+# Starship prompt
 curl -sS https://starship.rs/install.sh | sh
 
+# Fabric
+curl -fsSL https://raw.githubusercontent.com/danielmiessler/fabric/main/scripts/installer/install.sh | bash
+
+# tmux plugins
 if [[ ! -f ~/.config/tmux/plugins/tmp ]]; then
   echo Installing TPM for tmux...
   git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
@@ -37,7 +42,7 @@ stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
-chsh -s "$(which zsh)"
+chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
 brew install dust eza fd uutils-coreutils
@@ -51,8 +56,6 @@ fi
 
 popd || exit
 
-echo "Done. Please restart your terminal or run 'source ~/.zshrc' to apply changes."
-
 # Default SSH setup (no 1Password). Requires GitHub CLI (gh) if you want upload.
 if [[ -x "$HOME/.local/bin/ssh-setup-github.sh" ]]; then
   echo "Setting up SSH keys for GitHub (you can skip/ctrl-c if undesired)..."
@@ -60,3 +63,5 @@ if [[ -x "$HOME/.local/bin/ssh-setup-github.sh" ]]; then
 else
   echo "Hint: Use ~/.local/bin/ssh-setup-github.sh to create/upload keys to GitHub."
 fi
+
+fabric --setup
