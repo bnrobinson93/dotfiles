@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Wrapper for nvim + hunk.nvim as jj diff tool
+# Ensures proper terminal attachment by redirecting to /dev/tty if needed
+
+set -e
+
+# Ensure we have terminal access
+if ! tty -s; then
+    # Try to attach to controlling terminal
+    if [ -e /dev/tty ]; then
+        exec < /dev/tty > /dev/tty 2>&1
+    else
+        echo "Error: No TTY available for interactive nvim session" >&2
+        exit 1
+    fi
+fi
+
+# Pass all arguments to nvim
+exec nvim "$@"

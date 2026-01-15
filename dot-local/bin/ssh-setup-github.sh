@@ -88,47 +88,56 @@ if [[ -z "${USE_1PASSWORD_SSH:-}" ]]; then
   fi
 fi
 
-if [[ $force -eq 1 ]]; then
-  rm -f "$keyfile" "${keyfile}.pub"
-fi
+createKey() {
+  input_keyfile="$1"
+  keytype="${2:-authentication}"
 
-if [[ ! -f "$keyfile" ]]; then
-  echo "Generating new ed25519 key at $keyfile"
-  read -rsp "Enter passphrase (empty for none): " pass; echo
-  ssh-keygen -t ed25519 -a 100 -f "$keyfile" -N "$pass" -C "${email:-$USER@$(hostname)}"
-fi
-
-chmod 600 "$keyfile"; chmod 644 "${keyfile}.pub"
-
-if [[ $do_add -eq 1 ]]; then
-  ensure_agent
-  # Add to agent, try Keychain helper on macOS
-  if [[ "$(uname)" == "Darwin" ]]; then
-    ssh-add --apple-use-keychain "$keyfile" 2>/dev/null || ssh-add "$keyfile"
-  else
-    ssh-add "$keyfile"
+  if [[ $force -eq 1 ]]; then
+    rm -f "$input_keyfile" "${input_keyfile}.pub"
   fi
-fi
 
-pubkey=$(cat "${keyfile}.pub")
-if [[ -n "$email" ]]; then
-  pubkey="$pubkey $email"
-fi
+  if [[ ! -f "$input_keyfile" ]]; then
+    echo "Generating new ed25519 key at $input_keyfile"
+    read -rsp "Enter passphrase (empty for none): " pass; echo
+    ssh-keygen -t ed25519 -a 100 -f "$input_keyfile" -N "$pass" -C "${email:-$USER@$(hostname)}"
+  fi
 
-if command -v gh >/dev/null 2>&1; then
-  echo "Uploading public key to GitHub via gh with title: $title"
-  echo "$pubkey" | gh ssh-key add -t "$title" -
-else
-  echo "gh not found. To upload manually, paste this to GitHub SSH keys:\n$pubkey"
-fi
+  chmod 600 "$input_keyfile"; chmod 644 "${input_keyfile}.pub"
 
-if [[ $update_allowed -eq 1 && -n "$email" ]]; then
-  as_file="$HOME/.ssh/allowed_signers"
-  touch "$as_file"; chmod 644 "$as_file"
-  # remove old entries for this email then append
-  if command -v gsed >/dev/null 2>&1; then sed_bin=gsed; else sed_bin=sed; fi
-  $sed_bin -i.bak "/^$email /d" "$as_file"
-  echo "$email $(cat "${keyfile}.pub")" >> "$as_file"
-fi
+  if [[ $do_add -eq 1 ]]; then
+    ensure_agent
+    # Add to agent, try Keychain helper on macOS
+    if [[ "$(uname)" == "Darwin" ]]; then
+      ssh-add --apple-use-keychain "$input_keyfile" 2>/dev/null || ssh-add "$input_keyfile"
+    else
+      ssh-add "$input_keyfile"
+    fi
+  fi
 
-echo "Done. Test with: ssh -T git@github.com"
+  pubkey=$(cat "${input_keyfile}.pub")
+  if [[ -n "$email" ]]; then
+    pubkey="$pubkey $email"
+  fi
+
+  if command -v gh >/dev/null 2>&1; then
+    echo "Uploading public key to GitHub via gh with title: $title"
+    echo "$pubkey" | gh ssh-key add -t "$title" - --type "$keytype"
+  else
+    echo "gh not found. To upload manually, paste this to GitHub SSH keys:\n$pubkey"
+  fi
+
+  if [[ $update_allowed -eq 1 && -n "$email" ]]; then
+    as_file="$HOME/.ssh/allowed_signers"
+    touch "$as_file"; chmod 644 "$as_file"
+    # remove old entries for this email then append
+    if command -v gsed >/dev/null 2>&1; then sed_bin=gsed; else sed_bin=sed; fi
+    $sed_bin -i.bak "/^$email /d" "$as_file"
+    echo "$email $(cat "${input_keyfile}.pub")" >> "$as_file"
+  fi
+
+  echo "Done. Test with: ssh -T git@github.com"
+}
+
+createKey "$keyfile" authentication
+createKey "${keyfile}Signing" signing
+
