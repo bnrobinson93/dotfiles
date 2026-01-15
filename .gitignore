@@ -6,7 +6,6 @@ nvim/lazy-lock.json
 nvim/spell/**
 dot-local/bin/fabric
 dot-local/bin/webi
-fish/fish_variables
-
 # Fabric config with machine-specific API credentials
 fabric/.env
+fish/fish_variables
