@@ -34,6 +34,8 @@ if status is-interactive
     end
 end
 
+set -g fish_color_autosuggestion brblack
+
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 set --export --prepend PATH "$HOME/.rd/bin"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
