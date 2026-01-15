@@ -31,7 +31,6 @@ if status is-interactive
     if test -f ~/.local/try.rb
         set -gx TRY_CLI_DIR ~/Documents/code/tries
         eval (~/.local/try.rb init $TRY_CLI_DIR | string collect)
-        atuin init fish | source
     end
 end
 
