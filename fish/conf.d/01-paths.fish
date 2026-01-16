@@ -32,3 +32,4 @@ test -d $HOME/.cargo/bin && fish_add_path $HOME/.cargo/bin
 test -d $HOME/.rbenv/bin && fish_add_path $HOME/.rbenv/bin
 
 # Go - will be added dynamically when go is first called
+
