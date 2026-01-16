@@ -3,7 +3,7 @@
 # Cubbit S3 Version Recovery Script
 # This script detects and optionally restores files that may have been accidentally deleted or shrunk
 
-set -euo pipefail
+set -uo pipefail
 
 # Color codes for output
 RED='\033[0;31m'
@@ -152,10 +152,9 @@ build_content_map() {
   # Create associative array: "size:etag" -> "key"
   declare -gA CONTENT_MAP
 
-  # Get all current versions (IsLatest = true)
-  local current_files
-  current_files=$(jq -r '.Versions[] | select(.IsLatest == true) | 
-        {Key, Size, ETag, VersionId} | @json' /tmp/versions.json)
+  # Get all current versions (IsLatest = true) to a temp file
+  jq -r '.Versions[] | select(.IsLatest == true) | 
+        {Key, Size, ETag, VersionId} | @json' /tmp/versions.json >/tmp/current_files.json
 
   while IFS= read -r file; do
     local key size etag version_id
@@ -171,7 +170,7 @@ build_content_map() {
 
     local content_hash="${size}:${etag}"
     CONTENT_MAP["$content_hash"]="$key"
-  done <<<"$current_files"
+  done </tmp/current_files.json
 
   print_success "Content map built with ${#CONTENT_MAP[@]} unique files"
 }
@@ -234,12 +233,21 @@ analyze_versions() {
   fi
 
   # Extract unique keys to a temp file to avoid subshell issues
+  print_info "Extracting unique keys..."
   jq -r '.Versions[]?.Key // empty' /tmp/versions.json | sort -u >/tmp/unique_keys.txt
+
+  local key_count=$(wc -l </tmp/unique_keys.txt)
+  print_info "Starting to process $key_count keys..."
 
   # Process each unique key
   while IFS= read -r key; do
+    echo "DEBUG: Processing key: $key" >&2 # Add this line
     ((checked_objects++))
-    printf "\rAnalyzing: %d/%d objects" "$checked_objects" "$total_objects"
+
+    # Show progress every 100 items
+    if ((checked_objects % 100 == 0 || checked_objects == total_objects)); then
+      printf "\rAnalyzing: %d/%d objects" "$checked_objects" "$total_objects"
+    fi
 
     # Check if this key should be excluded
     if is_excluded "$key"; then
@@ -318,7 +326,8 @@ analyze_versions() {
 
   done </tmp/unique_keys.txt
 
-  echo # New line after progress
+  # Ensure we print final progress
+  printf "\rAnalyzing: %d/%d objects  \n" "$total_objects" "$total_objects"
   echo # Extra newline for readability
 
   print_success "Analysis complete! Processed $checked_objects objects."
@@ -339,7 +348,7 @@ analyze_versions() {
   if [[ $oddities_count -eq 0 ]]; then
     print_success "No issues found! All files appear to be intact."
     print_info "Your Obsidian vault looks healthy."
-    rm -f /tmp/versions.json /tmp/unique_keys.txt "$ODDITIES_FILE"
+    rm -f /tmp/versions.json /tmp/unique_keys.txt /tmp/current_files.json "$ODDITIES_FILE"
     exit 0
   fi
 
@@ -490,7 +499,7 @@ main() {
   restore_files
 
   # Cleanup
-  rm -f /tmp/versions.json /tmp/unique_keys.txt
+  rm -f /tmp/versions.json /tmp/unique_keys.txt /tmp/current_files.json
 
   echo
   print_success "All done!"
