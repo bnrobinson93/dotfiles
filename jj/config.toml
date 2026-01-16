@@ -24,6 +24,14 @@ log = "bases | latest(curbranch::@, 5) | @::nextbranch | all_my_bookmark_tips | 
 [aliases]
 s = ["status"]
 l = ["log", "--limit", "15"]
+tug- = [
+  "bookmark",
+  "move",
+  "--from",
+  "closest_bookmark(@-)",
+  "--to",
+  "closest_pushable(@-)",
+]
 tug = [
   "bookmark",
   "move",
