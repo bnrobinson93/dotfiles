@@ -241,7 +241,6 @@ analyze_versions() {
 
   # Process each unique key
   while IFS= read -r key; do
-    echo "DEBUG: Processing key: $key" >&2 # Add this line
     ((checked_objects++))
 
     # Show progress every 100 items
