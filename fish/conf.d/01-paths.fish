@@ -5,6 +5,7 @@
 # Only scan common locations instead of using expensive wildcards
 set -l common_bin_dirs \
     $HOME/go/bin \
+    $XDG_DATA_HOME/mise/shims \
     $HOME/.atuin/bin \
     $HOME/.cargo/bin \
     $HOME/.docker/bin \
