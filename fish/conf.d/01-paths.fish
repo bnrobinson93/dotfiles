@@ -3,15 +3,9 @@
 
 # Find all bin directories - optimized to avoid 200ms+ glob scanning
 # Only scan common locations instead of using expensive wildcards
-if set -q XDG_DATA_HOME
-    set -l xdg_data_home $XDG_DATA_HOME
-else
-    set -l xdg_data_home $HOME/.local/share
-end
 
 set -l common_bin_dirs \
     $HOME/go/bin \
-    $xdg_data_home/mise/shims \
     $HOME/.atuin/bin \
     $HOME/.cargo/bin \
     $HOME/.docker/bin \
