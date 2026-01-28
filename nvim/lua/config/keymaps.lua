@@ -10,6 +10,15 @@ vim.keymap.del("n", "<leader>`") -- I don't typically use "other buffer"; just u
 
 local map = vim.keymap.set
 
+map("n", "<leader>jj", function()
+  local ok, jj = pcall(require, "jj.cmd")
+  if not ok then
+    vim.notify("JJ.nvim could not be started", vim.log.levels.ERROR)
+    return
+  end
+  jj.log({ raw_flags = "-T my_default_log" })
+end, { desc = "Open JJ log" })
+
 -- Move selected lines up/down
 map("v", "<c-j>", ":m '>+1<CR>==gv=gv", { desc = "Move selection down" })
 map("v", "<c-k>", ":m .-2<CR>==gv=gv", { desc = "Move selection up" })

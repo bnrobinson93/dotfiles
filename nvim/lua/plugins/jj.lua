@@ -12,7 +12,14 @@ return {
       end
       return true
     end,
-    opts = {},
+    opts = {
+      describe = { editor = { type = "input" } },
+      highlights = {
+        modified = "DiffChange",
+        added = "DiffAdd",
+        deleted = "DiffDelete",
+      },
+    },
   },
   {
     "julienvincent/hunk.nvim",

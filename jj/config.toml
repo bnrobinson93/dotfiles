@@ -73,11 +73,7 @@ push = [
 sign = true
 
 [ui]
-default-command = [
-  "log",
-  "-T",
-  "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))",
-]
+default-command = ["log", "-T", "my_default_log"]
 diff-editor = ":builtin"
 
 [merge-tools.nvim]
@@ -109,6 +105,9 @@ private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
 git_push_bookmark = '"temp/" ++ change_id.short()'
+
+[template-aliases]
+my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
