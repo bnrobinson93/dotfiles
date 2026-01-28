@@ -13,7 +13,14 @@ return {
       return true
     end,
     opts = {
-      describe = { editor = { type = "input" } },
+      cmd = {
+        describe = {
+          editor = {
+            type = "buffer",
+            keymaps = { close = { "<Esc>", "<C-c>", "q" } },
+          },
+        },
+      },
       highlights = {
         modified = "DiffChange",
         added = "DiffAdd",
@@ -21,6 +28,7 @@ return {
       },
     },
   },
+
   {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
