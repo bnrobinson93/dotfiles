@@ -67,6 +67,8 @@ map({ "n", "v" }, "<F5>", function()
 end, { desc = "Open selection in GitHub" })
 
 -- JJ stuff
+map("n", "<leader>jn", require("jj.cmd").new, { desc = "JJ new" })
+
 map("n", "<leader>jj", function()
   require("jj.cmd").log()
 end, { desc = "JJ log" })
