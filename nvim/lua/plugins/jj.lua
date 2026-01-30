@@ -1,8 +1,7 @@
-local exeExists = false
+local exeExists = vim.fn.executable("jj") == 0
 
 local function jj_exists()
-  if exeExists or vim.fn.executable("jj") == 0 then
-    exeExists = true
+  if not exeExists == 0 then
     return false
   end
 
