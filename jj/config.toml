@@ -73,7 +73,7 @@ push = [
 sign = true
 
 [ui]
-default-command = ["log", "-T", "my_default_log"]
+default-command = ["log"]
 diff-editor = ":builtin"
 
 [merge-tools.nvim]
@@ -104,6 +104,7 @@ sign-on-push = true
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
+log = "my_default_log"
 git_push_bookmark = '"temp/" ++ change_id.short()'
 
 [template-aliases]

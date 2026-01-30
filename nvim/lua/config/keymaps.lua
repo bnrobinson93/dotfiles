@@ -10,15 +10,6 @@ vim.keymap.del("n", "<leader>`") -- I don't typically use "other buffer"; just u
 
 local map = vim.keymap.set
 
-map("n", "<leader>jj", function()
-  local ok, jj = pcall(require, "jj.cmd")
-  if not ok then
-    vim.notify("JJ.nvim could not be started", vim.log.levels.ERROR)
-    return
-  end
-  jj.log({ raw_flags = "-T my_default_log" })
-end, { desc = "Open JJ log" })
-
 -- Move selected lines up/down
 map("v", "<c-j>", ":m '>+1<CR>==gv=gv", { desc = "Move selection down" })
 map("v", "<c-k>", ":m .-2<CR>==gv=gv", { desc = "Move selection up" })
@@ -74,6 +65,34 @@ map({ "n", "v" }, "<F5>", function()
     )
   end
 end, { desc = "Open selection in GitHub" })
+
+-- JJ stuff
+map("n", "<leader>jn", require("jj.cmd").new, { desc = "JJ new" })
+map("n", "<leader>jj", require("jj.cmd").log, { desc = "JJ log" })
+map("n", "<leader>jc", require("jj.cmd").commit, { desc = "JJ commit" })
+map("n", "<leader>js", require("jj.picker").status, { desc = "JJ status" })
+map("n", "<leader>jf", require("jj.picker").file_history, { desc = "JJ file history" })
+map("n", "<leader>jd", require("jj.diff").open_vdiff, { desc = "JJ diff current buffer" })
+
+map("n", "<leader>jL", function()
+  require("jj.cmd").log({ revisions = "bases::@" })
+end, { desc = "JJ log entire branch" })
+
+map("n", "<leader>jt", function()
+  local cmd = require("jj.cmd")
+  cmd.j("tug")
+  cmd.log()
+end, { desc = "JJ tug" })
+
+map("n", "<leader>jT", function()
+  local cmd = require("jj.cmd")
+  cmd.j("tug-")
+  cmd.log()
+end, { desc = "JJ tug-" })
+
+map("n", "<leader>jD", function()
+  require("jj.diff").show_revision({ rev = "@", left = "base", right = "@" })
+end, { desc = "JJ diff revision against base" })
 
 -- New note in Obsidian
 map("n", "<C-n>", function()

@@ -1,19 +1,52 @@
+local exeExists = vim.fn.executable("jj") == 0
+
+local function jj_exists()
+  if not exeExists == 0 then
+    return false
+  end
+
+  local root = vim.fn.system({ "jj", "root" })
+  if vim.v.shell_error ~= 0 or root == "" then
+    return false
+  end
+  return true
+end
+
 return {
+  {
+    "folke/which-key.nvim",
+    cond = jj_exists,
+    config = function(_, opts)
+      local wk = require("which-key")
+      wk.setup(opts)
+
+      wk.add({
+        { "<leader>j", group = "JJ VCS", icon = "" },
+        { "<leader>jj", icon = { icon = "", color = "azure" } },
+        { "<leader>jL", icon = { icon = "", color = "blue" } },
+        { "<leader>jt", icon = { icon = "󰓂", color = "cyan" } },
+        { "<leader>jT", icon = { icon = "󰓂", color = "cyan" } },
+        { "<leader>js", icon = { icon = "󱖫", color = "green" } },
+        { "<leader>jf", icon = { icon = "", color = "blue" } },
+        { "<leader>jd", icon = { icon = "", color = "orange" } },
+        { "<leader>jD", icon = { icon = "", color = "red" } },
+      })
+    end,
+  },
+
   {
     "NicolasGB/jj.nvim",
     version = "*",
-    cond = function()
-      if vim.fn.executable("jj") == 0 then
-        return false
-      end
-      local root = vim.fn.system({ "jj", "root" })
-      if vim.v.shell_error ~= 0 or root == "" then
-        return false
-      end
-      return true
-    end,
+    cond = jj_exists,
     opts = {
-      describe = { editor = { type = "input" } },
+      cmd = {
+        describe = {
+          editor = {
+            type = "buffer",
+            keymaps = { close = { "<Esc>", "<C-c>", "q" } },
+          },
+        },
+      },
       highlights = {
         modified = "DiffChange",
         added = "DiffAdd",
@@ -21,6 +54,7 @@ return {
       },
     },
   },
+
   {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
