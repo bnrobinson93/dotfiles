@@ -68,10 +68,11 @@ end, { desc = "Open selection in GitHub" })
 
 -- JJ stuff
 map("n", "<leader>jn", require("jj.cmd").new, { desc = "JJ new" })
-
-map("n", "<leader>jj", function()
-  require("jj.cmd").log()
-end, { desc = "JJ log" })
+map("n", "<leader>jj", require("jj.cmd").log, { desc = "JJ log" })
+map("n", "<leader>jc", require("jj.cmd").commit, { desc = "JJ commit" })
+map("n", "<leader>js", require("jj.picker").status, { desc = "JJ status" })
+map("n", "<leader>jf", require("jj.picker").file_history, { desc = "JJ file history" })
+map("n", "<leader>jd", require("jj.diff").open_vdiff, { desc = "JJ diff current buffer" })
 
 map("n", "<leader>jL", function()
   require("jj.cmd").log({ revisions = "bases::@" })
@@ -88,18 +89,6 @@ map("n", "<leader>jT", function()
   cmd.j("tug-")
   cmd.log()
 end, { desc = "JJ tug-" })
-
-map("n", "<leader>js", function()
-  require("jj.picker").status()
-end, { desc = "JJ status" })
-
-map("n", "<leader>jf", function()
-  require("jj.picker").file_history()
-end, { desc = "JJ file history" })
-
-map("n", "<leader>jd", function()
-  require("jj.diff").open_vdiff()
-end, { desc = "JJ diff current buffer" })
 
 map("n", "<leader>jD", function()
   require("jj.diff").show_revision({ rev = "@", left = "base", right = "@" })
