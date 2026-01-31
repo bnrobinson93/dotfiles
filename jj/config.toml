@@ -11,7 +11,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 # 3. Keep bases that are relevant to my work, but *only* where my stuff lives
 
 [revset-aliases]
-'closest_bookmark(to)' = 'heads(::to & bookmarks())'
+'closest_bookmark(to)' = 'heads(::to & bookmarks() & ~trunk())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
 'bases' = 'trunk() | present(develop) | present(feat/PEP-2386-dsp-v1-integration)'
 'mybranches' = 'bookmarks() & mine()'
