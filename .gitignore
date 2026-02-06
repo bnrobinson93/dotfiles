@@ -9,3 +9,4 @@ dot-local/bin/webi
 # Fabric config with machine-specific API credentials
 fabric/.env
 fish/fish_variables
+jj/repos/
