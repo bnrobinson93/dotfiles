@@ -49,3 +49,6 @@ proto
 ad-hoc
 JWT
 enum
+oidc
+saml
+auth
