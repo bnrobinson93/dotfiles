@@ -56,14 +56,14 @@ push = [
 
   # Run pre-commit hook if it exists
   if [[ -f .husky/pre-commit ]]; then
-    jj check
+    jj check || exit
   fi
 
   # Extract bookmark and push
-  bookmark=$(jj log -r @ --no-graph -T 'bookmarks.join(" ")' | awk 'NR==1{gsub(/^\\*/,"",$1); gsub(/\\*$/, "", $1); print $1}')
+  bookmark=$(jj log -r 'closest_pushable(@)' --no-graph -T 'bookmarks.join(" ")' | awk 'NR==1{gsub(/^\\*/,"",$1); gsub(/\\*$/, "", $1); print $1}')
   if [ -n "$bookmark" ]; then
     jj git push -b "$bookmark"
-  else
+  else # if we're on main
     jj git push -c@
   fi
   """,
@@ -84,6 +84,7 @@ diff-args = ["-c", "DiffEditor $left $right"]
 [colors]
 signature = "blue"
 unsigned = "cyan"
+empty = "red"
 
 # this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
 [signing]
@@ -108,7 +109,7 @@ log = "my_default_log"
 git_push_bookmark = '"temp/" ++ change_id.short()'
 
 [template-aliases]
-my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
+my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ if(empty, label('empty',' (empty)'), '') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
@@ -119,23 +120,9 @@ command = ["gofmt"]
 patterns = ["glob:'**/*.go'"]
 
 [fix.tools.prettier]
-command = ["pnpx", "prettier", "--stdin-filepath", "$path"]
+command = ["pnpm", "exec", "prettier", "--stdin-filepath", "$path"]
 patterns = [
-  "glob:'**/*.js'",
-  "glob:'**/*.jsx'",
-  "glob:'**/*.ts'",
-  "glob:'**/*.tsx'",
-  "glob:'**/*.json'",
-  "glob:'**/*.md'",
-  "glob:'**/*.yaml'",
-  "glob:'**/*.yml'",
-  "glob:'**/*.css'",
-  "glob:'**/*.scss'",
-  "glob:'**/*.html'",
-  "glob:'**/*.graphql'",
-  "glob:'**/*.gql'",
-  "glob:'**/.prettierrc'",
-  "glob:'**/.prettierrc.*'",
+  "glob:'**/*.{js,jsx,ts,tsx,json,md,yaml,yml,css,scss,html,graphql,gql}'",
 ]
 
 [fix.tools.stylua]
