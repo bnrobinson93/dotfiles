@@ -122,7 +122,19 @@ patterns = ["glob:'**/*.go'"]
 [fix.tools.prettier]
 command = ["pnpm", "exec", "prettier", "--stdin-filepath", "$path"]
 patterns = [
-  "glob:'**/*.{js,jsx,ts,tsx,json,md,yaml,yml,css,scss,html,graphql,gql}'",
+  "glob:'**/*.js'",
+  "glob:'**/*.jsx'",
+  "glob:'**/*.ts'",
+  "glob:'**/*.tsx'",
+  "glob:'**/*.json'",
+  "glob:'**/*.md'",
+  "glob:'**/*.yaml'",
+  "glob:'**/*.yml'",
+  "glob:'**/*.css'",
+  "glob:'**/*.scss'",
+  "glob:'**/*.html'",
+  "glob:'**/*.graphql'",
+  "glob:'**/*.gql'",
 ]
 
 [fix.tools.stylua]
