@@ -10,6 +10,7 @@ opt.conceallevel = 1 -- For Obsidian
 vim.cmd([[let g:pencil#conceallevel = 1]])
 
 opt.spell = true
+vim.cmd([[set spelloptions+=camel]])
 
 opt.guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver35-Cursor,r-cr-o:hor30-Cursor"
 opt.mouse = "nv"
