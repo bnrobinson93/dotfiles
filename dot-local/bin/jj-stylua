@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Wrapper for jj fix: tries system stylua, falls back to Mason
+MASON_BIN="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/mason/bin"
+
+if command -v stylua &>/dev/null; then
+  exec stylua --stdin-filepath "$1" -
+elif [[ -x "$MASON_BIN/stylua" ]]; then
+  exec "$MASON_BIN/stylua" --stdin-filepath "$1" -
+else
+  cat # pass through unmodified
+fi
