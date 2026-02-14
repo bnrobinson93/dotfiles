@@ -127,6 +127,10 @@ patterns = [
   "glob:'**/*.jsx'",
   "glob:'**/*.ts'",
   "glob:'**/*.tsx'",
+  "glob:'**/*.json'",
+  "glob:'**/*.md'",
+  "glob:'**/*.yaml'",
+  "glob:'**/*.yml'",
   "glob:'**/*.css'",
   "glob:'**/*.scss'",
   "glob:'**/*.html'",
@@ -134,20 +138,6 @@ patterns = [
   "glob:'**/*.gql'",
 ]
 
-[fix.tools.prettier-data]
-command = ["jj-prettier", "$path"]
-patterns = [
-  "glob:'**/*.json'",
-  "glob:'**/*.yaml'",
-  "glob:'**/*.yml'",
-]
-
-[fix.tools.prettier-md]
-command = ["jj-prettier", "$path"]
-patterns = [
-  "glob:'**/*.md'",
-]
-
 [fix.tools.stylua]
-command = ["bash", "-c", "stylua --stdin-filepath \"$1\" - 2>/dev/null || ~/.local/share/nvim/mason/bin/stylua --stdin-filepath \"$1\" -", "--", "$path"]
+command = ["jj-stylua", "$path"]
 patterns = ["glob:'**/*.lua'"]
