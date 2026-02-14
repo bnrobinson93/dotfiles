@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Open Project",
+			"type": "shell",
+			"command": "code",
+			"args": [
+				"-r",
+				"${input:projectPicker}"
+			],
+			"problemMatcher": []
+		}
+	],
+	"inputs": [
+		{
+			"id": "projectPicker",
+			"type": "command",
+			"command": "shellCommand.execute",
+			"args": {
+				"command": "fd . ~/Documents/code -d1 -td || find ~/Documents/code -mindepth 1 -maxdepth 1 -type d",
+				"description": "Select project folder",
+				"useFirstResult": false
+			}
+		}
+	]
+}
