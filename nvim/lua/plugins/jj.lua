@@ -1,6 +1,6 @@
 local exeExists = vim.fn.executable("jj") == 0
 
-local function jj_exists()
+function JJ_exists()
   if not exeExists == 0 then
     return false
   end
@@ -15,7 +15,7 @@ end
 return {
   {
     "folke/which-key.nvim",
-    cond = jj_exists,
+    cond = JJ_exists,
     config = function(_, opts)
       local wk = require("which-key")
       wk.setup(opts)
