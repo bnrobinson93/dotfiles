@@ -1,0 +1,113 @@
+{
+  "editor.fontFamily": "'Dank Mono', 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 18,
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.glyphMargin": true,
+  "editor.insertSpaces": false,
+  "editor.lightbulb.enabled": "off",
+  "editor.minimap.enabled": false,
+  "editor.rulers": [
+    120
+  ],
+  "files.autoSave": "onFocusChange",
+  "projectManager.git.baseFolders": [
+    "~/Documents/code/"
+  ],
+  "projectManager.git.maxDepthRecursion": 2,
+  "projectManager.showProjectNameInStatusBar": true,
+  "projectManager.sortList": "Recent",
+  "multiCommand.commands": [
+    {
+      "command": "multiCommand.disableNeovim",
+      "sequence": [
+        "vscode-neovim.stop",
+        {
+          "command": "notifications.showInfoMessage",
+          "args": "Neovim disabled"
+        }
+      ]
+    },
+    {
+      "command": "multiCommand.enableNeovim",
+      "sequence": [
+        "vscode-neovim.restart",
+        {
+          "command": "notifications.showInfoMessage",
+          "args": "Neovim enabled"
+        }
+      ]
+    },
+  ],
+  "vscode-neovim.ctrlKeysForNormalMode": [
+    "a",
+    "c",
+    "d",
+    "e",
+    "h",
+    "i",
+    "j",
+    "l",
+    "m",
+    "o",
+    "r",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "/",
+    "]",
+    "right",
+    "left",
+    "up",
+    "down",
+    "backspace",
+    "delete"
+  ],
+  "vscode-neovim.ctrlKeysForInsertMode": [
+    "a",
+    "c",
+    "h",
+    "j",
+    "m",
+    "o",
+    "r",
+    "t",
+    "u",
+    "w"
+  ],
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<Esc>"],
+      "when": ["editorFocus"],
+      "commands": [":nohl"],
+      "silent": true
+    }
+  ],
+  "vim.surround": true,
+  "vim.smartRelativeLine": true,
+  "vim.handleKeys": {
+    "<C-f>": false,
+    "<C-d>": false,
+  },
+  "vim.incsearch": true,
+  "vim.hlsearch": true,
+  "workbench.colorTheme": "Tokyo Night",
+  "extensions.experimental.affinity": { // Run these as separate process
+    "asvetliakov.vscode-neovim": 1,
+    "vscode.vim": 1
+  },
+  "git.enabled": false,
+  "editor.fontWeight": 450,
+  "editor.fontVariations": true,
+  "terminal.integrated.fontFamily": "\"Dank Mono Nerd Font Propo\"",
+  "terminal.integrated.fontSize": 16,
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.productIconTheme": "material-product-icons"
+}
