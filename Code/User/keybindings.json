@@ -1,5 +1,4 @@
-// Place your key bindings in this file to override the defaultsauto[]
-[ 
+[
   {
     "key": "ctrl-h",
     "command": "workbench.action.navigateLeft"
@@ -112,43 +111,43 @@
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space c a", // [C]ode [A]ction
+    "key": "space c a", // [C]ode > [A]ction
     "command": "editor.action.codeAction",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space c r", // [R]e[n]ame
+    "key": "space c r", // [C]ode > [R]ename
     "command": "editor.action.rename",
     "when": "vim.mode == 'Normal' && editorHasRenameProvider && editorTextFocus && !editorReadonly"
   },
   {
-    "key": "space s shift+S", // [G]o to [S]ymbol
+    "key": "space s shift+S", // [S]earch > [S]ymbols
     "command": "workbench.action.gotoSymbol",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space space", // [F]ind [F]ile
+    "key": "space space", // find files
     "command": "workbench.action.quickOpen",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
   {
-    "key": "space f g", // [F]ind [G]rep,
+    "key": "space s g", // [S]earch > [G]rep,
     "command": "workbench.action.findInFiles",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
   // sucky stuff that should just work but don't
   {
-    "key": "ctrl+w shift+\\", // [S]plit [S]ide
+    "key": "ctrl+w shift+\\", // default window split with |
     "command": "workbench.action.splitEditorRight",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "ctrl+w -", // Split [V]ertically
+    "key": "ctrl+w -", // default window split with -
     "command": "workbench.action.splitEditorDown",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "shift-k", // vim classic. Why not just "gh" instead? Idk.
+    "key": "shift-k", // Hover
     "command": "editor.action.showHover",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
@@ -182,7 +181,7 @@
     "command": "list.toggleExpand",
     "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && explorerResourceIsFolder && !inputFocus"
   },
-   {
+  {
     "key": "escape",
     "command": "closeMarkersNavigation",
     "when": "vim.mode == 'Normal' && editorFocus && markersNavigationVisible"
@@ -246,7 +245,7 @@
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space h", // Show harpoonable files
+    "key": "space h", // Show [h]arpooned files
     "command": "vscode-harpoon.editorQuickPick",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
@@ -290,5 +289,6 @@
   {
     "key": "ctrl+a l",
     "command": "projectManager.listProjects"
-  },
- ]
+  }
+]
+
