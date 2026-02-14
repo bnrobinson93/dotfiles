@@ -3,7 +3,7 @@ background-blur-radius = 20
 
 font-family = "Dank Mono Nerd Font Propo"
 font-style = Regular
-font-size = 12
+font-size = 16
 
 gtk-single-instance = true
 window-padding-x = 0

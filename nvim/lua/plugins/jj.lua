@@ -1,7 +1,7 @@
-local exeExists = vim.fn.executable("jj") == 0
+local exeExists = vim.fn.executable("jj") ~= 0
 
 function JJ_exists()
-  if not exeExists == 0 then
+  if not exeExists then
     return false
   end
 
@@ -37,7 +37,7 @@ return {
   {
     "NicolasGB/jj.nvim",
     version = "*",
-    cond = jj_exists,
+    cond = JJ_exists,
     opts = {
       cmd = {
         describe = {
