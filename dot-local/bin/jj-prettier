@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Wrapper for jj fix: tries project-local prettier, falls back to Mason
+pnpm exec prettier --stdin-filepath "$1" 2>/dev/null \
+  || ~/.local/share/nvim/mason/bin/prettier --stdin-filepath "$1"

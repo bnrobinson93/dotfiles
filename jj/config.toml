@@ -121,7 +121,7 @@ command = ["gofmt"]
 patterns = ["glob:'**/*.go'"]
 
 [fix.tools.prettier]
-command = ["bash", "-c", "pnpm exec prettier --stdin-filepath \"$1\" 2>/dev/null || ~/.local/share/nvim/mason/bin/prettier --stdin-filepath \"$1\"", "--", "$path"]
+command = ["jj-prettier", "$path"]
 patterns = [
   "glob:'**/*.js'",
   "glob:'**/*.jsx'",
@@ -135,7 +135,7 @@ patterns = [
 ]
 
 [fix.tools.prettier-data]
-command = ["bash", "-c", "pnpm exec prettier --stdin-filepath \"$1\" 2>/dev/null || ~/.local/share/nvim/mason/bin/prettier --stdin-filepath \"$1\"", "--", "$path"]
+command = ["jj-prettier", "$path"]
 patterns = [
   "glob:'**/*.json'",
   "glob:'**/*.yaml'",
@@ -143,7 +143,7 @@ patterns = [
 ]
 
 [fix.tools.prettier-md]
-command = ["bash", "-c", "pnpm exec prettier --stdin-filepath \"$1\" 2>/dev/null || ~/.local/share/nvim/mason/bin/prettier --stdin-filepath \"$1\"", "--", "$path"]
+command = ["jj-prettier", "$path"]
 patterns = [
   "glob:'**/*.md'",
 ]
