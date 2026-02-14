@@ -121,7 +121,7 @@ command = ["gofmt"]
 patterns = ["glob:'**/*.go'"]
 
 [fix.tools.prettier]
-command = ["pnpm", "exec", "prettier", "--stdin-filepath", "$path"]
+command = ["jj-prettier", "$path"]
 patterns = [
   "glob:'**/*.js'",
   "glob:'**/*.jsx'",
@@ -139,5 +139,5 @@ patterns = [
 ]
 
 [fix.tools.stylua]
-command = ["stylua", "--stdin-filepath", "$path", "-"]
+command = ["jj-stylua", "$path"]
 patterns = ["glob:'**/*.lua'"]
