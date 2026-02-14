@@ -67,7 +67,7 @@ map({ "n", "v" }, "<F5>", function()
 end, { desc = "Open selection in GitHub" })
 
 -- JJ stuff
-if not vim.g.vscode then
+if not vim.g.vscode and JJ_exists() then
   map("n", "<leader>jn", require("jj.cmd").new, { desc = "JJ new" })
   map("n", "<leader>jj", require("jj.cmd").log, { desc = "JJ log" })
   map("n", "<leader>jc", require("jj.cmd").commit, { desc = "JJ commit" })
