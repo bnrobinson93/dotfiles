@@ -10,3 +10,10 @@ dot-local/bin/webi
 fabric/.env
 fish/fish_variables
 jj/repos/
+Code/User/chatLanguageModels.json
+Code/User/mcp.json
+Code/User/History/
+Code/User/globalStorage/
+Code/User/snippets/
+Code/User/sync/
+Code/User/workspaceStorage/
