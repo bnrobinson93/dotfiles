@@ -3,6 +3,15 @@
 
 local autocmd = vim.api.nvim_create_autocmd
 
+-- JJ auto insert mode
+autocmd("FileType", {
+  pattern = "jjdescription",
+  desc = "Start insert mode for JJ description files",
+  callback = function()
+    vim.cmd("startinsert")
+  end,
+})
+
 -- Spell checking for text files + PencilSoft
 if not vim.g.vscode then
   vim.cmd([[
