@@ -37,7 +37,7 @@ end
 set -g fish_color_autosuggestion brblack
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-set --export --prepend PATH "$HOME/.rd/bin"
+set --export --prepend PATH "/Users/brad.robinson/.rd/bin"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 
 # Go private module configuration for virtru-corp repos

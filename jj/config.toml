@@ -5,7 +5,7 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
-log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges)"
+log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges) | bases"
 # 1. Current bookmark: full context near @
 # 2. Other bookmarks I own: only their tips + my leaves on them
 # 3. Keep bases that are relevant to my work, but *only* where my stuff lives
