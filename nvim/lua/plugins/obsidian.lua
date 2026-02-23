@@ -21,7 +21,7 @@ local function wrap_selection(before, after)
     -- Get the text around the selection to check for existing markers
     local line_start = vim.api.nvim_buf_get_lines(bufnr, start_row, start_row + 1, false)[1] or ""
     local line_end = start_row == end_row and line_start
-        or (vim.api.nvim_buf_get_lines(bufnr, end_row, end_row + 1, false)[1] or "")
+      or (vim.api.nvim_buf_get_lines(bufnr, end_row, end_row + 1, false)[1] or "")
 
     local before_len = #before
     local after_len = #after
@@ -97,8 +97,8 @@ local function wrap_selection(before, after)
 
     -- Check if the word already has the markers
     local has_markers = #current_word >= before_len + after_len
-        and current_word:sub(1, before_len) == before
-        and current_word:sub(-after_len) == after
+      and current_word:sub(1, before_len) == before
+      and current_word:sub(-after_len) == after
 
     if has_markers then
       -- Remove the markers from within the word
@@ -166,11 +166,7 @@ local function insert_footnote()
 
   local footnote_end = para_end
 
-  while
-    footnote_end + 2 <= #lines
-    and lines[footnote_end + 1] == ""
-    and lines[footnote_end + 2]:match("^%[%^%d+%]:")
-  do
+  while footnote_end + 2 <= #lines and lines[footnote_end + 1] == "" and lines[footnote_end + 2]:match("^%[%^%d+%]:") do
     footnote_end = footnote_end + 2
   end
 
@@ -192,7 +188,7 @@ return {
     opts = {
       attachments = {
         confirm_img_paste = true,
-        img_folder = "resources/attachments",
+        folder = "resources/attachments",
       },
       workspaces = {
         {
@@ -219,39 +215,41 @@ return {
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
-      note_frontmatter_func = function(note)
-        local now = os.date("%Y-%m-%dT%H:%M")
-        -- NOTE: the `note.metadata` object contains ONLY:
-        -- created, updated, and author
+      formatter = {
+        func = function(note)
+          local now = os.date("%Y-%m-%dT%H:%M")
+          -- NOTE: the `note.metadata` object contains ONLY:
+          -- created, updated, and author
 
-        -- Start by cloning that object
-        local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
+          -- Start by cloning that object
+          local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
 
-        -- Add things I may want
-        if note.url then
-          out.url = note.url
-        end
+          -- Add things I may want
+          if note.url then
+            out.url = note.url
+          end
 
-        -- Update the modified time
-        out.updated = now
+          -- Update the modified time
+          out.updated = now
 
-        -- More things I may want
-        if note.tags then
-          out.tags = note.tags
-        end
-        if note.aliases then
-          out.aliases = note.aliases
-        end
+          -- More things I may want
+          if note.tags then
+            out.tags = note.tags
+          end
+          if note.aliases then
+            out.aliases = note.aliases
+          end
 
-        -- return the final result
-        return out
-      end,
+          -- return the final result
+          return out
+        end,
+      },
       note_id_func = function(title)
         if title ~= nil then
           -- Remove quotes and only problematic filesystem characters, keep spaces
           local cleaned = title:gsub("^['\"]", ""):gsub("['\"]$", "") -- Remove surrounding quotes
-          cleaned = cleaned:gsub('[<>:"/\\|?*]', "")                  -- Remove filesystem-unsafe chars
-          cleaned = cleaned:gsub("^%s+", ""):gsub("%s+$", "")         -- Trim whitespace
+          cleaned = cleaned:gsub('[<>:"/\\|?*]', "") -- Remove filesystem-unsafe chars
+          cleaned = cleaned:gsub("^%s+", ""):gsub("%s+$", "") -- Trim whitespace
           return cleaned
         else
           -- Fallback for notes without titles
@@ -280,13 +278,55 @@ return {
       wiki_link_func = "use_alias_only",
     },
     keys = {
-      { "<M-S-d>",    "<cmd>Obsidian Today<cr>",          desc = "Open Daily Note",      mode = { "n" },      buffer = true },
-      { "<M-S-t>",    "<cmd>ObsidianTemplate<cr>",        desc = "Insert template",      mode = { "n", "i" }, buffer = true },
-      { "<M-n>",      "<cmd>ObsidianNewFromTemplate<cr>", desc = "New from template",    mode = { "n" },      buffer = true },
-      { "<M-S-l>",    internalLink,                       desc = "Create Internal Link", mode = { "n", "v" }, buffer = true },
-      { "<leader>cb", bold,                               desc = "Bold",                 mode = { "n", "v" }, buffer = true },
-      { "<leader>ci", italics,                            desc = "Italics",              mode = { "n", "v" }, buffer = true },
-      { "<F1>",       insert_footnote,                    desc = "Insert footnote",      mode = "i",          buffer = true },
+      {
+        "<M-S-d>",
+        "<cmd>Obsidian Today<cr>",
+        desc = "Open Daily Note",
+        mode = { "n" },
+        buffer = true,
+      },
+      {
+        "<M-S-t>",
+        "<cmd>ObsidianTemplate<cr>",
+        desc = "Insert template",
+        mode = { "n", "i" },
+        buffer = true,
+      },
+      {
+        "<M-n>",
+        "<cmd>ObsidianNewFromTemplate<cr>",
+        desc = "New from template",
+        mode = { "n" },
+        buffer = true,
+      },
+      {
+        "<M-S-l>",
+        internalLink,
+        desc = "Create Internal Link",
+        mode = { "n", "v" },
+        buffer = true,
+      },
+      {
+        "<leader>cb",
+        bold,
+        desc = "Bold",
+        mode = { "n", "v" },
+        buffer = true,
+      },
+      {
+        "<leader>ci",
+        italics,
+        desc = "Italics",
+        mode = { "n", "v" },
+        buffer = true,
+      },
+      {
+        "<F1>",
+        insert_footnote,
+        desc = "Insert footnote",
+        mode = "i",
+        buffer = true,
+      },
     },
   },
 }
