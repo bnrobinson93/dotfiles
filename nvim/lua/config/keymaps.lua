@@ -114,7 +114,7 @@ map("n", "<C-n>", function()
 
     -- Handle daily note
     vim.cmd("split")
-    vim.cmd("ObsidianToday")
+    vim.cmd("Obsidian today")
 
     vim.defer_fn(function()
       local daily_buf = vim.api.nvim_get_current_buf()

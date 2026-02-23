@@ -190,6 +190,7 @@ return {
         confirm_img_paste = true,
         folder = "resources/attachments",
       },
+      legacy_commands = false,
       workspaces = {
         {
           name = "primary",
@@ -280,21 +281,21 @@ return {
     keys = {
       {
         "<M-S-d>",
-        "<cmd>Obsidian Today<cr>",
+        "<cmd>Obsidian today<cr>",
         desc = "Open Daily Note",
         mode = { "n" },
         buffer = true,
       },
       {
         "<M-S-t>",
-        "<cmd>ObsidianTemplate<cr>",
+        "<cmd>Obsidian template<cr>",
         desc = "Insert template",
         mode = { "n", "i" },
         buffer = true,
       },
       {
         "<M-n>",
-        "<cmd>ObsidianNewFromTemplate<cr>",
+        "<cmd>Obsidian new_from_template<cr>",
         desc = "New from template",
         mode = { "n" },
         buffer = true,
