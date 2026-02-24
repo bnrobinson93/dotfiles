@@ -5,6 +5,7 @@ SEARCH_PATHS=(
   ~/Documents
   ~/Downloads
   ~/Documents/code
+  ~/Documents/code/tries
   ~/Documents/code/integrations-monorepo/integrations
   ~/Documents/code/js-lib-monorepo/libraries
 )
