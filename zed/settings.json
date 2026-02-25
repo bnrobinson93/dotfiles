@@ -7,6 +7,16 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "toolbar": {
+    "breadcrumbs": true
+  },
+  "tabs": {
+    "git_status": true
+  },
+  "tab_bar": {
+    "show": false
+  },
+  "ui_font_family": ".ZedSans",
   "terminal": {
     "font_size": 16.0,
     "font_family": "Dank Mono Nerd Font Propo"
@@ -27,7 +37,7 @@
   "buffer_font_family": "Dank Mono",
   "icon_theme": {
     "mode": "system",
-    "light": "Zed (Default)",
+    "light": "Material Icon Theme",
     "dark": "Material Icon Theme"
   },
   "telemetry": {
@@ -47,7 +57,14 @@
   "buffer_font_size": 18.0,
   "theme": {
     "mode": "system",
-    "light": "One Light",
-    "dark": "Tokyo Night Storm"
+    "light": "Tokyo Night Light",
+    "dark": "Tokyo Night"
+  },
+  "project_panel": {
+    "default_width": 400,
+    "starts_open": false
+  },
+  "file_finder": {
+    "modal_max_width": "large"
   }
 }
