@@ -39,7 +39,7 @@
   },
   "vim_mode": true,
   "vim": {
-    "toggle_relative_line_numbers": false,
+    "toggle_relative_line_numbers": true,
     "use_smartcase_find": true,
     "use_system_clipboard": "never"
   },
