@@ -1,0 +1,130 @@
+[
+  // ==========================
+  // === PANE NAVIGATION ======
+  // ==========================
+  {
+    "context": "Pane",
+    "bindings": {
+      "ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
+      "ctrl-j": ["workspace::ActivatePaneInDirection", "Down"],
+      "ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
+      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"]
+    }
+  },
+  {
+    "context": "Dock",
+    "bindings": {
+      "ctrl-h": ["workspace::ActivatePaneInDirection", "Left"],
+      "ctrl-j": ["workspace::ActivatePaneInDirection", "Down"],
+      "ctrl-k": ["workspace::ActivatePaneInDirection", "Up"],
+      "ctrl-l": ["workspace::ActivatePaneInDirection", "Right"]
+    }
+  },
+  // ==========================
+  // ====== FILE TREE =========
+  // ==========================
+  {
+    "context": "vim_mode == normal && !ProjectPanelFocus",
+    "bindings": {
+      "space e": "project_panel::ToggleFocus"
+    }
+  },
+  {
+    "context": "ProjectPanelFocus",
+    "bindings": {
+      "space e": "workspace::ToggleLeftDock",
+      "r": "project_panel::Rename",
+      "c": "project_panel::Copy",
+      "p": "project_panel::Paste",
+      "x": "project_panel::Cut",
+      "d": "project_panel::Delete",
+      "a": "project_panel::NewFile",
+      "A": "project_panel::NewDirectory",
+      "s": "project_panel::OpenSplitVertical",
+      "enter": "project_panel::Open"
+    }
+  },
+  // ==========================
+  // === EDITOR (Normal mode) =
+  // ==========================
+  {
+    "context": "Editor && vim_mode == normal",
+    "bindings": {
+      // File finding
+      "space space": "file_finder::Toggle",
+      "space ,": "file_finder::Toggle",
+      "ctrl-p": "file_finder::Toggle",
+      // Search / grep
+      "space s g": "workspace::NewSearch",
+      // Symbols
+      "space s S": "outline::Toggle",
+      // Code actions
+      "space c a": "editor::ToggleCodeActions",
+      "space c r": "editor::Rename",
+      // Go to
+      "space g d": "editor::GoToDefinition",
+      "space g r": "editor::FindAllReferences",
+      "space g i": "editor::GoToImplementation",
+      // Diagnostics
+      "[ d": [
+        "editor::GoToPreviousDiagnostic",
+        { "severity": { "min": "hint", "max": "error" } }
+      ],
+      "] d": [
+        "editor::GoToDiagnostic",
+        { "severity": { "min": "hint", "max": "error" } }
+      ],
+      // Hover
+      "shift-k": "editor::Hover",
+      // Splits
+      "ctrl-w |": "pane::SplitRight",
+      "ctrl-w -": "pane::SplitDown",
+      // Harpoon → pinned tabs + tab index jumping
+      "space h": "tab_switcher::Toggle",
+      "space 1": ["pane::ActivateItem", 0],
+      "space 2": ["pane::ActivateItem", 1],
+      "space 3": ["pane::ActivateItem", 2],
+      "space 4": ["pane::ActivateItem", 3],
+      "space 5": ["pane::ActivateItem", 4],
+      // Clear search highlight (equivalent to :nohl)
+      "escape": "buffer_search::Dismiss"
+    }
+  },
+  // ==========================
+  // ======= TERMINAL =========
+  // ==========================
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-/": "workspace::ToggleBottomDock"
+    }
+  },
+  {
+    "context": "Terminal",
+    "bindings": {
+      "ctrl-a n": "workspace::NewTerminal",
+      "ctrl-a c": "workspace::NewTerminal",
+      "ctrl-a p": "pane::ActivatePreviousItem",
+      "ctrl-a d": "pane::CloseActiveItem"
+    }
+  },
+  // ==========================
+  // === SUGGESTIONS ==========
+  // ==========================
+  {
+    "context": "Editor && showing_completions",
+    "bindings": {
+      "ctrl-y": "editor::ConfirmCompletion"
+    }
+  },
+  // ==========================
+  // === OPEN PROJECT (task) ==
+  // ==========================
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-shift-o": ["task::Spawn", { "task_name": "Open Project" }],
+      "ctrl-a l": "projects::OpenRecent"
+    }
+  }
+]
