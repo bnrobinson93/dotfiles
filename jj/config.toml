@@ -87,7 +87,7 @@ signature = "blue"
 unsigned = "cyan"
 empty = "red"
 
-# this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
+# "own" signs commits authored by you when modified; sign-on-push defers signing until push
 [signing]
 behavior = "own"
 # Point to the public key file instead of embedding the key
