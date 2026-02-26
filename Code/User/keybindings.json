@@ -1,4 +1,4 @@
-// Place your key bindings in this file to override the defaultsauto[]
+// Place your key bindings in this file to override the defaults
 [
   {
     "key": "ctrl-h",
@@ -117,7 +117,7 @@
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space c r", // [R]e[n]ame
+    "key": "space c r", // [C]ode [R]ename
     "command": "editor.action.rename",
     "when": "vim.mode == 'Normal' && editorHasRenameProvider && editorTextFocus && !editorReadonly"
   },
@@ -138,17 +138,17 @@
   },
   // sucky stuff that should just work but don't
   {
-    "key": "ctrl+w shift+\\", // [S]plit [S]ide
+    "key": "ctrl+w shift+\\", // Split side
     "command": "workbench.action.splitEditorRight",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "ctrl+w -", // Split [V]ertically
+    "key": "ctrl+w -", // Split down
     "command": "workbench.action.splitEditorDown",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "shift-k", // vim classic. Why not just "gh" instead? Idk.
+    "key": "shift-k", // Hover
     "command": "editor.action.showHover",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
