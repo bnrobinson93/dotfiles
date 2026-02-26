@@ -46,6 +46,16 @@
     }
   },
   // ==========================
+  // === Mini brackets =
+  // ==========================
+  {
+    "context": "vim_operator == a || vim_operator == i || vim_operator == cs",
+    "bindings": {
+      "b": "vim::MiniBrackets",
+      "q": "vim::MiniQuotes"
+    }
+  },
+  // ==========================
   // === EDITOR (Normal mode) =
   // ==========================
   {
@@ -70,18 +80,7 @@
       "space c a": "editor::ToggleCodeActions",
       "space c r": "editor::Rename",
       // Go to
-      "space g d": "editor::GoToDefinition",
       "space g r": "editor::FindAllReferences",
-      "space g i": "editor::GoToImplementation",
-      // Diagnostics
-      "[ d": [
-        "editor::GoToPreviousDiagnostic",
-        { "severity": { "min": "hint", "max": "error" } }
-      ],
-      "] d": [
-        "editor::GoToDiagnostic",
-        { "severity": { "min": "hint", "max": "error" } }
-      ],
       // Hover
       "shift-k": "editor::Hover",
       // Splits
