@@ -14,68 +14,68 @@
   "projectManager.git.maxDepthRecursion": 2,
   "projectManager.showProjectNameInStatusBar": true,
   "projectManager.sortList": "Recent",
-  "multiCommand.commands": [
-    {
-      "command": "multiCommand.disableNeovim",
-      "sequence": [
-        "vscode-neovim.stop",
-        {
-          "command": "notifications.showInfoMessage",
-          "args": "Neovim disabled"
-        }
-      ]
-    },
-    {
-      "command": "multiCommand.enableNeovim",
-      "sequence": [
-        "vscode-neovim.restart",
-        {
-          "command": "notifications.showInfoMessage",
-          "args": "Neovim enabled"
-        }
-      ]
-    }
-  ],
-  "vscode-neovim.ctrlKeysForNormalMode": [
-    "a",
-    "c",
-    "d",
-    "e",
-    "h",
-    "i",
-    "j",
-    "l",
-    "m",
-    "o",
-    "r",
-    "t",
-    "u",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-    "/",
-    "]",
-    "right",
-    "left",
-    "up",
-    "down",
-    "backspace",
-    "delete"
-  ],
-  "vscode-neovim.ctrlKeysForInsertMode": [
-    "a",
-    "c",
-    "h",
-    "j",
-    "m",
-    "o",
-    "r",
-    "t",
-    "u",
-    "w"
-  ],
+  // "multiCommand.commands": [
+  //   {
+  //     "command": "multiCommand.disableNeovim",
+  //     "sequence": [
+  //       "vscode-neovim.stop",
+  //       {
+  //         "command": "notifications.showInfoMessage",
+  //         "args": "Neovim disabled"
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     "command": "multiCommand.enableNeovim",
+  //     "sequence": [
+  //       "vscode-neovim.restart",
+  //       {
+  //         "command": "notifications.showInfoMessage",
+  //         "args": "Neovim enabled"
+  //       }
+  //     ]
+  //   }
+  // ],
+  // "vscode-neovim.ctrlKeysForNormalMode": [
+  //   "a",
+  //   "c",
+  //   "d",
+  //   "e",
+  //   "h",
+  //   "i",
+  //   "j",
+  //   "l",
+  //   "m",
+  //   "o",
+  //   "r",
+  //   "t",
+  //   "u",
+  //   "v",
+  //   "w",
+  //   "x",
+  //   "y",
+  //   "z",
+  //   "/",
+  //   "]",
+  //   "right",
+  //   "left",
+  //   "up",
+  //   "down",
+  //   "backspace",
+  //   "delete"
+  // ],
+  // "vscode-neovim.ctrlKeysForInsertMode": [
+  //   "a",
+  //   "c",
+  //   "h",
+  //   "j",
+  //   "m",
+  //   "o",
+  //   "r",
+  //   "t",
+  //   "u",
+  //   "w"
+  // ],
   "vim.normalModeKeyBindingsNonRecursive": [
     {
       "before": ["<Esc>"],
@@ -95,7 +95,7 @@
   "workbench.colorTheme": "Tokyo Night",
   "extensions.experimental.affinity": {
     // Run these as separate process
-    "asvetliakov.vscode-neovim": 1,
+    // "asvetliakov.vscode-neovim": 1,
     "vscode.vim": 1
   },
   "git.enabled": false,
