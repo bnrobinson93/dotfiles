@@ -1,0 +1,11 @@
+// Project tasks configuration. See https://zed.dev/docs/tasks for documentation.
+//
+// Example:
+[
+  {
+    "label": "Open Project",
+    "command": "zed",
+    "args": ["$(fd . ~/Documents/code -d1 -td | fzf)"],
+    "shell": "system"
+  }
+]
