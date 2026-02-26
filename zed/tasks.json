@@ -1,7 +1,7 @@
 [
   {
     "label": "Open Project",
-    "command": "zeditor --reuse (fd . ~/Documents/code -d1 -td | fzf)",
+    "command": "zed --reuse (fd . ~/Documents/code -d1 -td | fzf)",
     "shell": "system",
     "hide": "on_success"
   }
