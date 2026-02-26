@@ -89,7 +89,7 @@ empty = "red"
 
 # this will be lazily signed again before pushing with sign-on-push; else use "own" to sign all changes
 [signing]
-behavior = "drop"
+behavior = "own"
 # Point to the public key file instead of embedding the key
 key = "~/.ssh/id_ed25519_GitHubSigning.pub"
 backend = "ssh"
