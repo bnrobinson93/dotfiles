@@ -24,24 +24,25 @@
   // ====== FILE TREE =========
   // ==========================
   {
-    "context": "vim_mode == normal && !ProjectPanelFocus",
+    "context": "vim_mode == normal && !ProjectPanel",
     "bindings": {
       "space e": "project_panel::ToggleFocus"
     }
   },
   {
-    "context": "ProjectPanelFocus",
+    "context": "ProjectPanel",
     "bindings": {
-      "space e": "workspace::ToggleLeftDock",
-      "r": "project_panel::Rename",
-      "c": "project_panel::Copy",
-      "p": "project_panel::Paste",
-      "x": "project_panel::Cut",
-      "d": "project_panel::Delete",
-      "a": "project_panel::NewFile",
       "A": "project_panel::NewDirectory",
+      "a": "project_panel::NewFile",
+      "c": "project_panel::Copy",
+      "d": "project_panel::Delete",
+      "enter": "project_panel::Open",
+      "p": "project_panel::Paste",
+      "q": "workspace::ToggleLeftDock",
+      "r": "project_panel::Rename",
+      "space e": "workspace::ToggleLeftDock",
       "s": "project_panel::OpenSplitVertical",
-      "enter": "project_panel::Open"
+      "x": "project_panel::Cut"
     }
   },
   // ==========================
@@ -50,14 +51,21 @@
   {
     "context": "Editor && vim_mode == normal",
     "bindings": {
+      // Pane navigation (override VSCode base keymap at same specificity)
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight",
       // File finding
       "space space": "file_finder::Toggle",
       "space ,": "file_finder::Toggle",
       "ctrl-p": "file_finder::Toggle",
       // Search / grep
       "space s g": "workspace::NewSearch",
-      // Symbols
-      "space s S": "outline::Toggle",
+      "space f g": "workspace::NewSearch",
+      // Symbols — buffer outline / workspace symbols
+      "space s s": "outline::Toggle",
+      "space s S": "project_symbols::Toggle",
       // Code actions
       "space c a": "editor::ToggleCodeActions",
       "space c r": "editor::Rename",
@@ -86,8 +94,24 @@
       "space 3": ["pane::ActivateItem", 2],
       "space 4": ["pane::ActivateItem", 3],
       "space 5": ["pane::ActivateItem", 4],
-      // Clear search highlight (equivalent to :nohl)
-      "escape": "buffer_search::Dismiss"
+      // Dismiss search bar, hover/diagnostic popups, etc.
+      "escape": "editor::Cancel",
+      // Terminal toggle (override VSCode base keymap's comment-line binding)
+      "ctrl-/": "workspace::ToggleBottomDock",
+      // Sidebar toggle (override vim's scroll-back)
+      "ctrl-b": "workspace::ToggleLeftDock",
+      // Find in file (override vim's page-forward scroll)
+      "ctrl-f": "buffer_search::Deploy"
+    }
+  },
+  // ==========================
+  // === EDITOR (Visual mode) =
+  // ==========================
+  {
+    "context": "Editor && vim_mode == visual",
+    "bindings": {
+      // Select next occurrence (like VS Code ctrl-d)
+      "ctrl-d": ["editor::SelectNext", { "replace_newest": false }]
     }
   },
   // ==========================
@@ -96,13 +120,18 @@
   {
     "context": "Workspace",
     "bindings": {
-      "ctrl-/": "workspace::ToggleBottomDock"
+      "ctrl-/": "workspace::ToggleBottomDock",
+      "ctrl-b": "workspace::ToggleLeftDock"
     }
   },
   {
     "context": "Terminal",
     "bindings": {
-      "ctrl-a n": "workspace::NewTerminal",
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-a n": "pane::ActivateNextItem",
       "ctrl-a c": "workspace::NewTerminal",
       "ctrl-a p": "pane::ActivatePreviousItem",
       "ctrl-a d": "pane::CloseActiveItem"

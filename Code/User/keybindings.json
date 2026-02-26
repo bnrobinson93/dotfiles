@@ -1,3 +1,4 @@
+// Place your key bindings in this file to override the defaults
 [
   {
     "key": "ctrl-h",
@@ -111,38 +112,38 @@
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space c a", // [C]ode > [A]ction
+    "key": "space c a", // [C]ode [A]ction
     "command": "editor.action.codeAction",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space c r", // [C]ode > [R]ename
+    "key": "space c r", // [C]ode [R]ename
     "command": "editor.action.rename",
     "when": "vim.mode == 'Normal' && editorHasRenameProvider && editorTextFocus && !editorReadonly"
   },
   {
-    "key": "space s shift+S", // [S]earch > [S]ymbols
+    "key": "space s shift+S", // [G]o to [S]ymbol
     "command": "workbench.action.gotoSymbol",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space space", // find files
+    "key": "space space", // [F]ind [F]ile
     "command": "workbench.action.quickOpen",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
   {
-    "key": "space s g", // [S]earch > [G]rep,
+    "key": "space f g", // [F]ind [G]rep,
     "command": "workbench.action.findInFiles",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
   // sucky stuff that should just work but don't
   {
-    "key": "ctrl+w shift+\\", // default window split with |
+    "key": "ctrl+w shift+\\", // Split side
     "command": "workbench.action.splitEditorRight",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "ctrl+w -", // default window split with -
+    "key": "ctrl+w -", // Split down
     "command": "workbench.action.splitEditorDown",
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
@@ -245,7 +246,7 @@
     "when": "vim.mode == 'Normal' && editorTextFocus"
   },
   {
-    "key": "space h", // Show [h]arpooned files
+    "key": "space h", // Show harpoonable files
     "command": "vscode-harpoon.editorQuickPick",
     "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus)"
   },
@@ -291,4 +292,3 @@
     "command": "projectManager.listProjects"
   }
 ]
-

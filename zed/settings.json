@@ -35,6 +35,8 @@
   "wrap_guides": [120],
   "hard_tabs": true,
   "buffer_font_family": "Dank Mono",
+  "buffer_font_features": { "calt": true },
+  "format_on_save": "on",
   "icon_theme": {
     "mode": "system",
     "light": "Material Icon Theme",
@@ -46,6 +48,9 @@
   },
   "session": {
     "trust_all_worktrees": true
+  },
+  "sticky_scroll": {
+    "enabled": true
   },
   "vim_mode": true,
   "vim": {
@@ -66,5 +71,20 @@
   },
   "file_finder": {
     "modal_max_width": "large"
-  }
+  },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/.DS_Store",
+    "**/node_modules",
+    "**/vendor",
+    "**/target",
+    "**/.venv",
+    "**/venv",
+    "**/dist",
+    "**/build",
+    "**/__pycache__",
+    "**/.cache"
+  ]
 }
