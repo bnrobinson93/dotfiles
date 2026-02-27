@@ -52,7 +52,7 @@ push = [
   "-c",
   """
   # Format only my commits before pushing
-  jj fix --source 'mine()'
+  jj fix --source 'trunk()..@ & mine() & mutable()'
 
   # Run pre-commit hook if it exists
   if [[ -f .husky/pre-commit ]]; then
