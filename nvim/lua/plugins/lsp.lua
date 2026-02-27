@@ -6,11 +6,12 @@ return {
         filetypes = { "markdown", "text" },
         on_init = function(client, _)
           -- Hide INFO diagnostics for this server only (can still hover)
+          local ns = vim.api.nvim_create_namespace("vim_lsp_diagnostics_" .. client.id)
           vim.diagnostic.config({
             virtual_text = {
               severity = { min = vim.diagnostic.severity.WARN },
             },
-          }, vim.lsp.diagnostic.get_namespace(client.id))
+          }, ns)
         end,
         settings = {
           ["harper-ls"] = {
