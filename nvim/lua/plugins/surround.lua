@@ -16,12 +16,13 @@ return {
 
   {
     "folke/which-key.nvim",
-    opts = {
-      spec = {
+    opts = function(_, opts)
+      opts.spec = opts.spec or {}
+      vim.list_extend(opts.spec, {
         { "ys", group = "surround > add" },
         { "ds", group = "surround > delete" },
         { "cs", group = "surround > change" },
-      },
-    },
+      })
+    end,
   },
 }
