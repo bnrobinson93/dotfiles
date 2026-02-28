@@ -62,10 +62,9 @@
     "context": "Editor && vim_mode == normal",
     "bindings": {
       // Pane navigation (override VSCode base keymap at same specificity)
-      "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-j": "workspace::ActivatePaneDown",
       "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-l": "terminal::Clear",
       // File finding
       "space space": "file_finder::Toggle",
       "space ,": "file_finder::Toggle",
