@@ -3,7 +3,7 @@
   // === PANE NAVIGATION ======
   // ==========================
   {
-    "context": "Pane",
+    "context": "Pane && !Terminal",
     "bindings": {
       "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-j": "workspace::ActivatePaneDown",
@@ -12,7 +12,7 @@
     }
   },
   {
-    "context": "Dock",
+    "context": "Dock && !Terminal",
     "bindings": {
       "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-j": "workspace::ActivatePaneDown",
@@ -62,9 +62,10 @@
     "context": "Editor && vim_mode == normal",
     "bindings": {
       // Pane navigation (override VSCode base keymap at same specificity)
+      "ctrl-h": "workspace::ActivatePaneLeft",
       "ctrl-j": "workspace::ActivatePaneDown",
       "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-l": "terminal::Clear",
+      "ctrl-l": "workspace::ActivatePaneRight",
       // File finding
       "space space": "file_finder::Toggle",
       "space ,": "file_finder::Toggle",
@@ -125,14 +126,28 @@
   {
     "context": "Terminal",
     "bindings": {
-      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-a h": "workspace::ActivatePaneLeft",
+      "ctrl-a j": "workspace::ActivatePaneDown",
       "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-a k": "workspace::ActivatePaneUp",
       "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-l": "workspace::ActivatePaneRight",
+      "ctrl-a l": "workspace::ActivatePaneRight",
+      "ctrl-l": "terminal::Clear",
+      "ctrl-a 0": ["pane::ActivateItem", 9],
+      "ctrl-a 1": ["pane::ActivateItem", 0],
+      "ctrl-a 2": ["pane::ActivateItem", 1],
+      "ctrl-a 3": ["pane::ActivateItem", 2],
+      "ctrl-a 4": ["pane::ActivateItem", 3],
+      "ctrl-a 5": ["pane::ActivateItem", 4],
+      "ctrl-a 6": ["pane::ActivateItem", 5],
+      "ctrl-a 7": ["pane::ActivateItem", 6],
+      "ctrl-a 8": ["pane::ActivateItem", 7],
+      "ctrl-a 9": ["pane::ActivateItem", 8],
       "ctrl-a n": "pane::ActivateNextItem",
       "ctrl-a c": "workspace::NewTerminal",
       "ctrl-a p": "pane::ActivatePreviousItem",
-      "ctrl-a d": "pane::CloseActiveItem"
+      "ctrl-a d": "pane::CloseActiveItem",
+      "ctrl-a x": "pane::CloseActiveItem"
     }
   },
   // ==========================
