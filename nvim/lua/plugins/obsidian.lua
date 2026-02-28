@@ -216,7 +216,7 @@ return {
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
-      formatter = {
+      frontmatter = {
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
           -- NOTE: the `note.metadata` object contains ONLY:
