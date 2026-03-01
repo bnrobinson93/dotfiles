@@ -15,12 +15,12 @@ end
 return {
   {
     "folke/which-key.nvim",
-    cond = JJ_exists,
-    config = function(_, opts)
-      local wk = require("which-key")
-      wk.setup(opts)
-
-      wk.add({
+    opts = function(_, opts)
+      if not JJ_exists() then
+        return
+      end
+      opts.spec = opts.spec or {}
+      vim.list_extend(opts.spec, {
         { "<leader>j", group = "JJ VCS", icon = "" },
         { "<leader>jj", icon = { icon = "", color = "azure" } },
         { "<leader>jL", icon = { icon = "", color = "blue" } },
