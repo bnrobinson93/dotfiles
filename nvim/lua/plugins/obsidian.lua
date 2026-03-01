@@ -208,6 +208,7 @@ return {
       },
       checkbox = {
         order = { " ", "x", "-", "/", "~", "!", "*", ">", "<", "+" },
+        create_new = false,
       },
       daily_notes = {
         folder = "Periodic/Daily",
