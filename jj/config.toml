@@ -82,6 +82,15 @@ program = "jj-diff-nvim"
 merge-args = ["-c", "DiffEditor $left $right $output"]
 diff-args = ["-c", "DiffEditor $left $right"]
 
+[merge-tools.vscode]
+program = "code"
+merge-args = ["--wait", "--merge", "$left", "$right", "$base", "$output"]
+# VS Code reads the output file and behaves better if it's prepopulated with conflict
+# markers. Unfortunately, it does not seem to be able to output conflict markers when
+# the user only resolves some of the conflicts.
+merge-tool-edits-conflict-markers = true
+
+
 [colors]
 signature = "blue"
 unsigned = "cyan"
