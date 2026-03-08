@@ -7,6 +7,17 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "double_click_in_multibuffer": "open",
+  "agent": {
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "claude-haiku-4.5",
+      "enable_thinking": false
+    },
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "tab_size": 2,
   "edit_predictions": {
     "provider": "copilot"
   },
@@ -26,7 +37,7 @@
   },
   "base_keymap": "VSCode",
   "git_panel": {
-    "button": false
+    "button": true
   },
   "minimap": {
     "show": "never"
@@ -34,9 +45,9 @@
   "autosave": "on_focus_change",
   "buffer_font_weight": 450.0,
   "buffer_font_fallbacks": ["Courier New", "monospace"],
-  "auto_indent_on_paste": false,
+  "auto_indent_on_paste": true,
   "wrap_guides": [120],
-  "hard_tabs": true,
+  "hard_tabs": false,
   "buffer_font_family": "Dank Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",

@@ -1,8 +1,8 @@
 [
   {
     "label": "Open Project",
-    "command": "zed --reuse (fd . ~/Documents/code -d1 -td | fzf)",
-    "shell": "system",
+    "command": "set proj (fd . ~/Documents/code -d1 -td | fzf); test -n \"$proj\"; and zed \"$proj\"",
+    "shell": { "program": "fish" },
     "hide": "on_success"
   }
 ]
