@@ -78,9 +78,13 @@ diff-editor = ":builtin"
 diff-formatter = ":git"
 
 [merge-tools.nvim]
-program = "jj-diff-nvim"
-merge-args = ["-c", "DiffEditor $left $right $output"]
-diff-args = ["-c", "DiffEditor $left $right"]
+program = "nvim"
+diff-args = ["-c", "DiffEditor $left $right $output"]
+merge-args = [
+    "-c", "let g:jj_diffconflicts_marker_length=$marker_length",
+    "-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right",
+]
+merge-tool-edits-conflict-markers = true
 
 [merge-tools.vscode]
 program = "code"
