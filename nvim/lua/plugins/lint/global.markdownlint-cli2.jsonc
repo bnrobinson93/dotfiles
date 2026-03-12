@@ -1,1 +1,1 @@
-{ "config": { "MD012": false, "MD013": false } }
+{ "config": { "MD012": false, "MD013": { "line_length": 120 } } }

@@ -58,6 +58,9 @@ return {
   {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
+    config = function(_, opts)
+      require("hunk").setup(opts)
+    end,
     opts = {
       keys = {
         global = {
