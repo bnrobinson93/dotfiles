@@ -12,6 +12,7 @@ return {
           typescriptreact = { "eslint_d" },
           javascript = { "eslint_d" },
           javascriptreact = { "eslint_d" },
+          markdown = { "markdownlint-cli2" },
           yaml = {},
         },
         linters = {
