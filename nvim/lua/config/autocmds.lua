@@ -4,7 +4,7 @@
 local autocmd = vim.api.nvim_create_autocmd
 
 -- JJ auto insert mode
-vim.api.nvim_create_autocmd("FileType", {
+autocmd("FileType", {
   pattern = "jjdescription",
   callback = function(ev)
     vim.schedule(function()
