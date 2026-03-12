@@ -79,7 +79,7 @@ diff-formatter = ":git"
 
 [merge-tools.nvim]
 program = "nvim"
-diff-args = ["-c", "DiffEditor $left $right $output"]
+diff-args = ["-c", "DiffEditor $left $right"]
 merge-args = [
     "-c", "let g:jj_diffconflicts_marker_length=$marker_length",
     "-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right",
