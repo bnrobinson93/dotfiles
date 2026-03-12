@@ -76,6 +76,7 @@ sign = true
 default-command = ["log"]
 diff-editor = ":builtin"
 diff-formatter = ":git"
+merge-editor = "nvim"
 
 [merge-tools.nvim]
 program = "nvim"
