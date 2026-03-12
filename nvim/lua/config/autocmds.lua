@@ -4,11 +4,16 @@
 local autocmd = vim.api.nvim_create_autocmd
 
 -- JJ auto insert mode
-autocmd("FileType", {
+vim.api.nvim_create_autocmd("FileType", {
   pattern = "jjdescription",
-  desc = "Start insert mode for JJ description files",
-  callback = function()
-    vim.cmd("startinsert")
+  callback = function(ev)
+    vim.schedule(function()
+      local lines = vim.api.nvim_buf_get_lines(ev.buf, 0, -1, false)
+      local desc = require("jj.utils").extract_description_from_describe(lines)
+      if not desc or desc == "" then
+        vim.cmd("startinsert")
+      end
+    end)
   end,
 })
 
