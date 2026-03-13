@@ -155,7 +155,7 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 # Deploy shell config (choose one):
 
 # Option 1: Zsh (traditional)
-stow -v2 -t ~ -S zsh gitmux ai --dotfiles
+stow -v2 -t ~ -S zsh ai --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 chsh -s /bin/zsh
 
