@@ -40,7 +40,7 @@ echo Populating config and local scripts...
 stow -v2 .
 stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh gitmux --dotfiles
+stow -v2 -t ~ -S zsh gitmux ai --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 chsh -s "$(which fish)"
 

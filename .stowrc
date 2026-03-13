@@ -10,6 +10,7 @@
 --ignore=README.md
 --ignore=.stowrc
 --ignore=zsh
+--ignore=ai
 --ignore=resources
 --ignore=^\.env$
 --ignore=starship
