@@ -1,6 +1,6 @@
 return {
   {
-    "catppuccin",
+    "catppuccin-nvim",
     priority = 1000,
     opts = {
       flavour = "mocha",
