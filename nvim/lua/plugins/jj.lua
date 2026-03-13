@@ -47,6 +47,9 @@ return {
           },
         },
       },
+      editor = {
+        auto_insert = true,
+      },
       highlights = {
         modified = "DiffChange",
         added = "DiffAdd",
