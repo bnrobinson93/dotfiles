@@ -263,6 +263,9 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         substitutions = {
+          month = function()
+            return os.date("%Y-%m", os.time())
+          end,
           yesterday = function()
             local yesterday_ts = os.time() - 86400
             return os.date("%Y-%m-%d", yesterday_ts)
