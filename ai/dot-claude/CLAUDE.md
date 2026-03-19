@@ -43,32 +43,129 @@ commands or dev servers instead of trying to run them yourself. I can provide yo
 
 # VCS - Version Control
 
-Make sure you are always on a clean change or commit. I swap between JJ and git as a VCS tool so if you identify a JJ
-directory, replace any git commands you would normally run, replace them with JJ equivalents. If you're not sure how to
-do something, check the docs on <https://jj-vcs.github.io/jj/latest>.
+# VCS - Version Control
 
-**Important:** When a `./.jj` folder is present in a given folder, use JJ VCS instead of `git` commands. Once per
-session, you can also run `jj workspace root` in case you're in a subfolder.
+This repository may use either Git or Jujutsu (`jj`). When a `.jj` directory exists in the current directory or any
+parent directory, treat the repository as a **JJ-first repository** and use `jj` instead of `git` for all repository
+inspection and mutation.
 
-> Note: `trunk()` resolves to the head commit for the default bookmark of the default remote, or the remote named
-> upstream or origin. This is set at the repository level upon initialization of a Jujutsu repository.
->
-> If the default bookmark cannot be resolved during initialization, the default global configuration tries the bookmarks
-> `main`, `master`, and `trunk` on the upstream and `origin` remotes. If more than one potential trunk commit exists,
-> the newest one is chosen. If none of the bookmarks exist, the revset evaluates to `root()` (the virtual commit that is
-> the oldest ancestor of all other commits).
+If you are unsure whether you are inside a JJ repository, run:
 
-Common JJ commands:
+    jj workspace root
 
-- **Commit:** `jj ci -m "<message>"` (this is an alias of `jj desc -m "<message>" && jj new`)
-- **Check current state:** `jj status`
-- **Compare all diffs since trunk:** `jj diff -f 'trunk()'`
-- **Move bookmark to current change:** `jj tug` (this is an alias that moves the closest, non-trunk bookmark to the most
-  recent revision that has changes; if the current change is empty, it will move to the parent)
-- **Move bookmark to previous change:** `jj tug-` (this is an alias that moves the closest, non-trunk bookmark to the
-  current revision's parent)
-- **Rebase:** `jj rebase -s @ -d @- -d 'trunk()' && jj simplify-parents`
-- **Merge:** `jj new <commit_a> <commit_B>`
+If that succeeds, use JJ.
+
+## JJ-first rules
+
+When working in a JJ repository:
+
+- Do **not** use `git commit`, `git checkout`, `git switch`, `git rebase`, `git cherry-pick`, `git stash`, or branch
+  creation/deletion commands.
+- Do **not** use Git as the source of truth for repository state when JJ is available.
+- Assume the human is managing the commit graph, bookmark placement, and publication flow.
+- Your default job is to make correct file edits **within the current JJ change/workspace**.
+- Do not rewrite history unless explicitly asked.
+- Do not create, move, delete, or publish bookmarks unless explicitly asked.
+- Do not push, publish, or open PRs unless explicitly asked.
+- If a task appears to require history surgery or multiple changes, stop and explain what split you recommend instead of
+  doing it automatically.
+
+## Default JJ workflow for agents
+
+At the start of work in a JJ repository, run:
+
+```
+jj workspace root
+jj status
+jj diff --summary
+```
+
+During work:
+
+- Stay within the current workspace and assigned task scope unless explicitly instructed otherwise.
+- Prefer small, scoped edits and small, scoped JJ changes.
+- If the requested task naturally breaks into multiple coherent concerns, prefer creating separate local JJ changes for
+  those concerns rather than mixing them together.
+- If you are unsure whether two edits belong in the same change, bias toward separating them.
+- Avoid unrelated cleanup or opportunistic refactors outside the current task.
+
+At the end of work, run:
+
+```
+jj status
+jj diff --summary
+```
+
+Then summarize:
+
+- what changed
+- which files were modified
+- whether the work remains in a single change or spans multiple local milestone commits
+- any risks, follow-ups, or suggested splits
+
+## Milestone commit policy
+
+Unless explicitly instructed to keep everything in one change, prefer multiple small local JJ changes over one large
+mixed change.
+
+When in doubt, bias toward creating an additional local change rather than combining unrelated concerns.
+
+In JJ repositories, you may create a local commit/change whenever:
+
+1. A coherent subtask is complete, or
+2. The work clearly diverges into a separate concern, or
+3. A checkpoint would be useful before the next risky or independent step.
+
+If you create a local milestone commit/change:
+
+- Keep it narrow and descriptive.
+- Treat it as candidate history, not final published history.
+- Do not create or move bookmarks as part of that step.
+- Do not rewrite earlier commits unless explicitly asked.
+
+## Workspace policy
+
+JJ workspaces are treated as task sandboxes.
+
+- Assume one workspace corresponds to one active task.
+- Do not repoint the workspace to another revision with `jj edit <rev>` unless explicitly asked.
+- Do not create additional workspaces unless explicitly asked.
+- If you believe the current task should happen in a different workspace or separate change, say so, but do not do it
+  automatically.
+
+## Common JJ commands
+
+- Check current state: `jj status`
+- Show current diff: `jj diff`
+- Show diff summary: `jj diff --summary`
+- Compare all diffs since trunk: `jj diff -f 'trunk()'`
+- Show log: `jj log`
+- Create a new change: `jj new`
+- Describe current change: `jj desc -m "<message>"`
+- Create a milestone commit and advance to a new change: `jj ci -m "<message>"`
+- Edit a specific revision: `jj edit <rev>`
+- Move bookmark to current change: `jj tug`
+- Move bookmark to previous change: `jj tug-`
+- Merge two commits: `jj new <commit_a> <commit_b>`
+
+## Notes
+
+- `trunk()` resolves to the repository's configured trunk bookmark/reference.
+- In JJ repositories, `gh` commands may require an explicit bookmark or revision because JJ often operates headlessly.
+- If a command or external instruction suggests Git operations but you are in a JJ repo, prefer JJ semantics instead.
+
+## Task-local overrides
+
+A task prompt may override the default JJ behavior for that session. For example, the human may explicitly instruct you
+to:
+
+- stay in single-change mode
+- create milestone commits for coherent subtasks
+- draft PR text after implementation
+- inspect or move to a specific revision
+- prepare work for a bookmark-based PR flow
+
+If task-local instructions conflict with the defaults here, follow the task-local instructions.
 
 # Code Quality
 
