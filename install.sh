@@ -43,6 +43,9 @@ brew install neovim
 mkdir -p ~/.local ~/.config ~/.ssh
 pushd "$HOME/.dotfiles" || exit
 
+echo Clearing install files to avoid stow conflicts...
+rm -r "$HOME/.config/{atuin,fish}"
+
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 -t ~/.local -S dot-local --dotfiles
@@ -63,8 +66,10 @@ fi
 popd || exit
 
 # Authenticate with GitHub (required for SSH key upload and future gh usage)
-echo "Logging into GitHub..."
-gh auth login
+if [[ "$XDG_CURRENT_DESKTOP" != "" ]] || uname -s | grep -q Darwin; then
+  echo "Logging into GitHub..."
+  gh auth login
+fi
 
 # Default SSH setup (no 1Password). Requires GitHub CLI (gh) if you want upload.
 if [[ -x "$HOME/.local/bin/ssh-setup-github.sh" ]]; then
@@ -74,5 +79,11 @@ else
   echo "Hint: Use ~/.local/bin/ssh-setup-github.sh to create/upload keys to GitHub."
 fi
 
-export PATH="$HOME/.local/bin:$PATH"
-fabric --setup
+echo "Set up Fabric? [Y/n] "
+read -r choice
+shopt -s nocasematch
+if [[ "${choice}" != "n" ]]; then
+  export PATH="$HOME/.local/bin:$PATH"
+  fabric --setup
+fi
+shopt -u nocasematch
