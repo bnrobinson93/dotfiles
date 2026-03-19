@@ -283,6 +283,7 @@ return {
         },
       },
       ui = { enable = false },
+      link = { style = "wiki", format = "shortest" },
       wiki_link_func = "use_alias_only",
     },
     keys = {
