@@ -74,16 +74,22 @@ sign = true
 
 [ui]
 default-command = ["log"]
-diff-editor = ":builtin"
+diff-editor = "nvim"
 diff-formatter = ":git"
 merge-editor = "nvim"
 
 [merge-tools.nvim]
 program = "nvim"
-diff-args = ["-c", "DiffEditor $left $right"]
+edit-args = ["-c", "DiffEditor $left $right"]
 merge-args = [
-    "-c", "let g:jj_diffconflicts_marker_length=$marker_length",
-    "-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right",
+  "-c",
+  "let g:jj_diffconflicts_marker_length=$marker_length",
+  "-c",
+  "JJDiffConflicts!",
+  "$output",
+  "$base",
+  "$left",
+  "$right",
 ]
 merge-tool-edits-conflict-markers = true
 
