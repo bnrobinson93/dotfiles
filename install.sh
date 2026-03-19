@@ -16,6 +16,7 @@ curl -sS https://starship.rs/install.sh | sh
 curl -fsSL https://raw.githubusercontent.com/danielmiessler/fabric/main/scripts/installer/install.sh | bash
 
 # tmux plugins
+mkdir -p ~/.config/tmux/plugins
 if [[ ! -d ~/.config/tmux/plugins/tpm ]]; then
   echo Installing TPM for tmux...
   git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
@@ -51,6 +52,14 @@ stow -v2 .
 stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux ai --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
+
+echo "Installing tools configured in mise (e.g., Node.js)..."
+if command -v mise >/dev/null 2>&1; then
+  mise install
+else
+  echo "mise not found on PATH; skipping 'mise install'."
+fi
+
 chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
