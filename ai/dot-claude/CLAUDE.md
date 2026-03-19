@@ -43,8 +43,6 @@ commands or dev servers instead of trying to run them yourself. I can provide yo
 
 # VCS - Version Control
 
-# VCS - Version Control
-
 This repository may use either Git or Jujutsu (`jj`). When a `.jj` directory exists in the current directory or any
 parent directory, treat the repository as a **JJ-first repository** and use `jj` instead of `git` for all repository
 inspection and mutation.
