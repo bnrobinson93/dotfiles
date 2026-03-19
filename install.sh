@@ -45,7 +45,7 @@ mkdir -p ~/.local ~/.config ~/.ssh
 pushd "$HOME/.dotfiles" || exit
 
 echo Clearing install files to avoid stow conflicts...
-rm -r "$HOME/.config/{atuin,fish}"
+rm -rf "$HOME/.config/atuin" "$HOME/.config/fish"
 
 echo Populating config and local scripts...
 stow -v2 .
