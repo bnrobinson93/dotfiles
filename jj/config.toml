@@ -43,6 +43,9 @@ tug = [
   "--to",
   "closest_pushable(@)",
 ]
+d = ["util", "exec", "--", "bash", "-c", """
+jj diff "$@" --git | diffnav
+""", "jj"]
 check = ["util", "exec", "--", ".husky/pre-commit"]
 push = [
   "util",

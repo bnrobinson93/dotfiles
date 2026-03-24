@@ -36,7 +36,7 @@ echo "Installing atuin (history replacement)"
 curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
 
 echo Installing brew libraries...
-brew install carapace lazygit asciinema agg jj mise gh
+brew install carapace lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
