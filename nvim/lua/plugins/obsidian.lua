@@ -263,21 +263,27 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         substitutions = {
-          yesterday = function()
-            local yesterday_ts = os.time() - 86400
-            return os.date("%Y-%m-%d", yesterday_ts)
+          datetime = function()
+            return os.date("%Y%m%d%H%M%S", os.time())
+          end,
+          month = function()
+            return os.date("%Y-%m", os.time())
           end,
           tomorrow = function()
             local tomorrow_ts = os.time() + 86400
             return os.date("%Y-%m-%d", tomorrow_ts)
           end,
-          datetime = function()
-            return os.date("%Y%m%d%H%M%S", os.time())
+          year = function()
+            return os.date("%Y", os.time())
+          end,
+          yesterday = function()
+            local yesterday_ts = os.time() - 86400
+            return os.date("%Y-%m-%d", yesterday_ts)
           end,
         },
       },
       ui = { enable = false },
-      wiki_link_func = "use_alias_only",
+      link = { style = "wiki", format = "shortest" },
     },
     keys = {
       {

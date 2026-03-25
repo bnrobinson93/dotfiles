@@ -43,48 +43,25 @@ ensure_dirs() {
   chmod 700 "$HOME/.ssh"
 }
 
-have_cryptography() {
-  python3 -c 'import cryptography' >/dev/null 2>&1
-}
-
 convert_pkcs8_to_openssh() {
-  # Converts PKCS#8 ("BEGIN PRIVATE KEY") to OpenSSH "OPENSSH PRIVATE KEY" using python cryptography.
-  # $1 = private key path
+  # Converts PKCS#8 ("BEGIN PRIVATE KEY") to OpenSSH "OPENSSH PRIVATE KEY".
+  # Delegates to ssh-convert-openssh.sh which handles RFC 8410 OneAsymmetricKey
+  # format (what 1Password exports) via openssl + python3 stdlib.
   local src="$1"
   if ! grep -q "BEGIN PRIVATE KEY" "$src" 2>/dev/null; then
     return 0
   fi
-  if ! have_cryptography; then
-    echo "[warn] python3-cryptography not available; skipping conversion for $src" >&2
+  local converter
+  converter="$(dirname "$0")/ssh-convert-openssh.sh"
+  if [[ ! -x "$converter" ]]; then
+    converter="$HOME/.local/bin/ssh-convert-openssh.sh"
+  fi
+  if [[ -x "$converter" ]]; then
+    "$converter" "$src"
+  else
+    echo "[warn] ssh-convert-openssh.sh not found; skipping conversion for $src" >&2
     return 1
   fi
-  local tmp="${src}.openssh.tmp"
-  python3 <<'PY' 2>/dev/null
-import sys
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-src = sys.argv[1]
-dst = sys.argv[2]
-with open(src, 'rb') as f:
-    key = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
-data = key.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.OpenSSH,
-    encryption_algorithm=serialization.NoEncryption(),
-)
-with open(dst, 'wb') as f:
-    f.write(data)
-PY
-  "$src" "$tmp"
-  if [[ -s "$tmp" ]]; then
-    cp "$src" "${src}.pkcs8.bak"
-    mv "$tmp" "$src"
-    chmod 600 "$src"
-    echo "[info] Converted $src to OpenSSH format"
-    return 0
-  fi
-  echo "[warn] Conversion failed for $src" >&2
-  return 1
 }
 
 derive_basename() {

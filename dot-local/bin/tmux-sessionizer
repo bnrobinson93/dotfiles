@@ -10,13 +10,32 @@ SEARCH_PATHS=(
   ~/Documents/code/js-lib-monorepo/libraries
 )
 
-if [[ $# -eq 1 ]]; then
-  selected_folder=$1
-else
+show_all=0
+selected_folder=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --all)
+    show_all=1
+    shift
+    ;;
+  *)
+    selected_folder=$1
+    shift
+    ;;
+  esac
+done
+
+filter_cmd=(cat)
+if [[ $show_all -eq 0 ]]; then
+  filter_cmd=(grep -Ev '(-ai|-ai[0-9]+|-exp|-explore)$')
+fi
+
+if [[ -z "$selected_folder" ]]; then
   if type fd >/dev/null 2>&1; then
-    selected_folder=$(fd --full-path "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d | fzf)
+    selected_folder=$(fd . "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d | "${filter_cmd[@]}" | fzf)
   else
-    selected_folder=$(find "${SEARCH_PATHS[@]}" -mindepth 1 -maxdepth 1 -type d | fzf)
+    selected_folder=$(find "${SEARCH_PATHS[@]}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | "${filter_cmd[@]}" | fzf)
   fi
 fi
 
