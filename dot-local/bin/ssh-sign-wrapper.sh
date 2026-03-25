@@ -91,30 +91,12 @@ ensure_loaded() {
   if [[ "${OSTYPE}" == darwin* ]]; then
     add_cmd=(ssh-add --apple-use-keychain)
   fi
-  # If key is PKCS#8, try converting via helper or inline Python
+  # If key is PKCS#8, convert via ssh-convert-openssh.sh (handles RFC 8410 OneAsymmetricKey)
   if grep -q "BEGIN PRIVATE KEY" "$keyfile" 2>/dev/null; then
     if [[ -x "$HOME/.local/bin/ssh-convert-openssh.sh" ]]; then
-      "$HOME/.local/bin/ssh-convert-openssh.sh" "$keyfile" >/dev/null 2>>"$LOG_FILE" || true
-    elif command -v python3 >/dev/null 2>&1 && python3 -c 'import cryptography' >/dev/null 2>&1; then
-      python3 - "$keyfile" <<'PY' 2>>"$LOG_FILE"
-import sys
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-src = sys.argv[1]
-with open(src, 'rb') as f:
-    key = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
-data = key.private_bytes(
-    encoding=serialization.Encoding.PEM,
-    format=serialization.PrivateFormat.OpenSSH,
-    encryption_algorithm=serialization.NoEncryption(),
-)
-with open(src, 'wb') as f:
-    f.write(data)
-PY
-      chmod 600 "$keyfile" 2>/dev/null || true
-      log "Inline conversion to OpenSSH format attempted for $keyfile"
+      "$HOME/.local/bin/ssh-convert-openssh.sh" "$keyfile" >>"$LOG_FILE" 2>&1 || true
     else
-      log "No converter available for PKCS#8 (missing ~/.local/bin/ssh-convert-openssh.sh and python cryptography)"
+      log "No converter available for PKCS#8 (ssh-convert-openssh.sh not found)"
     fi
   fi
   local want_pub
