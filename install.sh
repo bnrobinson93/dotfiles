@@ -53,6 +53,17 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux ai --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
+echo "Converting any PKCS#8 SSH keys to OpenSSH format..."
+if [[ -x "$HOME/.local/bin/ssh-convert-openssh.sh" ]]; then
+  for k in "$HOME"/.ssh/id_*; do
+    [[ -f "$k" && "$k" != *.pub && "$k" != *.bak* ]] || continue
+    grep -q "BEGIN PRIVATE KEY" "$k" 2>/dev/null || continue
+    "$HOME/.local/bin/ssh-convert-openssh.sh" "$k" || true
+  done
+else
+  echo "  Hint: ssh-convert-openssh.sh not found; run it manually if signing fails."
+fi
+
 echo "Installing tools configured in mise (e.g., Node.js)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
