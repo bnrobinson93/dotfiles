@@ -55,11 +55,18 @@ stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
 echo "Converting any PKCS#8 SSH keys to OpenSSH format..."
 if [[ -x "$HOME/.local/bin/ssh-convert-openssh.sh" ]]; then
+  failed_conversions=0
   for k in "$HOME"/.ssh/id_*; do
     [[ -f "$k" && "$k" != *.pub && "$k" != *.bak* ]] || continue
     grep -q "BEGIN PRIVATE KEY" "$k" 2>/dev/null || continue
-    "$HOME/.local/bin/ssh-convert-openssh.sh" "$k" || true
+    if ! "$HOME/.local/bin/ssh-convert-openssh.sh" "$k"; then
+      echo "  Warning: failed to convert SSH key '$k'; please convert it manually if needed."
+      failed_conversions=$((failed_conversions + 1))
+    fi
   done
+  if [[ "$failed_conversions" -gt 0 ]]; then
+    echo "  Finished converting SSH keys with $failed_conversions failure(s). See warnings above for keys needing manual intervention."
+  fi
 else
   echo "  Hint: ssh-convert-openssh.sh not found; run it manually if signing fails."
 fi
