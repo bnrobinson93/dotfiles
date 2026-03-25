@@ -1,0 +1,4 @@
+ui:
+  hideHeader: true
+  icons: nerd-font-full
+  showDiffStats: true
