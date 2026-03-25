@@ -6,6 +6,7 @@ nvim/lazy-lock.json
 nvim/spell/**
 dot-local/bin/fabric
 dot-local/bin/webi
+dot-local/bin/claude
 # Fabric config with machine-specific API credentials
 fabric/.env
 fish/fish_variables
@@ -19,3 +20,4 @@ Code/User/sync/
 Code/User/workspaceStorage/
 zed/prompts/
 zed/conversations/
+atuin/atuin-receipt.json
