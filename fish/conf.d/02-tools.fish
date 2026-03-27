@@ -60,15 +60,6 @@ else if test -d /home/linuxbrew/.linuxbrew
     eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
 
-# Go lazy PATH addition
-function go
-    if not set -q GO_ADDED
-        fish_add_path (command go env GOPATH)/bin
-        set -gx GO_ADDED 1
-    end
-    command go $argv
-end
-
 # Rbenv - lazy load with official init
 if test -d $HOME/.rbenv
     function rbenv
