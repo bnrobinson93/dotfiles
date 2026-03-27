@@ -8,23 +8,28 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l custom_base ""
     set -l custom_title ""
     
-    argparse 'd/draft' 'dry-run' 'b/base=' 't/title=' -- $argv
+    argparse 'd/draft' 'dry-run' 'b/base=' 't/title=' 'B/bookmark=' -- $argv
     or return 1
-    
+
     if set -q _flag_draft
         set draft_flag "--draft"
     end
-    
+
     if set -q _flag_dry_run
         set dry_run true
     end
-    
+
     if set -q _flag_base
         set custom_base $_flag_base
     end
-    
+
     if set -q _flag_title
         set custom_title $_flag_title
+    end
+
+    set -l target_bookmark ""
+    if set -q _flag_bookmark
+        set target_bookmark $_flag_bookmark
     end
     
     # Check dependencies
@@ -47,12 +52,15 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     
     # Get current branch/bookmark name
     set -l current_branch ""
-    if test "$is_jj" = true
-        set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '^\*' '')
+    if test -n "$target_bookmark"
+        set current_branch $target_bookmark
+    else if test "$is_jj" = true
+        # Strip trailing * (indicates unpushed local changes in JJ output)
+        set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
     else
         set current_branch (git branch --show-current 2>/dev/null)
     end
-    
+
     if test -z "$current_branch"
         if test "$is_jj" = true
             echo "Error: No bookmark found. Create one with: jj bookmark create <name>"
@@ -61,8 +69,31 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         end
         return 1
     end
-    
+
     echo "✓ Current "(test "$is_jj" = true; and echo "bookmark"; or echo "branch")": $current_branch"
+
+    # Ensure changes are pushed before creating a PR
+    if test "$is_jj" = true
+        # A bookmark is pushed only if its block contains "@origin:" without "not created yet"
+        set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 "^$current_branch:")
+        set -l has_origin (echo $bookmark_block | string match -r '@origin:')
+        set -l not_created (echo $bookmark_block | string match -r 'not created yet')
+        if test -z "$has_origin" -o -n "$not_created"
+            echo "Error: Bookmark '$current_branch' has not been pushed to origin."
+            echo "  Push with: jj git push -b $current_branch"
+            return 1
+        end
+    else
+        if test -z (git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+            echo "Error: Branch '$current_branch' has no upstream. Push with: git push -u origin $current_branch"
+            return 1
+        end
+        set -l unpushed (git log "@{u}..HEAD" --oneline 2>/dev/null)
+        if test -n "$unpushed"
+            echo "Error: Branch '$current_branch' has unpushed commits. Run: git push"
+            return 1
+        end
+    end
     
     # Determine base branch
     set -l base_branch ""
@@ -90,67 +121,71 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     end
     
     echo "✓ Base branch: $base_branch"
-    
-    # Parse branch/bookmark name to conventional commit format
-    set -l pr_title ""
-    if test -n "$custom_title"
-        set pr_title $custom_title
-    else
-        # Extract type and description from branch name
-        # Handle separators: /, -, _
-        set -l branch_parts (string split -m 1 "/" $current_branch)
-        if test (count $branch_parts) -eq 2
-            set -l type $branch_parts[1]
-            set -l desc (string replace -a "-" " " $branch_parts[2] | string replace -a "_" " ")
-            
-            # Validate type is conventional commit type
-            if string match -qr '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)$' $type
-                set pr_title "$type: $desc"
-            else
-                echo "⚠ Warning: '$type' is not a standard conventional commit type"
-                set pr_title (string replace -a "-" " " $current_branch | string replace -a "_" " ")
-            end
+
+    # Detect parent bookmark for stacked PRs (JJ only)
+    # comparison_base controls what range of commits to include in the PR description;
+    # base_branch (always trunk/main) controls where GitHub targets the PR.
+    set -l comparison_base ""
+    set -l current_rev $current_branch  # revision to use in diff ranges
+    if test "$is_jj" = true
+        # ancestors() excluding the bookmark commit itself gives us the parent layer
+        set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
+            -T 'bookmarks.join(",")' --no-graph --limit 1 2>/dev/null | \
+            string replace -r '\*' '' | string trim)
+
+        set -l trunk_bookmark (jj log -r "trunk()" -T 'bookmarks.join(",")' \
+            --no-graph 2>/dev/null | string trim)
+
+        if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
+            set comparison_base "$parent_bookmark"
+            echo "✓ Stacked PR: comparing against parent bookmark '$parent_bookmark'"
         else
-            # Try splitting on - or _
-            set branch_parts (string split -m 1 "-" $current_branch)
-            if test (count $branch_parts) -eq 1
-                set branch_parts (string split -m 1 "_" $current_branch)
-            end
-            
-            if test (count $branch_parts) -eq 2
-                set -l type $branch_parts[1]
-                set -l desc (string replace -a "-" " " $branch_parts[2] | string replace -a "_" " ")
-                
-                if string match -qr '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)$' $type
-                    set pr_title "$type: $desc"
-                else
-                    echo "⚠ Warning: '$type' is not a standard conventional commit type"
-                    set pr_title (string replace -a "-" " " $current_branch | string replace -a "_" " ")
-                end
-            else
-                # No conventional format detected, use as-is with spaces
-                echo "⚠ Warning: Branch name doesn't follow conventional commit format"
-                set pr_title (string replace -a "-" " " $current_branch | string replace -a "_" " ")
-            end
+            set comparison_base "trunk()"
+        end
+    else
+        set comparison_base "$base_branch"
+    end
+
+    # Extract raw branch context for AI prompt - type, ticket, and description hint
+    # Title will be generated by AI; this is just context
+    set -l branch_type ""
+    set -l branch_ticket ""
+    set -l branch_desc ""
+    set -l branch_parts (string split -m 1 "/" $current_branch)
+    if test (count $branch_parts) -eq 2
+        set branch_type $branch_parts[1]
+        set -l after_slash $branch_parts[2]
+        # Extract ticket number pattern like PEP-1234, JIRA-567, etc.
+        set branch_ticket (string match -r '[A-Z]+-[0-9]+' $after_slash)
+        # Extract description: everything after the ticket number (strip leading - or _)
+        if test -n "$branch_ticket"
+            set branch_desc (string replace -r "^$branch_ticket\W?" "" $after_slash | string replace -a "-" " " | string replace -a "_" " ")
+        else
+            set branch_desc (string replace -a "-" " " $after_slash | string replace -a "_" " ")
         end
     end
-    
-    echo "✓ Parsed title: $pr_title"
-    
+
     # Gather context for PR body
     set -l diff_content ""
     set -l commit_messages ""
-    
+    set -l changed_files ""
+
     if test "$is_jj" = true
-        set diff_content (jj diff -r "trunk()..@" 2>/dev/null)
-        set commit_messages (jj log -r "trunk()..@" -T 'description' --no-graph 2>/dev/null)
+        set diff_content (jj diff -r "$comparison_base..$current_branch" 2>/dev/null)
+        set commit_messages (jj log -r "$comparison_base..$current_branch" -T 'description' --no-graph 2>/dev/null)
+        set changed_files (jj diff -r "$comparison_base..$current_branch" --summary 2>/dev/null | string replace -r '^[A-Z] +' '')
     else
         set diff_content (git diff "$base_branch"...HEAD 2>/dev/null)
         set commit_messages (git log "$base_branch"..HEAD --pretty=format:"%s%n%b" 2>/dev/null)
+        set changed_files (git diff "$base_branch"...HEAD --name-only 2>/dev/null)
     end
     
     if test -z "$diff_content"
-        echo "⚠ Warning: No changes detected between current branch and $base_branch"
+        if test "$is_jj" = true
+            echo "⚠ Warning: No changes detected between '$current_branch' and '$comparison_base'"
+        else
+            echo "⚠ Warning: No changes detected between current branch and $base_branch"
+        end
     end
     
     # Check for PR template
@@ -164,23 +199,69 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         end
     end
     
-    # Generate PR body
+    # Generate PR title and body via AI
+    set -l pr_title ""
     set -l pr_body ""
     set -l use_fill false
-    
+
+    if test -n "$custom_title"
+        set pr_title $custom_title
+    end
+
     if type -q opencode
-        echo "✓ Generating PR body with OpenCode..."
-        
-        # Create prompt
-        set -l prompt "Generate a concise GitHub PR description for these changes."
-        
+        echo "✓ Generating PR title and body with OpenCode..."
+
+        set -l prompt "Generate a GitHub PR title and description for these changes.
+
+Branch name: $current_branch"
+
+        if test -n "$branch_type"
+            set prompt "$prompt
+Conventional commit type from branch: $branch_type"
+        end
+
+        if test -n "$branch_ticket"
+            set prompt "$prompt
+Ticket number: $branch_ticket (must appear in the title)"
+        end
+
+        if test -n "$branch_desc"
+            set prompt "$prompt
+Description hint from branch name: $branch_desc"
+        end
+
+        if test -n "$changed_files"
+            set prompt "$prompt
+
+Changed files (use to infer the conventional commit scope):
+$changed_files"
+        end
+
+        # Recent PR titles show this repo's scope conventions (or lack thereof)
+        set -l recent_titles (gh pr list --limit 5 --json title --jq '.[].title' 2>/dev/null | string collect)
+        if test -n "$recent_titles"
+            set prompt "$prompt
+
+Recent PR titles from this repo (use as a guide for scope conventions):
+$recent_titles"
+        end
+
+        set prompt "$prompt
+
+Output format (required - do not deviate):
+TITLE: <conventional commit title>
+BODY:
+<PR description>
+
+Scope rules: scope is optional. Only include a scope if the changes are clearly focused in one area AND recent PR titles in this repo use scopes. Infer the scope from changed file paths. Omit scope entirely if this repo doesn't use them or changes span multiple areas."
+
         if test -n "$template_content"
             set prompt "$prompt
 
-Template (use as a loose guide, not strict requirement):
+Use this as a loose guide for the body structure:
 $template_content"
         end
-        
+
         set prompt "$prompt
 
 ## Changes
@@ -188,17 +269,50 @@ $diff_content
 
 ## Commit Messages
 $commit_messages"
-        
-        # Run OpenCode and capture output
-        set pr_body (echo $prompt | opencode run --format default 2>/dev/null | string collect)
-        
+
+        set -l ai_output (printf "%s" $prompt | opencode run --model anthropic/claude-haiku-4-5 --format default 2>/dev/null | string collect)
+
+        if test -n "$ai_output"
+            # string match -r with a capture group returns two items: full match, then capture
+            set -l title_match (string match -r 'TITLE: (.+)' $ai_output)
+            set -l ai_title $title_match[2]
+
+            # Write to temp file so awk can extract the body with newlines intact.
+            # Fish splits strings on newlines into lists, which destroys formatting.
+            set -l tmp (mktemp)
+            printf "%s" $ai_output > $tmp
+            set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp)
+            rm -f $tmp
+
+            if test -n "$ai_title" -a -z "$custom_title"
+                set pr_title (string trim -- $ai_title)
+            end
+            if test -n "$ai_body"
+                set pr_body $ai_body
+            end
+        end
+
         if test -z "$pr_body"
-            echo "⚠ OpenCode failed to generate body, will use --fill"
+            echo "⚠ OpenCode failed to generate output, will use --fill"
             set use_fill true
         end
     else
         echo "⚠ opencode not found, will use --fill for body"
         set use_fill true
+    end
+
+    # Fallback title from branch name if AI didn't produce one
+    if test -z "$pr_title"
+        if test -n "$branch_type" -a -n "$branch_ticket"
+            if test -n "$branch_desc"
+                set pr_title "$branch_type: $branch_ticket $branch_desc"
+            else
+                set pr_title "$branch_type: $branch_ticket"
+            end
+        else
+            set pr_title (string replace -a -- "-" " " $current_branch | string replace -a -- "_" " ")
+        end
+        echo "⚠ Using fallback title: $pr_title"
     end
     
     # Validation hold - show preview
@@ -210,12 +324,7 @@ $commit_messages"
     echo "Title: $pr_title"
     echo "Base:  $base_branch"
     
-    if test "$is_jj" = true
-        set -l gh_user (gh config get user -h github.com 2>/dev/null)
-        echo "Head:  $gh_user:$current_branch"
-    else
-        echo "Head:  $current_branch"
-    end
+    echo "Head:  $current_branch"
     
     if test -n "$draft_flag"
         echo "Draft: Yes"
@@ -228,7 +337,7 @@ $commit_messages"
     else
         echo "Body:"
         echo "────────────────────────────────────────────────────"
-        echo "$pr_body"
+        printf "%s\n" $pr_body
         echo "────────────────────────────────────────────────────"
     end
     
@@ -255,7 +364,7 @@ $commit_messages"
                 
                 # Open in $EDITOR
                 set -l temp_file (mktemp)
-                echo "$pr_body" > $temp_file
+                printf "%s\n" $pr_body > $temp_file
                 
                 if test -n "$EDITOR"
                     $EDITOR $temp_file
@@ -270,7 +379,7 @@ $commit_messages"
                 echo ""
                 echo "Updated Body:"
                 echo "────────────────────────────────────────────────────"
-                echo "$pr_body"
+                printf "%s\n" $pr_body
                 echo "────────────────────────────────────────────────────"
                 echo ""
             case '*'
@@ -282,36 +391,42 @@ $commit_messages"
     # Create PR
     echo ""
     echo "✓ Creating PR..."
-    
-    set -l gh_cmd gh pr create --base $base_branch --title "$pr_title"
-    
-    # Add head flag for JJ repos
+
+    set -l body_file ""
+    if test "$use_fill" = false
+        set body_file (mktemp)
+        printf "%s\n" $pr_body > $body_file
+    end
+
+    set -l gh_status 0
+
+    # Build gh args as a list so empty draft_flag doesn't sneak in as a blank argument
+    set -l gh_args pr create --base $base_branch --title "$pr_title"
+
+    # JJ doesn't update git HEAD to the current bookmark, so gh can't detect the branch
+    # automatically - we must pass -H explicitly with the closest bookmark name
     if test "$is_jj" = true
-        set -l gh_user (gh config get user -h github.com 2>/dev/null)
-        set gh_cmd $gh_cmd -H "$gh_user:$current_branch"
+        set gh_args $gh_args -H $current_branch
     end
-    
-    # Add body or fill flag
+
     if test "$use_fill" = true
-        set gh_cmd $gh_cmd --fill
+        set gh_args $gh_args --fill
     else
-        set gh_cmd $gh_cmd --body "$pr_body"
+        set gh_args $gh_args --body-file $body_file
     end
-    
-    # Add draft flag if set
+
     if test -n "$draft_flag"
-        set gh_cmd $gh_cmd $draft_flag
+        set gh_args $gh_args --draft
     end
-    
-    # Add template if found
-    if test -n "$template_path"
-        set gh_cmd $gh_cmd --template "$template_path"
+
+    gh $gh_args
+    set gh_status $status
+
+    if test -n "$body_file"
+        rm -f $body_file
     end
-    
-    # Execute gh command
-    eval $gh_cmd
-    
-    if test $status -eq 0
+
+    if test $gh_status -eq 0
         echo "✓ PR created successfully!"
     else
         echo "✗ Failed to create PR"
