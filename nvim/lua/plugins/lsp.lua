@@ -2,6 +2,17 @@ return {
   "neovim/nvim-lspconfig",
   opts = {
     servers = {
+      bashls = {
+        handlers = {
+          ["textDocument/publishDiagnostics"] = function(err, res, ...)
+            local file_name = vim.fn.fnamemodify(vim.uri_to_fname(res.uri), ":t")
+            if string.match(file_name, "^%.env.*") then
+              return
+            end
+            vim.lsp.diagnostic.on_publish_diagnostics(err, res, ...)
+          end,
+        },
+      },
       harper_ls = {
         filetypes = { "markdown", "text" },
         on_init = function(client, _)
