@@ -84,12 +84,12 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             return 1
         end
     else
-        if test -z (git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+        set -l upstream (git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+        if test -z "$upstream"
             echo "Error: Branch '$current_branch' has no upstream. Push with: git push -u origin $current_branch"
             return 1
         end
-        set -l unpushed (git log "@{u}..HEAD" --oneline 2>/dev/null)
-        if test -n "$unpushed"
+        if test (count (git log "@{u}..HEAD" --oneline 2>/dev/null)) -gt 0
             echo "Error: Branch '$current_branch' has unpushed commits. Run: git push"
             return 1
         end
@@ -123,22 +123,20 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     echo "✓ Base branch: $base_branch"
 
     # Detect parent bookmark for stacked PRs (JJ only)
-    # comparison_base controls what range of commits to include in the PR description;
-    # base_branch (always trunk/main) controls where GitHub targets the PR.
     set -l comparison_base ""
-    set -l current_rev $current_branch  # revision to use in diff ranges
     if test "$is_jj" = true
         # ancestors() excluding the bookmark commit itself gives us the parent layer
         set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
             -T 'bookmarks.join(",")' --no-graph --limit 1 2>/dev/null | \
-            string replace -r '\*' '' | string trim)
+            string replace -r '\*' '' | string trim | string split ',' | head -n1)
 
         set -l trunk_bookmark (jj log -r "trunk()" -T 'bookmarks.join(",")' \
             --no-graph 2>/dev/null | string trim)
 
         if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
             set comparison_base "$parent_bookmark"
-            echo "✓ Stacked PR: comparing against parent bookmark '$parent_bookmark'"
+            set base_branch "$parent_bookmark"
+            echo "✓ Stacked PR: base and comparison set to parent bookmark '$parent_bookmark'"
         else
             set comparison_base "trunk()"
         end
@@ -171,12 +169,12 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l changed_files ""
 
     if test "$is_jj" = true
-        set diff_content (jj diff -r "$comparison_base..$current_branch" 2>/dev/null)
-        set commit_messages (jj log -r "$comparison_base..$current_branch" -T 'description' --no-graph 2>/dev/null)
+        set diff_content (jj diff -r "$comparison_base..$current_branch" 2>/dev/null | string collect)
+        set commit_messages (jj log -r "$comparison_base..$current_branch" -T 'description' --no-graph 2>/dev/null | string collect)
         set changed_files (jj diff -r "$comparison_base..$current_branch" --summary 2>/dev/null | string replace -r '^[A-Z] +' '')
     else
-        set diff_content (git diff "$base_branch"...HEAD 2>/dev/null)
-        set commit_messages (git log "$base_branch"..HEAD --pretty=format:"%s%n%b" 2>/dev/null)
+        set diff_content (git diff "$base_branch"...HEAD 2>/dev/null | string collect)
+        set commit_messages (git log "$base_branch"..HEAD --pretty=format:"%s%n%b" 2>/dev/null | string collect)
         set changed_files (git diff "$base_branch"...HEAD --name-only 2>/dev/null)
     end
     
@@ -194,7 +192,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     for path in .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md docs/pull_request_template.md
         if test -f $path
             set template_path $path
-            set template_content (cat $path)
+            set template_content (cat $path | string collect)
             break
         end
     end
@@ -230,11 +228,12 @@ Ticket number: $branch_ticket (must appear in the title)"
 Description hint from branch name: $branch_desc"
         end
 
-        if test -n "$changed_files"
+        if set -q changed_files[1]
+            set -l changed_files_str (printf "%s\n" $changed_files | string collect)
             set prompt "$prompt
 
 Changed files (use to infer the conventional commit scope):
-$changed_files"
+$changed_files_str"
         end
 
         # Recent PR titles show this repo's scope conventions (or lack thereof)
@@ -281,7 +280,7 @@ $commit_messages"
             # Fish splits strings on newlines into lists, which destroys formatting.
             set -l tmp (mktemp)
             printf "%s" $ai_output > $tmp
-            set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp)
+            set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp | string collect)
             rm -f $tmp
 
             if test -n "$ai_title" -a -z "$custom_title"
@@ -362,17 +361,22 @@ $commit_messages"
                     continue
                 end
                 
-                # Open in $EDITOR
-                set -l temp_file (mktemp)
+                set -l temp_file (mktemp).md
                 printf "%s\n" $pr_body > $temp_file
-                
-                if test -n "$EDITOR"
-                    $EDITOR $temp_file
+
+                # Split to handle editors with args (e.g. "code --wait")
+                set -l editor_cmd
+                if test -n "$VISUAL"
+                    set editor_cmd (string split ' ' -- $VISUAL)
+                else if test -n "$EDITOR"
+                    set editor_cmd (string split ' ' -- $EDITOR)
                 else
-                    vim $temp_file
+                    set editor_cmd vim
                 end
-                
-                set pr_body (cat $temp_file)
+
+                $editor_cmd -- $temp_file
+
+                set pr_body (cat $temp_file | string collect)
                 rm $temp_file
                 
                 # Show updated preview
