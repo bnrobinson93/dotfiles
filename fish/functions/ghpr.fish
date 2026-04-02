@@ -1,4 +1,3 @@
-#!/usr/bin/env fish
 # Create GitHub PR with conventional commit format and AI-generated body
 
 function ghpr --description "Create GitHub PR with conventional commit format"
@@ -40,10 +39,10 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     
     # Detect VCS type using proper checks
     set -l is_jj false
-    if jj workspace root >/dev/null 2>&1
+    if type -q jj; and jj workspace root >/dev/null 2>&1
         set is_jj true
         echo "✓ Jujutsu repository detected"
-    else if git rev-parse --git-dir >/dev/null 2>&1
+    else if type -q git; and git rev-parse --git-dir >/dev/null 2>&1
         echo "✓ Git repository detected"
     else
         echo "Error: Not in a git or jj repository"
@@ -75,7 +74,8 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     # Ensure changes are pushed before creating a PR
     if test "$is_jj" = true
         # A bookmark is pushed only if its block contains "@origin:" without "not created yet"
-        set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 "^$current_branch:")
+        set -l escaped_branch (string escape --style=regex -- $current_branch)
+        set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 -- "^$escaped_branch:")
         set -l has_origin (echo $bookmark_block | string match -r '@origin:')
         set -l not_created (echo $bookmark_block | string match -r 'not created yet')
         if test -z "$has_origin" -o -n "$not_created"
@@ -261,13 +261,38 @@ Use this as a loose guide for the body structure:
 $template_content"
         end
 
+        set -l max_diff_bytes 20000
+        set -l max_commit_bytes 8000
+        set -l truncated_diff $diff_content
+        set -l truncated_commit_messages $commit_messages
+
+        if test -n "$diff_content"
+            set -l diff_bytes (printf "%s" "$diff_content" | wc -c | string trim)
+            if test "$diff_bytes" -gt "$max_diff_bytes"
+                set truncated_diff (printf "%s" "$diff_content" | head -c $max_diff_bytes | string collect)
+                set truncated_diff "$truncated_diff
+
+[... diff truncated ...]"
+            end
+        end
+
+        if test -n "$commit_messages"
+            set -l commit_bytes (printf "%s" "$commit_messages" | wc -c | string trim)
+            if test "$commit_bytes" -gt "$max_commit_bytes"
+                set truncated_commit_messages (printf "%s" "$commit_messages" | head -c $max_commit_bytes | string collect)
+                set truncated_commit_messages "$truncated_commit_messages
+
+[... commit messages truncated ...]"
+            end
+        end
+
         set prompt "$prompt
 
 ## Changes
-$diff_content
+$truncated_diff
 
 ## Commit Messages
-$commit_messages"
+$truncated_commit_messages"
 
         set -l ai_output (printf "%s" $prompt | opencode run --model anthropic/claude-haiku-4-5 --format default 2>/dev/null | string collect)
 
@@ -361,7 +386,7 @@ $commit_messages"
                     continue
                 end
                 
-                set -l temp_file (mktemp).md
+                set -l temp_file (mktemp)
                 printf "%s\n" $pr_body > $temp_file
 
                 # Split to handle editors with args (e.g. "code --wait")
