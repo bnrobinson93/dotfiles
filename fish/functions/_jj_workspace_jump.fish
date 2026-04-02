@@ -23,13 +23,31 @@ function _jj_workspace_jump --argument-names suffix
 
     set -l original_dir "$PWD"
 
-    if not test -d $target_dir
-        jj workspace add $target_dir
+    if not test -d "$target_dir"
+        jj workspace add "$target_dir"
         or return 1
-        cd $target_dir
+        cd "$target_dir"
+        or begin
+            if set -q TMUX
+                cd "$original_dir"
+            end
+            return 1
+        end
         jj new $change_id
+        or begin
+            if set -q TMUX
+                cd "$original_dir"
+            end
+            return 1
+        end
     else
-        cd $target_dir
+        cd "$target_dir"
+        or begin
+            if set -q TMUX
+                cd "$original_dir"
+            end
+            return 1
+        end
         jj workspace update-stale 2>/dev/null
         jj new $change_id
         or begin
@@ -45,10 +63,11 @@ function _jj_workspace_jump --argument-names suffix
 
     if set -q TMUX
         cd "$original_dir"
-        tmux new-window -c $target_dir -n $suffix -e "GIT_DIR=$git_dir" "mise trust 2>/dev/null; $SHELL"
+        tmux new-window -c "$target_dir" -n $suffix -e "GIT_DIR=$git_dir" "mise trust 2>/dev/null; $SHELL"
     else
         set -x GIT_DIR $git_dir
-        cd $target_dir
+        cd "$target_dir"
+        or return 1
         mise trust 2>/dev/null
     end
 end
