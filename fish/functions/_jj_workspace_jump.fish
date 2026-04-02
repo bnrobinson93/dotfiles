@@ -15,6 +15,17 @@ function _jj_workspace_jump --argument-names suffix
 
     set -l main_root (dirname $root)/$base
     set -l target_dir $main_root-$suffix
+    set -l git_dir "$main_root/.git"
+    set -l has_git_dir false
+    set -l supports_update_stale false
+
+    if test -e "$git_dir"
+        set has_git_dir true
+    end
+
+    if jj workspace update-stale --help >/dev/null 2>&1
+        set supports_update_stale true
+    end
 
     if test "$target_dir" = "$root"
         echo "Already in $suffix workspace" >&2
@@ -48,7 +59,17 @@ function _jj_workspace_jump --argument-names suffix
             end
             return 1
         end
-        jj workspace update-stale 2>/dev/null
+
+        if test "$supports_update_stale" = true
+            jj workspace update-stale
+            or begin
+                if set -q TMUX
+                    cd "$original_dir"
+                end
+                return 1
+            end
+        end
+
         jj new $change_id
         or begin
             if set -q TMUX
@@ -59,15 +80,19 @@ function _jj_workspace_jump --argument-names suffix
     end
 
     # Point git tools (gh, etc.) at the main repo's .git so they work from workspaces
-    set -l git_dir "$main_root/.git"
-
     if set -q TMUX
         cd "$original_dir"
-        tmux new-window -c "$target_dir" -n $suffix -e "GIT_DIR=$git_dir" "mise trust 2>/dev/null; $SHELL"
+        set -l tmux_args new-window -c "$target_dir" -n $suffix
+        if test "$has_git_dir" = true
+            set tmux_args $tmux_args -e "GIT_DIR=$git_dir"
+        end
+        tmux $tmux_args "mise trust 2>/dev/null; $SHELL"
     else
-        set -x GIT_DIR $git_dir
         cd "$target_dir"
         or return 1
+        if test "$has_git_dir" = true
+            set -x GIT_DIR $git_dir
+        end
         mise trust 2>/dev/null
     end
 end
