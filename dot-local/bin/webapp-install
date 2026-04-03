@@ -4,37 +4,20 @@ set -e
 
 ICON_DIR="$HOME/.local/share/applications/icons"
 
-if (( $# < 3 )); then
-  echo -e "\e[32mLet's create a new web app you can start with the app launcher.\n\e[0m"
-  APP_NAME=$(gum input --prompt "Name> " --placeholder "My favorite web app")
-  APP_URL=$(gum input --prompt "URL> " --placeholder "https://example.com")
-  if [[ ! $APP_URL =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]]; then
-    APP_URL="https://$APP_URL"
-  fi
-
-  # Try to fetch favicon automatically first.
-  FAVICON_URL="https://www.google.com/s2/favicons?domain=${APP_URL}&sz=128"
-  mkdir -p "$ICON_DIR"
-  if curl -fsSL -o "$ICON_DIR/$APP_NAME.png" "$FAVICON_URL" && [[ -s $ICON_DIR/$APP_NAME.png ]]; then
-    ICON_REF="$APP_NAME.png"
-  else
-    ICON_REF=$(gum input --prompt "Icon URL> " --placeholder "Could not fetch favicon automatically. Enter PNG icon URL (see https://dashboardicons.com)")
-  fi
-
-  CUSTOM_EXEC=""
-  MIME_TYPES=""
-  INTERACTIVE_MODE=true
-else
-  APP_NAME="$1"
-  APP_URL="$2"
-  if [[ ! $APP_URL =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]]; then
-    APP_URL="https://$APP_URL"
-  fi
-  ICON_REF="$3"
-  CUSTOM_EXEC="$4" # Optional custom exec command
-  MIME_TYPES="$5"  # Optional mime types
-  INTERACTIVE_MODE=false
+if (( $# < 2 )); then
+  echo "Usage: webapp-install <name> <url> [icon] [exec] [mime-types]"
+  echo "  icon: URL, system icon name, or local path (optional — tries system icon then favicon)"
+  exit 1
 fi
+
+APP_NAME="$1"
+APP_URL="$2"
+if [[ ! $APP_URL =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]]; then
+  APP_URL="https://$APP_URL"
+fi
+ICON_REF="$3"
+CUSTOM_EXEC="$4" # Optional custom exec command
+MIME_TYPES="$5"  # Optional mime types
 
 # Ensure valid execution
 if [[ -z $APP_NAME || -z $APP_URL ]]; then
@@ -42,21 +25,66 @@ if [[ -z $APP_NAME || -z $APP_URL ]]; then
   exit 1
 fi
 
-# Resolve icon from URL or from a local icon name.
-mkdir -p "$ICON_DIR"
-
-if [[ -z $ICON_REF ]]; then
-  ICON_REF="https://www.google.com/s2/favicons?domain=${APP_URL}&sz=128"
+# Check for duplicates by Name= field across all local desktop files
+EXISTING=$(grep --include="*.desktop" -ril "^Name=$APP_NAME$" \
+    ~/.local/share/applications/ \
+    /usr/share/applications/ \
+    /var/lib/snapd/desktop/applications/ \
+    2>/dev/null; \
+  grep --include="*.desktop" -ril --dereference-recursive "^Name=$APP_NAME$" \
+    ~/.local/share/flatpak/exports/share/applications/ \
+    /var/lib/flatpak/exports/share/applications/ \
+    2>/dev/null)
+if [[ -n $EXISTING ]]; then
+  echo "An app named '$APP_NAME' already exists:"
+  for f in $EXISTING; do
+    echo "  $f"
+  done
+  read -r -p "Install anyway? [y/N] " REPLY
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 0
+  fi
+  for f in $EXISTING; do
+    if [[ $f == ~/.local/share/applications/* ]]; then
+      rm -f "$f"
+    fi
+  done
 fi
 
-if [[ $ICON_REF =~ ^https?:// ]]; then
-  ICON_PATH="$ICON_DIR/$APP_NAME.png"
-  if ! curl -fsSL -o "$ICON_PATH" "$ICON_REF" || [[ ! -s $ICON_PATH ]]; then
-    echo "Error: Failed to download icon."
-    exit 1
+# Resolve icon: explicit arg > system icon > favicon fetch
+mkdir -p "$ICON_DIR"
+
+if [[ -n $ICON_REF ]]; then
+  # Explicit icon provided: URL or system icon name or local path
+  if [[ $ICON_REF =~ ^https?:// ]]; then
+    ICON_PATH="$ICON_DIR/$APP_NAME.png"
+    if ! curl -fsSL -o "$ICON_PATH" "$ICON_REF" || [[ ! -s $ICON_PATH ]]; then
+      echo "Error: Failed to download icon."
+      exit 1
+    fi
+  elif [[ -f $ICON_REF ]]; then
+    ICON_PATH="$ICON_REF"
+  else
+    # Treat as system icon name (e.g. "firefox", "spotify")
+    ICON_PATH="$ICON_REF"
   fi
 else
-  ICON_PATH="$ICON_DIR/$ICON_REF"
+  # Try system icon by lowercased app name first
+  SYSTEM_ICON_NAME="${APP_NAME,,}"
+  SYSTEM_ICON_NAME="${SYSTEM_ICON_NAME// /-}"
+  if gtk-update-icon-cache --help &>/dev/null && \
+     find /usr/share/icons ~/.local/share/icons -name "${SYSTEM_ICON_NAME}.*" 2>/dev/null | grep -q .; then
+    ICON_PATH="$SYSTEM_ICON_NAME"
+  else
+    # Fall back to favicon
+    FAVICON_URL="https://www.google.com/s2/favicons?domain=${APP_URL}&sz=128"
+    ICON_PATH="$ICON_DIR/$APP_NAME.png"
+    if ! curl -fsSL -o "$ICON_PATH" "$FAVICON_URL" || [[ ! -s $ICON_PATH ]]; then
+      echo "Warning: Could not fetch favicon, no icon will be set."
+      ICON_PATH=""
+    fi
+  fi
 fi
 
 # Use custom exec if provided, otherwise default behavior
@@ -83,7 +111,5 @@ if [[ -n $MIME_TYPES ]]; then
 fi
 
 chmod +x "$DESKTOP_FILE"
-
-if [[ $INTERACTIVE_MODE == "true" ]]; then
-  echo -e "You can now find $APP_NAME using the app launcher (SUPER + SPACE)\n"
-fi
+update-desktop-database ~/.local/share/applications/ 2>/dev/null || true
+echo "Installed: $APP_NAME"
