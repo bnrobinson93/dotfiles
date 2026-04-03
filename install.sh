@@ -1,6 +1,6 @@
 #!/bin/bash
 echo Installing programs...
-sudo apt install -y git zsh fish fzf ripgrep tmux stow curl wget
+sudo apt install -y git zsh fish ripgrep tmux stow curl wget
 
 echo Ensuring we have the latest...
 if type jj >/dev/null 2>&1; then
@@ -32,11 +32,8 @@ elif test -d /opt/homebrew; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-echo "Installing atuin (history replacement)"
-curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-
 echo Installing brew libraries...
-brew install carapace lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
@@ -45,7 +42,7 @@ mkdir -p ~/.local ~/.config ~/.ssh
 pushd "$HOME/.dotfiles" || exit
 
 echo Clearing install files to avoid stow conflicts...
-rm -rf "$HOME/.config/atuin" "$HOME/.config/fish"
+rm -rf "$HOME/.config/fish"
 
 echo Populating config and local scripts...
 stow -v2 .
@@ -71,7 +68,11 @@ else
   echo "  Hint: ssh-convert-openssh.sh not found; run it manually if signing fails."
 fi
 
-echo "Installing tools configured in mise (e.g., Node.js)..."
+echo "Installing fisher (fish plugin manager) and plugins..."
+fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish"
+
+echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
 else

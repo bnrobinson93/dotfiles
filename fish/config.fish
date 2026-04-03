@@ -34,12 +34,6 @@ if status is-interactive
     end
 end
 
-set -g fish_color_autosuggestion brblack
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-set --export --prepend PATH "/Users/brad.robinson/.rd/bin"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
-
 # Go private module configuration for virtru-corp repos
 set -gx GOPRIVATE "github.com/virtru-corp/*"
 set -gx GONOPROXY "github.com/virtru-corp/*"

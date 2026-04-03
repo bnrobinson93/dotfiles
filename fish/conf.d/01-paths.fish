@@ -6,7 +6,6 @@
 
 set -l common_bin_dirs \
     $HOME/go/bin \
-    $HOME/.atuin/bin \
     $HOME/.cargo/bin \
     $HOME/.docker/bin \
     $HOME/.rd/bin \
@@ -26,10 +25,5 @@ fish_add_path $HOME/.local/bin
 fish_add_path /opt/homebrew/bin
 fish_add_path /home/linuxbrew/.linuxbrew/bin
 
-# Cargo (Rust) - will be loaded when first used
-test -d $HOME/.cargo/bin && fish_add_path $HOME/.cargo/bin
-
-# Rbenv (Ruby)
-test -d $HOME/.rbenv/bin && fish_add_path $HOME/.rbenv/bin
-
-# Go - will be added dynamically when go is first called
+# opencode
+fish_add_path /home/brad/.opencode/bin

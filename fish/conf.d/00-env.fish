@@ -19,7 +19,6 @@ end
 set -gx ZETTELKASTEN $HOME/Documents/Vault
 set -gx BUN_INSTALL $HOME/.bun
 set -gx PNPM_HOME $HOME/.local/share/pnpm
-set -gx NVM_DIR $HOME/.nvm
 set -gx ANDROID_SDK $HOME/Android/sdk
 set -gx KUBECONFIG $HOME/.kube/config
 
@@ -47,6 +46,9 @@ end
 
 # Fix jj pager for unicode
 set -gx LESSUTFCHARDEF "E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
+
+# Bat theme
+set -gx BAT_THEME "Catppuccin Mocha"
 
 # Colors - Fish handles LS_COLORS well, but vivid provides better themes
 # Cache vivid output to avoid 900ms startup delay on every shell
