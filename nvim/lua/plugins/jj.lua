@@ -36,7 +36,8 @@ return {
 
   {
     "NicolasGB/jj.nvim",
-    version = "*",
+    branch = "main",
+    -- version = "*",
     cond = JJ_exists,
     opts = {
       cmd = {
@@ -46,6 +47,9 @@ return {
             keymaps = { close = { "<Esc>", "<C-c>", "q" } },
           },
         },
+      },
+      editor = {
+        auto_insert = true,
       },
       highlights = {
         modified = "DiffChange",
