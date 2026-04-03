@@ -75,6 +75,17 @@ fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish"
 echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
+
+  git_excludes_file="$(git config --global --get core.excludesfile 2>/dev/null || true)"
+  if [[ -n "$git_excludes_file" ]]; then
+    git_excludes_file="${git_excludes_file/#\~/$HOME}"
+    mkdir -p "$(dirname "$git_excludes_file")"
+    if [[ ! -f "$git_excludes_file" ]] || ! grep -Fxq "mise.toml" "$git_excludes_file"; then
+      echo "mise.toml" >>"$git_excludes_file"
+    fi
+  else
+    echo "Git global excludes file is not configured; skipping ignore entry for mise.toml."
+  fi
 else
   echo "mise not found on PATH; skipping 'mise install'."
 fi
