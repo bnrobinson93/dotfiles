@@ -16,28 +16,19 @@ if type -q mise
     mise activate fish | source
 end
 
-# Atuin - better shell history (fish integration is excellent)
-if type -q atuin
-    # Add atuin bin to PATH (fish equivalent of sourcing env file)
-    fish_add_path $HOME/.atuin/bin
-
-    # Initialize atuin (disable up-arrow binding to match zsh config)
-    atuin init fish --disable-up-arrow | source
-end
-
 # Zoxide - smart directory jumping (replaces cd)
 if type -q zoxide
     zoxide init fish | source
 end
 
-# Carapace - universal completion engine (replaces custom completions)
-if type -q carapace
-    carapace _carapace fish | source
-end
-
 # JJ (Jujutsu) completion
 if type -q jj
     jj util completion fish | source
+end
+
+# Mise completions (requires usage CLI)
+if type -q mise
+    mise completion fish | source
 end
 
 # 1Password SSH signing setup
@@ -47,11 +38,6 @@ if set -q USE_1PASSWORD_SSH
     end
 end
 
-# NVM - use fisher plugin (cleanest approach)
-# Install with: fisher install jorgebucaran/nvm.fish
-# This plugin handles lazy loading and .nvmrc detection automatically
-# No manual configuration needed!
-
 # Homebrew - load immediately (only ~15ms overhead, worth having available)
 # Supports macOS Apple Silicon and Linux
 if test -d /opt/homebrew
@@ -59,22 +45,6 @@ if test -d /opt/homebrew
 else if test -d /home/linuxbrew/.linuxbrew
     eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 end
-
-# Rbenv - lazy load with official init
-if test -d $HOME/.rbenv
-    function rbenv
-        if not set -q RBENV_LOADED
-            command rbenv init - fish | source
-            set -gx RBENV_LOADED 1
-        end
-        command rbenv $argv
-    end
-end
-
-# Wezterm shell integration (enables Alt+click, semantic zones, etc.)
-# Starship prompt - Load immediately (required for prompt)
-# No type check - if missing, fish will show error and use default prompt
-command -v starship >/dev/null 2>&1 && starship init fish | source
 
 # Wezterm shell integration (fast, load immediately)
 if test "$TERM_PROGRAM" = WezTerm
@@ -87,28 +57,6 @@ end
 # Envman (if you use it)
 if test -s $HOME/.config/envman/load.fish
     source $HOME/.config/envman/load.fish
-end
-
-# Lazy-load heavy tools on first use (saves 2+ seconds on startup!)
-# Wrapper functions that load the real tool only when first called
-
-# Zoxide - lazy load on first 'z' or 'zi' command
-function z --description "zoxide lazy loader"
-    functions --erase z zi
-    command zoxide init fish | source
-    z $argv
-end
-
-function zi --description "zoxide interactive lazy loader"
-    functions --erase z zi
-    command zoxide init fish | source
-    zi $argv
-end
-
-# Carapace - load after first command (for completions)
-function __carapace_delayed_load --on-event fish_postexec
-    functions --erase __carapace_delayed_load
-    command -v carapace >/dev/null 2>&1 && carapace _carapace fish | source
 end
 
 # fzf - Catppuccin Mocha colors with layout matching fzf.fish plugin defaults
