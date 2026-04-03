@@ -47,7 +47,13 @@ rm -rf "$HOME/.config/fish"
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh gitmux ai --dotfiles
+stow -v2 -t ~ -S zsh gitmux --dotfiles
+# stow 2.3.1 bug: can't traverse dot-prefixed dirs that exist as real dirs at target
+# Manually symlink ai package contents
+ln -sf "$HOME/.dotfiles/ai/dot-claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+ln -sfn "$HOME/.dotfiles/ai/dot-codex" "$HOME/.codex"
+mkdir -p "$HOME/.config/opencode"
+ln -sf "$HOME/.dotfiles/ai/dot-config/opencode/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
 echo "Converting any PKCS#8 SSH keys to OpenSSH format..."
