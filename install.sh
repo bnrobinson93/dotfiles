@@ -75,6 +75,7 @@ fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish"
 echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
+  echo "mise.toml" >>~/.gitignore
 else
   echo "mise not found on PATH; skipping 'mise install'."
 fi
