@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
 
 set -e
 
 ICON_DIR="$HOME/.local/share/applications/icons"
 
-if (( $# < 2 )); then
+if (($# < 2)); then
   echo "Usage: webapp-install <name> <url> [icon] [exec] [mime-types]"
   echo "  icon: URL, system icon name, or local path (optional — tries system icon then favicon)"
   exit 1
@@ -26,15 +26,17 @@ if [[ -z $APP_NAME || -z $APP_URL ]]; then
 fi
 
 # Check for duplicates by Name= field across all local desktop files
-EXISTING=$(grep --include="*.desktop" -ril "^Name=$APP_NAME$" \
+EXISTING=$(
+  grep --include="*.desktop" -ril "^Name=$APP_NAME$" \
     ~/.local/share/applications/ \
     /usr/share/applications/ \
     /var/lib/snapd/desktop/applications/ \
-    2>/dev/null; \
+    2>/dev/null || true
   grep --include="*.desktop" -ril --dereference-recursive "^Name=$APP_NAME$" \
     ~/.local/share/flatpak/exports/share/applications/ \
     /var/lib/flatpak/exports/share/applications/ \
-    2>/dev/null)
+    2>/dev/null || true
+)
 if [[ -n $EXISTING ]]; then
   echo "An app named '$APP_NAME' already exists:"
   for f in $EXISTING; do
@@ -73,8 +75,8 @@ else
   # Try system icon by lowercased app name first
   SYSTEM_ICON_NAME="${APP_NAME,,}"
   SYSTEM_ICON_NAME="${SYSTEM_ICON_NAME// /-}"
-  if gtk-update-icon-cache --help &>/dev/null && \
-     find /usr/share/icons ~/.local/share/icons -name "${SYSTEM_ICON_NAME}.*" 2>/dev/null | grep -q .; then
+  if gtk-update-icon-cache --help &>/dev/null &&
+    find /usr/share/icons ~/.local/share/icons -name "${SYSTEM_ICON_NAME}.*" 2>/dev/null | grep -q .; then
     ICON_PATH="$SYSTEM_ICON_NAME"
   else
     # Fall back to favicon
