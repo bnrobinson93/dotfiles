@@ -2,8 +2,22 @@
 # Wrapper for jj fix: tries project-local prettier, falls back to Mason
 MASON_BIN="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/mason/bin"
 
-if pnpm exec prettier --version &>/dev/null; then
-  exec pnpm exec prettier --stdin-filepath "$1"
+# Walk up from file's directory to find nearest package.json
+find_pkg_root() {
+  local dir="$1"
+  while [[ "$dir" != "/" ]]; do
+    [[ -f "$dir/package.json" ]] && echo "$dir" && return 0
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+filepath="$1"
+[[ "$filepath" != /* ]] && filepath="$PWD/$filepath"
+pkg_root="$(find_pkg_root "$(dirname "$filepath")")"
+
+if [[ -n "$pkg_root" ]] && (cd "$pkg_root" && pnpm exec prettier --version &>/dev/null); then
+  cd "$pkg_root" && exec pnpm exec prettier --stdin-filepath "$1"
 elif [[ -x "$MASON_BIN/prettier" ]]; then
   exec "$MASON_BIN/prettier" --stdin-filepath "$1"
 else
