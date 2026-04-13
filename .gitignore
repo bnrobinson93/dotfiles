@@ -34,3 +34,5 @@ nvim/spell/
 tmux/plugins/
 zed/conversations/
 zed/prompts/
+fish/conf.d/fzf.fish
+fish/functions/*fzf*
