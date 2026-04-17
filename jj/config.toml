@@ -56,7 +56,7 @@ push = [
   "-c",
   """
   # Format only my commits before pushing
-  jj fix --source 'trunk()..@ & mine() & mutable()'
+  # jj fix --source 'trunk()..@ & mine() & mutable()'
 
   # Run pre-commit hook if it exists
   if [[ -f .husky/pre-commit ]]; then
@@ -153,7 +153,6 @@ patterns = [
   "glob:'**/*.tsx'",
   "glob:'**/*.json'",
   "glob:'**/*.md'",
-  "glob:'**/*.yaml'",
   "glob:'**/*.yml'",
   "glob:'**/*.css'",
   "glob:'**/*.scss'",
