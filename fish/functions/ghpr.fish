@@ -48,6 +48,39 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         echo "Error: Not in a git or jj repository"
         return 1
     end
+
+    # Self-heal GIT_DIR for gh in JJ workspaces (including secondary worktrees).
+    # gh relies on git discovery; JJ secondary workspaces have no .git, and the
+    # env var may be missing in stale/forked shells. Resolve via jj's own
+    # pointer chain so we always land at the default workspace's git dir.
+    if test "$is_jj" = true; and not set -q GIT_DIR
+        set -l _ws_root (jj workspace root 2>/dev/null)
+        set -l _repo_ptr "$_ws_root/.jj/repo"
+        set -l _repo_dir ""
+        if test -d "$_repo_ptr"
+            set _repo_dir "$_repo_ptr"
+        else if test -f "$_repo_ptr"
+            set -l _ptr (string trim < "$_repo_ptr")
+            if string match -q '/*' -- "$_ptr"
+                set _repo_dir "$_ptr"
+            else
+                set _repo_dir (path resolve "$_ws_root/.jj/$_ptr")
+            end
+        end
+        if test -n "$_repo_dir"; and test -f "$_repo_dir/store/git_target"
+            set -l _tgt (string trim < "$_repo_dir/store/git_target")
+            set -l _git_dir ""
+            if string match -q '/*' -- "$_tgt"
+                set _git_dir "$_tgt"
+            else
+                set _git_dir (path resolve "$_repo_dir/store/$_tgt")
+            end
+            if test -d "$_git_dir"
+                set -x GIT_DIR "$_git_dir"
+                echo "✓ Set GIT_DIR from jj default workspace: $GIT_DIR"
+            end
+        end
+    end
     
     # Get current branch/bookmark name
     set -l current_branch ""
