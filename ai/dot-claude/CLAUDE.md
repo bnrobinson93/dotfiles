@@ -126,6 +126,14 @@ JJ workspaces = task sandboxes.
 - No additional workspaces unless explicitly asked.
 - If task should happen in different workspace/change, say so — don't auto-execute.
 
+### Worktree memory sharing
+
+Dirs matching suffix `-(ai[0-9]+|exp|explore)$` (e.g. `foo-ai1`, `foo-ai2`, `foo-exp`, `foo-explore`) are JJ worktrees of the base repo `foo` (created by fish functions `ai1`, `ai2`, etc. — see `_jj_workspace_jump.fish`). They share state conceptually with the base.
+
+For Claude memory: the corresponding `~/.claude/projects/<encoded-worktree-path>/memory/` dir must be a symlink to the base repo's memory dir (`../<encoded-base-path>/memory/`). If not already symlinked when entering such a worktree, replace the `memory/` dir with a symlink before saving any memory — otherwise writes fragment across worktrees.
+
+Does NOT apply to other suffixes (`-service`, `-test-*`, etc.) — those are separate repos.
+
 ## Common JJ commands
 
 - Check current state: `jj status`
