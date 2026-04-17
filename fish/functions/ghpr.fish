@@ -152,8 +152,6 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             end
         end
     end
-    
-    echo "✓ Base branch: $base_branch"
 
     # Detect parent bookmark for stacked PRs (JJ only)
     set -l comparison_base ""
@@ -169,12 +167,21 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
             set comparison_base "$parent_bookmark"
             set base_branch "$parent_bookmark"
-            echo "✓ Stacked PR: base and comparison set to parent bookmark '$parent_bookmark'"
         else
             set comparison_base "trunk()"
         end
     else
         set comparison_base "$base_branch"
+    end
+
+    echo "✓ Base branch: $base_branch"
+
+    # Bail if a PR already exists for this bookmark — skip AI + gh create
+    set -l existing_pr (gh pr list --head $current_branch --state open --json number,url --jq '.[0] // empty | "\(.number)\t\(.url)"' 2>/dev/null)
+    if test -n "$existing_pr"
+        set -l pr_parts (string split \t -- $existing_pr)
+        echo "✓ PR #$pr_parts[1] already exists: $pr_parts[2]"
+        return 0
     end
 
     # Extract raw branch context for AI prompt - type, ticket, and description hint
@@ -406,21 +413,30 @@ $truncated_commit_messages"
         return 0
     end
     
-    # Prompt for confirmation with edit option
+    # Prompt for confirmation with edit options
     while true
-        read -P "Create this PR? [Y/n/e(dit)]: " -l confirm
-        
+        read -P "Create this PR? [Y/n/e(dit body)/t(itle)]: " -l confirm
+
         switch $confirm
             case "" Y y
                 break
+            case t T
+                read -P "Title: " -l new_title
+                if test -n "$new_title"
+                    set pr_title (string trim -- $new_title)
+                end
+                echo ""
+                echo "Title: $pr_title"
+                echo ""
             case e E
                 if test "$use_fill" = true
                     echo "Cannot edit when using --fill mode"
                     continue
                 end
-                
+
+                # Git-commit-style: first line = title, blank line, rest = body
                 set -l temp_file (mktemp)
-                printf "%s\n" $pr_body > $temp_file
+                printf "%s\n\n%s\n" $pr_title $pr_body > $temp_file
 
                 # Split to handle editors with args (e.g. "code --wait")
                 set -l editor_cmd
@@ -434,11 +450,17 @@ $truncated_commit_messages"
 
                 $editor_cmd -- $temp_file
 
-                set pr_body (cat $temp_file | string collect)
+                # Parse: line 1 = title, drop optional blank separator line, rest = body
+                set -l new_title (awk 'NR==1{print; exit}' $temp_file | string trim)
+                set -l new_body (awk 'NR==1{next} NR==2&&!NF{next} {print}' $temp_file | string collect)
+                if test -n "$new_title"
+                    set pr_title $new_title
+                end
+                set pr_body $new_body
                 rm $temp_file
-                
-                # Show updated preview
+
                 echo ""
+                echo "Title: $pr_title"
                 echo "Updated Body:"
                 echo "────────────────────────────────────────────────────"
                 printf "%s\n" $pr_body
