@@ -93,7 +93,7 @@ fi
 chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
-brew install dust eza fd uutils-coreutils
+brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat
 
 if uname -a | grep -q "WSL"; then
   echo "Detected WSL, installing additional dependencies..."
