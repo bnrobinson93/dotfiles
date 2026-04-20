@@ -62,6 +62,12 @@ function _ai_extract_marker --description "Pull TITLE or BODY section from forma
                 }
                 next
             }
-            if (marker == "TITLE" && want && length(probe) > 0) { print probe; exit }
+            # Guard: if the next non-empty line is itself a marker (BODY:/TITLE:),
+            # the model left TITLE empty. Exit without printing so the caller
+            # fallback title logic can fire instead of capturing BODY as title.
+            if (marker == "TITLE" && want && length(probe) > 0) {
+                if (probe ~ /^(TITLE|BODY):/) exit
+                print probe; exit
+            }
         }' $file
 end

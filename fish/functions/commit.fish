@@ -11,7 +11,8 @@ function commit --description "AI-generated commit message"
 
     set -l custom_message ""
     if set -q _flag_message
-        set custom_message $_flag_message
+        # argparse collects repeated -m into a list; take the last value (git-like semantics).
+        set custom_message $_flag_message[-1]
     end
 
     # Detect VCS

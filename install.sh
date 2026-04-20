@@ -38,7 +38,7 @@ brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh
+mkdir -p ~/.local ~/.config ~/.ssh ~/.claude
 pushd "$HOME/.dotfiles" || exit
 
 echo Clearing install files to avoid stow conflicts...

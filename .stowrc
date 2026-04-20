@@ -13,4 +13,5 @@
 --ignore=ai
 --ignore=resources
 --ignore=^\.env$
+--ignore=^\.claude$
 --ignore=starship
