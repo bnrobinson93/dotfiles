@@ -46,11 +46,6 @@ function commit --description "AI-generated commit message"
     if test -n "$custom_message"
         set commit_message $custom_message
     else if type -q opencode
-        set -l oc_model opencode/big-pickle
-        if test (uname -s) = Darwin
-            set oc_model openai/gpt-4o-mini
-        end
-
         echo "✓ Generating commit message..."
 
         set -l max_diff_bytes 20000
@@ -72,12 +67,27 @@ Rules:
 - Scope is optional — omit unless changes are clearly scoped to one area
 - Subject line: imperative mood, max 72 chars, no period
 - No body unless the change genuinely needs explanation
-- Output ONLY the commit message, nothing else
+- Output ONLY the commit message, nothing else. No code fences, no preamble.
 
 ## Diff
 $truncated_diff"
 
-        set commit_message (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string trim | string collect)
+        set -l oc_in (mktemp)
+        set -l oc_out (mktemp)
+        set -l oc_err (mktemp)
+        printf "%s" $prompt >$oc_in
+        _ai_run (_ai_model) $oc_in $oc_out $oc_err
+        set -l oc_status $status
+        set -l raw (string collect <$oc_out)
+        set -l err_text (string collect <$oc_err)
+        rm -f $oc_in $oc_out $oc_err
+
+        if test $oc_status -ne 0
+            echo "⚠ opencode exit=$oc_status"
+            test -n "$err_text"; and printf "%s\n" $err_text | string replace -r '^' '   '
+        end
+
+        set commit_message (printf "%s" $raw | _ai_strip_fences | string trim | string collect)
     end
 
     if test -z "$commit_message"

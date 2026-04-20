@@ -7,8 +7,13 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l custom_base ""
     set -l custom_title ""
 
-    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' -- $argv
+    argparse d/draft dry-run v/verbose 'B/base=' 't/title=' 'b/bookmark=' -- $argv
     or return 1
+
+    set -l verbose false
+    if set -q _flag_verbose
+        set verbose true
+    end
 
     if set -q _flag_draft
         set draft_flag --draft
@@ -102,7 +107,9 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         return 1
     end
 
-    echo "✓ Current "(test "$is_jj" = true; and echo "bookmark"; or echo "branch")": $current_branch"
+    set -l _ref_kind branch
+    test "$is_jj" = true; and set _ref_kind bookmark
+    echo "✓ Current $_ref_kind: $current_branch"
 
     # Ensure changes are pushed before creating a PR
     if test "$is_jj" = true
@@ -111,7 +118,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 -- "^$escaped_branch:")
         set -l has_origin (echo $bookmark_block | string match -r '@origin:')
         set -l not_created (echo $bookmark_block | string match -r 'not created yet')
-        if test -z "$has_origin" -o -n "$not_created"
+        if test -z "$has_origin"; or test -n "$not_created"
             echo "Error: Bookmark '$current_branch' has not been pushed to origin."
             echo "  Push with: jj git push -b $current_branch"
             return 1
@@ -169,7 +176,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             set -l trunk_bookmark (jj log -r "trunk()" -T 'bookmarks.join(",")' \
                 --no-graph 2>/dev/null | string trim)
 
-            if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
+            if test -n "$parent_bookmark"; and test "$parent_bookmark" != "$trunk_bookmark"
                 set comparison_base "$parent_bookmark"
                 set base_branch "$parent_bookmark"
             else
@@ -236,7 +243,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     for path in .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md docs/pull_request_template.md
         if test -f $path
             set template_path $path
-            set template_content (cat $path | string collect)
+            set template_content (string collect <$path)
             break
         end
     end
@@ -248,11 +255,6 @@ function ghpr --description "Create GitHub PR with conventional commit format"
 
     if test -n "$custom_title"
         set pr_title $custom_title
-    end
-
-    set -l oc_model opencode/big-pickle
-    if test (uname -s) = Darwin
-        set oc_model openai/gpt-4o-mini
     end
 
     if type -q opencode
@@ -296,10 +298,16 @@ $recent_titles"
 
         set prompt "$prompt
 
-Output format (required - do not deviate):
+Output format — STRICT:
 TITLE: <conventional commit title>
 BODY:
 <PR description>
+
+Output rules:
+- Emit ONLY the two sections above. No preamble (\"Here's the PR...\"), no closing remarks (\"Feel free to modify...\", \"Let me know if...\"), no markdown headers around TITLE/BODY.
+- Do NOT wrap the output in code fences.
+- BODY content may contain markdown; it is the literal PR description.
+- Stop immediately after the final line of the PR description.
 
 Scope rules: scope is optional. Only include a scope if the changes are clearly focused in one area AND recent PR titles in this repo use scopes. Infer the scope from changed file paths. Omit scope entirely if this repo doesn't use them or changes span multiple areas."
 
@@ -343,30 +351,44 @@ $truncated_diff
 ## Commit Messages
 $truncated_commit_messages"
 
-        set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
+        set -l oc_in (mktemp)
+        set -l oc_out (mktemp)
+        set -l oc_err (mktemp)
+        printf "%s" $prompt >$oc_in
+        _ai_run (_ai_model) $oc_in $oc_out $oc_err
+        set -l oc_status $status
+        set -l ai_output (string collect <$oc_out)
+        set -l err_text (string collect <$oc_err)
+        rm -f $oc_in $oc_err
 
-        if test -n "$ai_output"
-            # string match -r with a capture group returns two items: full match, then capture
-            set -l title_match (string match -r 'TITLE: (.+)' $ai_output)
-            set -l ai_title $title_match[2]
-
-            # Write to temp file so awk can extract the body with newlines intact.
-            # Fish splits strings on newlines into lists, which destroys formatting.
-            set -l tmp (mktemp)
-            printf "%s" $ai_output >$tmp
-            set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp | string collect)
-            rm -f $tmp
-
-            if test -n "$ai_title" -a -z "$custom_title"
-                set pr_title (string trim -- $ai_title)
-            end
-            if test -n "$ai_body"
-                set pr_body $ai_body
+        if test "$verbose" = true; and begin; test $oc_status -ne 0; or test -z "$ai_output"; end
+            echo "⚠ opencode exit=$oc_status, stdout_len="(string length -- $ai_output)", stderr_len="(string length -- $err_text)
+            if test -n "$err_text"
+                echo "⚠ opencode stderr:"
+                printf "%s\n" $err_text | string replace -r '^' '   '
             end
         end
 
+        if test -n "$ai_output"
+            set -l ai_title (_ai_extract_marker TITLE $oc_out | string collect)
+            set -l ai_body (_ai_extract_marker BODY $oc_out | string collect)
+
+            if test -n "$ai_title"; and test -z "$custom_title"
+                set pr_title (string trim -- $ai_title)
+            end
+            if test -n "$ai_body"
+                set ai_body (printf "%s" $ai_body | _ai_strip_trailer | string collect)
+                set pr_body (string trim -- $ai_body)
+            end
+        end
+        rm -f $oc_out
+
         if test -z "$pr_body"
             echo "⚠ OpenCode failed to generate output, will use --fill"
+            if test "$verbose" = true; and test -n "$ai_output"
+                echo "⚠ Raw ai_output (first 500 chars, no TITLE/BODY markers found):"
+                printf "%s\n" (string sub -l 500 -- $ai_output) | string replace -r '^' '   '
+            end
             set use_fill true
         end
     else
@@ -376,7 +398,7 @@ $truncated_commit_messages"
 
     # Fallback title from branch name if AI didn't produce one
     if test -z "$pr_title"
-        if test -n "$branch_type" -a -n "$branch_ticket"
+        if test -n "$branch_type"; and test -n "$branch_ticket"
             if test -n "$branch_desc"
                 set pr_title "$branch_type: $branch_ticket $branch_desc"
             else
