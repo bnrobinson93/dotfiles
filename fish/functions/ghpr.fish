@@ -160,8 +160,6 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         end
     end
 
-    echo "✓ Base branch: $base_branch"
-
     # Detect parent bookmark for stacked PRs (JJ only) — only when no custom base was given
     set -l comparison_base ""
     if test "$is_jj" = true
@@ -186,6 +184,8 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     else
         set comparison_base "$base_branch"
     end
+
+    echo "✓ Base branch: $base_branch"
 
     # Bail if a PR already exists for this bookmark — skip AI + gh create
     set -l existing_pr (gh pr list --head $current_branch --state open --json number,url --jq '.[0] // empty | "\(.number)\t\(.url)"' 2>/dev/null)
