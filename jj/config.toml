@@ -74,6 +74,8 @@ push = [
   "bash",
   "-c",
   """
+  # Format only my commits before pushing
+  jj fix --source 'trunk()..@ & mine() & mutable()'
 
   # Format only my commits before pushing
   #jj fix --source 'remote_bookmarks(remote=origin)..@ & mutable()'
