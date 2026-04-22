@@ -148,6 +148,7 @@ Modular Lua config split into 4 files:
   - `02-tools.fish` - Tool integrations (starship, atuin, zoxide, etc.)
   - `03-abbreviations.fish` - Abbreviations (better than aliases)
 - `functions/` - Auto-loaded functions (la, ll, rec, ignore, bookmark, etc.)
+- Persistent fish functions must live in repo path `fish/functions/`; do not create one-off files only in `~/.config/fish/functions`, because `install.sh` removes `~/.config/fish` before restowing.
 - **Setup**: Install fisher plugin manager, then `fisher install jorgebucaran/nvm.fish`
 - Integrations: Native syntax highlighting, autosuggestions, vi-mode, Atuin, Starship
 - **Performance**: 4-10x faster startup than zsh (~30-50ms vs ~200-500ms)

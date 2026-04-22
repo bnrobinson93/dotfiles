@@ -15,9 +15,9 @@ function _jj_workspace_jump --argument-names suffix
 
     set -l main_root (dirname $root)/$base
     set -l target_dir $main_root-$suffix
-    set -l git_dir "$main_root/.git"
     set -l has_git_dir false
     set -l supports_update_stale false
+    set -l git_dir "$main_root/.git"
 
     if test -e "$git_dir"
         set has_git_dir true
@@ -90,9 +90,7 @@ function _jj_workspace_jump --argument-names suffix
     else
         cd "$target_dir"
         or return 1
-        if test "$has_git_dir" = true
-            set -x GIT_DIR $git_dir
-        end
+        _jj_workspace_sync_git_env
         mise trust 2>/dev/null
     end
 end
