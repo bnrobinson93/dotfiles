@@ -1,13 +1,18 @@
-theme = TokyoNight Storm
+config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 background-blur-radius = 20
 
+# Font
 font-family = "Dank Mono Nerd Font Propo"
 font-style = Regular
 font-size = 16
 
+# Window
+confirm-close-surface=false
+resize-overlay = never
 gtk-single-instance = true
-window-padding-x = 0
-window-padding-y = 2
+window-theme = ghostty
+window-padding-x = 14
+window-padding-y = 14
 window-padding-balance = true
 gtk-toolbar-style = flat
 gtk-single-instance = true
@@ -25,4 +30,14 @@ window-save-state = always
 # Slowdown mouse scrolling
 mouse-scroll-multiplier = 0.95
 
+# Keyboard bindings
+keybind = shift+insert=paste_from_clipboard
+keybind = control+insert=copy_to_clipboard
+keybind = super+control+shift+alt+arrow_down=resize_split:down,100
+keybind = super+control+shift+alt+arrow_up=resize_split:up,100
+keybind = super+control+shift+alt+arrow_left=resize_split:left,100
+keybind = super+control+shift+alt+arrow_right=resize_split:right,100
 keybind = ctrl+shift+w=close_surface
+
+# Fix general slowness on hyprland (https://github.com/ghostty-org/ghostty/discussions/3224)
+async-backend = epoll
