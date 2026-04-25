@@ -74,8 +74,7 @@ push = [
   "bash",
   "-c",
   """
-
-  # Format only my commits before pushing
+  # Format all mutable commits since origin before pushing
   #jj fix --source 'remote_bookmarks(remote=origin)..@ & mutable()'
 
   # Run pre-commit hook if it exists
