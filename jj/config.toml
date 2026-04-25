@@ -55,8 +55,9 @@ push = [
   "bash",
   "-c",
   """
+
   # Format only my commits before pushing
-  jj fix --source 'trunk()..@ & mine() & mutable()'
+  #jj fix --source 'remote_bookmarks(remote=origin)..@ & mutable()'
 
   # Run pre-commit hook if it exists
   if [[ -f .husky/pre-commit ]]; then
@@ -153,8 +154,8 @@ patterns = [
   "glob:'**/*.tsx'",
   "glob:'**/*.json'",
   "glob:'**/*.md'",
-  "glob:'**/*.yaml'",
-  "glob:'**/*.yml'",
+  "glob:'**/values.yaml'",
+  "glob:'**/values/*.yaml'",
   "glob:'**/*.css'",
   "glob:'**/*.scss'",
   "glob:'**/*.html'",

@@ -7,7 +7,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l custom_base ""
     set -l custom_title ""
     
-    argparse 'd/draft' 'dry-run' 'b/base=' 't/title=' 'B/bookmark=' -- $argv
+    argparse 'd/draft' 'dry-run' 'B/base=' 't/title=' 'b/bookmark=' -- $argv
     or return 1
 
     if set -q _flag_draft
@@ -381,13 +381,11 @@ $truncated_commit_messages"
             case "" Y y
                 break
             case e E
-                if test "$use_fill" = true
-                    echo "Cannot edit when using --fill mode"
-                    continue
-                end
-                
                 set -l temp_file (mktemp)
-                printf "%s\n" $pr_body > $temp_file
+                printf "TITLE: %s\n\nBODY:\n" "$pr_title" >$temp_file
+                if test -n "$pr_body"
+                    printf "%s\n" "$pr_body" >>$temp_file
+                end
 
                 # Split to handle editors with args (e.g. "code --wait")
                 set -l editor_cmd
@@ -401,15 +399,42 @@ $truncated_commit_messages"
 
                 $editor_cmd -- $temp_file
 
-                set pr_body (cat $temp_file | string collect)
+                set -l edited_title (awk '
+                    /^TITLE:[[:space:]]*/ {
+                        sub(/^TITLE:[[:space:]]*/, "", $0)
+                        print
+                        exit
+                    }' $temp_file | string trim | string collect)
+
+                set -l edited_body (awk '
+                    /^BODY:[[:space:]]*$/ { found=1; next }
+                    found { print }' $temp_file | string collect)
+
                 rm $temp_file
-                
+
+                if test -n "$edited_title"
+                    set pr_title $edited_title
+                end
+
+                if test -n "$edited_body"
+                    set pr_body $edited_body
+                    set use_fill false
+                else
+                    set pr_body ""
+                    set use_fill true
+                end
+
                 # Show updated preview
                 echo ""
-                echo "Updated Body:"
-                echo "────────────────────────────────────────────────────"
-                printf "%s\n" $pr_body
-                echo "────────────────────────────────────────────────────"
+                echo "Updated Title: $pr_title"
+                if test "$use_fill" = true
+                    echo "Updated Body: (will use --fill, gh will open editor)"
+                else
+                    echo "Updated Body:"
+                    echo "────────────────────────────────────────────────────"
+                    printf "%s\n" $pr_body
+                    echo "────────────────────────────────────────────────────"
+                end
                 echo ""
             case '*'
                 echo "Cancelled."
