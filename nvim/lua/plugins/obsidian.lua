@@ -274,7 +274,7 @@ return {
             return os.date("%Y-%m-%d", tomorrow_ts)
           end,
           week = function()
-            return os.date("%Y-W%V", os.time())
+            return os.date("%G-W%V", os.time())
           end,
           year = function()
             return os.date("%Y", os.time())
