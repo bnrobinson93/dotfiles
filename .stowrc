@@ -14,3 +14,4 @@
 --ignore=resources
 --ignore=^\.env$
 --ignore=starship
+--ignore=hypr
