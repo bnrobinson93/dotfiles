@@ -273,6 +273,9 @@ return {
             local tomorrow_ts = os.time() + 86400
             return os.date("%Y-%m-%d", tomorrow_ts)
           end,
+          week = function()
+            return os.date("%G-W%V", os.time())
+          end,
           year = function()
             return os.date("%Y", os.time())
           end,
