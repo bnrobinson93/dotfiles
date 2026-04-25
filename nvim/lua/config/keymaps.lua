@@ -68,31 +68,35 @@ end, { desc = "Open selection in GitHub" })
 
 -- JJ stuff
 if not vim.g.vscode and JJ_exists() then
-  map("n", "<leader>jn", require("jj.cmd").new, { desc = "JJ new" })
-  map("n", "<leader>jj", require("jj.cmd").log, { desc = "JJ log" })
-  map("n", "<leader>jc", require("jj.cmd").commit, { desc = "JJ commit" })
-  map("n", "<leader>js", require("jj.picker").status, { desc = "JJ status" })
-  map("n", "<leader>jf", require("jj.picker").file_history, { desc = "JJ file history" })
-  map("n", "<leader>jd", require("jj.diff").open_vdiff, { desc = "JJ diff current buffer" })
+  local cmd = require("jj.cmd")
+  local picker = require("jj.picker")
+  local diff = require("jj.diff")
+  map("n", "<leader>jn", cmd.new, { desc = "JJ new" })
+  map("n", "<leader>jc", cmd.commit, { desc = "JJ commit" })
+  map("n", "<leader>js", picker.status, { desc = "JJ status" })
+  map("n", "<leader>jf", picker.file_history, { desc = "JJ file history" })
+  map("n", "<leader>jd", diff.open_vdiff, { desc = "JJ diff current buffer" })
+
+  map("n", "<leader>jj", function()
+    cmd.log({ summary = false })
+  end, { desc = "JJ log" })
 
   map("n", "<leader>jL", function()
-    require("jj.cmd").log({ revisions = "bases::@" })
+    cmd.log({ revisions = "bases::@" })
   end, { desc = "JJ log entire branch" })
 
   map("n", "<leader>jt", function()
-    local cmd = require("jj.cmd")
     cmd.j("tug")
-    cmd.log()
+    cmd.log({})
   end, { desc = "JJ tug" })
 
   map("n", "<leader>jT", function()
-    local cmd = require("jj.cmd")
     cmd.j("tug-")
-    cmd.log()
+    cmd.log({})
   end, { desc = "JJ tug-" })
 
   map("n", "<leader>jD", function()
-    require("jj.diff").show_revision({ rev = "@", left = "base", right = "@" })
+    diff.show_revision({ rev = "@", left = "base", right = "@" })
   end, { desc = "JJ diff revision against base" })
 end
 

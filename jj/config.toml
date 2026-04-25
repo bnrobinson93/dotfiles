@@ -23,10 +23,29 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'my_leaves' = 'heads(mine() & mutable())'
 'my_other_leaves' = 'my_leaves & my_other_bookmarks::'
 'my_bookmark_ranges' = 'mybranches::'
+'recent()' = 'committer_date(after:"1 month ago")'
+'feature_branches()' = "bookmarks() ~ (trunk() | main)"
+'current_feature_branch()' = "feature_branches() & ::@"
+'other_feature_branches()' = "feature_branches() & ~::@"
+'current_branch_history()' = "connected(main.. current_feature_branch()) | connected(main..@)"
+'other_branches_summary()' = "ancestors(other_feature_branches(), 4) | descendants(other_feature_branches())"
 
 [aliases]
+my_log = ["log", "-T", "my_default_log"]
+l = [
+  "log",
+  "-r",
+  "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(trunk() | main, 3) | @::, 30)",
+]
 s = ["status"]
-l = ["log", "--limit", "15"]
+retrunk = ["rebase", "-d", "trunk()"]
+lr = ["log", "-r", "recent()"]
+e = ["edit"]
+pull = ["git", "fetch"]
+r = ["rebase"]
+bc = ["bookmark", "create"]
+bc- = ["bookmark", "create", "-r @"]
+
 tug- = [
   "bookmark",
   "move",
@@ -78,7 +97,8 @@ push = [
 sign = true
 
 [ui]
-default-command = ["log"]
+pager = "cat"
+default-command = ["my_log"]
 diff-editor = "nvim"
 diff-formatter = ":git"
 merge-editor = "nvim"
@@ -111,11 +131,22 @@ merge-tool-edits-conflict-markers = true
 signature = "blue"
 unsigned = "cyan"
 empty = "red"
+tag = "red"
+change_id = "#fab387"
+"working_copy change_id" = "#b4befe"
+commit_id = "#a6e3a1"
+"working_copy commit_id" = "#a6e3a1"
+timestamp = "green"
+git_head = "#f9e2af"
+author = "#94e2d5"
+committer = "#94e2d5"
+"working_copy author" = "#94e2d5"
+"working_copy empty description placeholder" = "bright yellow"
+"node working_copy" = "bright green"
+"elided" = { fg = "#f2cdcd", italic = true }
 
-# "own" signs commits authored by you when modified; sign-on-push defers signing until push
 [signing]
 behavior = "own"
-# Point to the public key file instead of embedding the key
 key = "~/.ssh/id_ed25519_GitHubSigning.pub"
 backend = "ssh"
 
@@ -131,11 +162,11 @@ sign-on-push = true
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
-log = "my_default_log"
+log = "builtin_log_compact"                        # or builtin_log_online
 git_push_bookmark = '"temp/" ++ change_id.short()'
 
 [template-aliases]
-my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ truncate_end(30, description.first_line(), '…') ++ if(empty, label('empty','(empty)'), '') ++ ' ' ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ')') ++ ' ' ++ label('author', '<' ++ author.name() ++ '>') ++ ' ' ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
+my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ if(description, truncate_end(30, description.first_line(), '…') ++ ' ') ++ if(empty, label('empty','(empty) '), '') ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ') ') ++ label('author', '<' ++ author.name() ++ '> ') ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
