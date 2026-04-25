@@ -3,7 +3,10 @@ echo Installing programs...
 if type apt >/dev/null; then
   sudo apt install -y git zsh fish ripgrep tmux stow curl wget
 elif type pacman >/dev/null; then
-  sudo pacman -S git zsh fish ripgrep tmux stow curl wget
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget
+else
+  echo "Couldn't detect package manager"
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget\` manually and re-run this script."
 fi
 
 echo Ensuring we have the latest...
@@ -42,8 +45,8 @@ brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh
-pushd "$HOME/.dotfiles" || true
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
+pushd "$(dirnam "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
 rm -rf "$HOME/.config/{alacritty,fish,ghostty,git,kitty,nvim,mise,tmux,starship.toml}"
