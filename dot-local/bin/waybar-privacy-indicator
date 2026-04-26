@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cam=0
+mic=0
+
+fuser /dev/video* 2>/dev/null | grep -q . && cam=1
+pactl list source-outputs 2>/dev/null | grep -q "Corked: no" && mic=1
+
+if [ $cam -eq 1 ] && [ $mic -eq 1 ]; then
+  echo '{"text": "󰍬 󰕧", "class": "active", "tooltip": "Microphone + Camera in use"}'
+elif [ $cam -eq 1 ]; then
+  echo '{"text": "󰕧", "class": "active", "tooltip": "Camera in use"}'
+elif [ $mic -eq 1 ]; then
+  echo '{"text": "󰍬", "class": "active", "tooltip": "Microphone in use"}'
+else
+  echo '{"text": ""}'
+fi

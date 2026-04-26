@@ -2,9 +2,9 @@ config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 background-blur-radius = 20
 
 # Font
-font-family = "Dank Mono Nerd Font Propo"
+font-family = "DankMono Nerd Font"
 font-style = Regular
-font-size = 16
+font-size = 14
 
 # Window
 confirm-close-surface=false

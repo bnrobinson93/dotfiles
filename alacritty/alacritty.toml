@@ -19,7 +19,7 @@ history = 5000
 
 [font]
 size = 15
-normal.family = "Dank Mono Nerd Font Propo"
+normal.family = "DankMono Nerd Font"
 
 # Fixes tmux bg
 [colors]
