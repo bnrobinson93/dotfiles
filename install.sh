@@ -49,7 +49,9 @@ mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
 pushd "$(dirnam "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
-rm -rf "$HOME/.config/{alacritty,fish,ghostty,git,kitty,nvim,mise,tmux,starship.toml}"
+for path in alacritty fish ghostty git kitty nvim mise tmux starship.toml; do
+  rm -rf "$HOME/.config/$path"
+done
 
 echo Populating config and local scripts...
 stow -v2 .
