@@ -1,6 +1,9 @@
 
 [settings]
-idiomatic_version_file_enable_tools = ["node", "go"]
+idiomatic_version_file_enable_tools = ["node", "go", "ruby"]
+
+[settings.ruby]
+compile = false
 
 [tools]
 bun = "1.1"
@@ -8,5 +11,5 @@ fzf = "0.70"
 go = "1.23"
 node = "22.14"
 rust = "1.84"
-ruby = "3.2.3"
+ruby = "latest"
 usage = "latest"

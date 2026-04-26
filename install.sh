@@ -1,6 +1,13 @@
 #!/bin/bash
 echo Installing programs...
-sudo apt install -y git zsh fish ripgrep tmux stow curl wget
+if type apt >/dev/null; then
+  sudo apt install -y git zsh fish ripgrep tmux stow curl wget
+elif type pacman >/dev/null; then
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget
+else
+  echo "Couldn't detect package manager"
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget\` manually and re-run this script."
+fi
 
 echo Ensuring we have the latest...
 if type jj >/dev/null 2>&1; then
@@ -38,17 +45,22 @@ brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh
-pushd "$HOME/.dotfiles" || exit
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
+pushd "$(dirnam "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
-rm -rf "$HOME/.config/fish"
+for path in alacritty fish ghostty git kitty nvim mise tmux starship.toml; do
+  rm -rf "$HOME/.config/$path"
+done
 
 echo Populating config and local scripts...
 stow -v2 .
+stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux ai --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
+
+cp -pR hypr/* ~/.config/hypr/
 
 echo "Converting any PKCS#8 SSH keys to OpenSSH format..."
 if [[ -x "$HOME/.local/bin/ssh-convert-openssh.sh" ]]; then
@@ -102,7 +114,7 @@ if uname -a | grep -q "WSL"; then
   pip3 install --user neovim
 fi
 
-popd || exit
+popd || true
 
 # Authenticate with GitHub (required for SSH key upload and future gh usage)
 if [[ "$XDG_CURRENT_DESKTOP" != "" ]] || uname -s | grep -q Darwin; then
