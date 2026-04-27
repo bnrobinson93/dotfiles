@@ -36,3 +36,4 @@ zed/conversations/
 zed/prompts/
 fish/conf.d/fzf.fish
 fish/functions/*fzf*
+ghostty/auto/theme.ghostty
