@@ -263,11 +263,17 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         substitutions = {
+          content = function()
+            return ""
+          end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
           end,
           month = function()
             return os.date("%Y-%m", os.time())
+          end,
+          sprint = function()
+            return tostring(math.floor(tonumber(os.date("%V")) / 4))
           end,
           tomorrow = function()
             local tomorrow_ts = os.time() + 86400
