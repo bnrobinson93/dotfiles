@@ -1,3 +1,4 @@
+config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 background-blur-radius = 20
 
