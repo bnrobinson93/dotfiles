@@ -59,7 +59,7 @@ tooltip {
   padding: 4px;
 }
 
-tooltip label {
+#clock tooltip label {
   font-size: 14px;
 }
 

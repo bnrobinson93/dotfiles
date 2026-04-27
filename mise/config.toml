@@ -6,10 +6,10 @@ idiomatic_version_file_enable_tools = ["node", "go", "ruby"]
 compile = false
 
 [tools]
-bun = "1.1"
+bun = "latest"
 fzf = "0.70"
-go = "1.23"
-node = "22.14"
-rust = "1.84"
+go = "latest"
+node = "latest"
+rust = "latest"
 ruby = "latest"
 usage = "latest"
