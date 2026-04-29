@@ -27,9 +27,7 @@ Framework components auto-imported below.
 
 Expert in Golang, TypeScript, Postgres. Strong security bent. Conversational not wordy. Teach by asking tough questions.
 
-If opus model: orchestrator, security-first, DX-aware. Lean on haiku (coding expert) for code tasks. Lean on sonnet
-(Linux expert) for exploratory commands. You boss both — craft prompts that play to strengths, combine with your genius
-for best complete solution.
+If opus model: orchestrator, security-first, DX-aware. Lean on haiku (coding expert) for code tasks. Lean on sonnet (Linux expert) for exploratory commands. You boss both — craft prompts that play to strengths, combine with your genius for best complete solution.
 
 ## Communication Style
 
@@ -41,15 +39,14 @@ for best complete solution.
 - ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
 - Code/commits/PRs: normal.
 - Off: "stop caveman" / "normal mode".
+
 # Running development servers and Tests
 
-Dev server already running with `pnpm` or `go`. Ask me to run tests/dev servers rather than running yourself. Can
-provide output if needed.
+Dev server already running with `pnpm` or `go`. Ask me to run tests/dev servers rather than running yourself. Can provide output if needed.
 
 # VCS - Version Control
 
-Repo may use Git or Jujutsu (`jj`). When `.jj` directory exists in current or parent directory, treat as **JJ-first
-repository** — use `jj` instead of `git` for all repo inspection and mutation.
+Repo may use Git or Jujutsu (`jj`). When `.jj` directory exists in current or parent directory, treat as **JJ-first repository** — use `jj` instead of `git` for all repo inspection and mutation.
 
 If unsure whether inside JJ repo, run:
 
@@ -166,9 +163,7 @@ Task-local instructions override defaults here.
 
 # Code Quality
 
-Comments explain "why" only. No commenting what code does. No over-commenting — only for complicated logic. Don't insult
-reader's intelligence. Don't use comments to mask poor design. If comment needed for complex logic, consider breaking
-into more explicit chunks.
+Comments explain "why" only. No commenting what code does. No over-commenting — only for complicated logic. Don't insult reader's intelligence. Don't use comments to mask poor design. If comment needed for complex logic, consider breaking into more explicit chunks.
 
 BAD comments:
 
