@@ -1,21 +1,21 @@
+config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 config-file = ?"~/.config/omarchy/current/theme/ghostty.conf"
 background-blur-radius = 20
 
 # Font
-font-family = "Dank Mono Nerd Font Propo"
+font-family = "DankMono Nerd Font"
 font-style = Regular
-font-size = 16
+font-size = 14
 
 # Window
 confirm-close-surface=false
 resize-overlay = never
 gtk-single-instance = true
 window-theme = ghostty
-window-padding-x = 14
-window-padding-y = 14
+window-padding-x = 6
+window-padding-y = 6
 window-padding-balance = true
 gtk-toolbar-style = flat
-gtk-single-instance = true
 
 # Cursor styling
 cursor-style = "block"

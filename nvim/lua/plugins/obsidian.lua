@@ -1,4 +1,29 @@
 local vault_path = os.getenv("ZETTELKASTEN") or os.getenv("HOME") .. "/Documents/Vault"
+local sprint_anchor_date = { year = 2026, month = 4, day = 2 }
+local sprint_anchor_number = 4
+local sprint_duration_days = 28
+local sprint_overrides = {}
+
+local function in_date_range(now, range_start, range_end)
+  return now >= range_start and now <= range_end
+end
+
+local function current_sprint_number(now)
+  now = now or os.time()
+
+  for _, override in ipairs(sprint_overrides) do
+    local range_start = os.time(override.start)
+    local range_end = os.time(override.finish)
+    if in_date_range(now, range_start, range_end) then
+      return override.number
+    end
+  end
+
+  local anchor = os.time(sprint_anchor_date)
+  local days_since_anchor = math.floor((now - anchor) / 86400)
+  local sprint_offset = math.floor(days_since_anchor / sprint_duration_days)
+  return sprint_anchor_number + sprint_offset
+end
 
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
@@ -263,11 +288,17 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         substitutions = {
+          content = function()
+            return ""
+          end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
           end,
           month = function()
             return os.date("%Y-%m", os.time())
+          end,
+          sprint = function()
+            return tostring(current_sprint_number())
           end,
           tomorrow = function()
             local tomorrow_ts = os.time() + 86400

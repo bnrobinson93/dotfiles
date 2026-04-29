@@ -44,7 +44,7 @@ e = ["edit"]
 pull = ["git", "fetch"]
 r = ["rebase"]
 bc = ["bookmark", "create"]
-bc- = ["bookmark", "create", "-r @"]
+bc- = ["bookmark", "create", "-r @-"]
 
 tug- = [
   "bookmark",

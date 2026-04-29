@@ -4,6 +4,39 @@ return {
     optional = true,
     event = "LazyFile",
     opts = function()
+      local markdownlint_config_files = {
+        ".markdownlint.json",
+        ".markdownlint.jsonc",
+        ".markdownlint.yaml",
+        ".markdownlint.yml",
+        ".markdownlint-cli2.jsonc",
+        ".markdownlint-cli2.yaml",
+        ".markdownlint-cli2.yml",
+      }
+
+      local function markdownlint_args()
+        return function(_, ctx)
+          local config_root = vim.fs.root(ctx.dirname, function(name)
+            return vim.tbl_contains(markdownlint_config_files, name)
+          end)
+
+          if config_root then
+            for _, name in ipairs(markdownlint_config_files) do
+              local candidate = vim.fs.joinpath(config_root, name)
+              if vim.uv.fs_stat(candidate) then
+                return { "--config", candidate, "--" }
+              end
+            end
+          end
+
+          return {
+            "--config",
+            vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
+            "--",
+          }
+        end
+      end
+
       return {
         -- Event to trigger linters
         events = { "BufWritePost", "BufReadPost", "InsertLeave" },
@@ -17,11 +50,7 @@ return {
         },
         linters = {
           ["markdownlint-cli2"] = {
-            args = {
-              "--config",
-              vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
-              "--",
-            },
+            args = markdownlint_args(),
           },
         },
       }

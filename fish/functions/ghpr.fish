@@ -6,12 +6,12 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l dry_run false
     set -l custom_base ""
     set -l custom_title ""
-    
-    argparse 'd/draft' 'dry-run' 'B/base=' 't/title=' 'b/bookmark=' -- $argv
+
+    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' -- $argv
     or return 1
 
     if set -q _flag_draft
-        set draft_flag "--draft"
+        set draft_flag --draft
     end
 
     if set -q _flag_dry_run
@@ -30,13 +30,13 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     if set -q _flag_bookmark
         set target_bookmark $_flag_bookmark
     end
-    
+
     # Check dependencies
     if not type -q gh
         echo "Error: gh (GitHub CLI) not installed"
         return 1
     end
-    
+
     # Detect VCS type using proper checks
     set -l is_jj false
     if type -q jj; and jj workspace root >/dev/null 2>&1
@@ -48,7 +48,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         echo "Error: Not in a git or jj repository"
         return 1
     end
-    
+
     # Get current branch/bookmark name
     set -l current_branch ""
     if test -n "$target_bookmark"
@@ -94,7 +94,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             return 1
         end
     end
-    
+
     # Determine base branch
     set -l base_branch ""
     if test -n "$custom_base"
@@ -103,27 +103,26 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         # Extract base from trunk() - results in "main@origin" or "master@origin", extract just the branch name
         set base_branch (jj log -r 'trunk()' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | string replace -r '@.*$' '' | head -n1)
         if test -z "$base_branch"
-            set base_branch "main"
+            set base_branch main
         end
     else
         # Git: try main, then master
         if git show-ref --verify --quiet refs/heads/main
-            set base_branch "main"
+            set base_branch main
         else if git show-ref --verify --quiet refs/heads/master
-            set base_branch "master"
+            set base_branch master
         else
             # Use repo default
             set base_branch (git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
             if test -z "$base_branch"
-                set base_branch "main" # final fallback
+                set base_branch main # final fallback
             end
         end
     end
-    
-    echo "✓ Base branch: $base_branch"
 
     # Detect parent bookmark for stacked PRs (JJ only)
     set -l comparison_base ""
+    set -l is_stacked_pr false
     if test "$is_jj" = true
         # ancestors() excluding the bookmark commit itself gives us the parent layer
         set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
@@ -136,12 +135,17 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
             set comparison_base "$parent_bookmark"
             set base_branch "$parent_bookmark"
+            set is_stacked_pr true
             echo "✓ Stacked PR: base and comparison set to parent bookmark '$parent_bookmark'"
         else
             set comparison_base "trunk()"
         end
     else
         set comparison_base "$base_branch"
+    end
+
+    if test "$is_stacked_pr" = false
+        echo "✓ Base branch: $base_branch"
     end
 
     # Extract raw branch context for AI prompt - type, ticket, and description hint
@@ -177,7 +181,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set commit_messages (git log "$base_branch"..HEAD --pretty=format:"%s%n%b" 2>/dev/null | string collect)
         set changed_files (git diff "$base_branch"...HEAD --name-only 2>/dev/null)
     end
-    
+
     if test -z "$diff_content"
         if test "$is_jj" = true
             echo "⚠ Warning: No changes detected between '$current_branch' and '$comparison_base'"
@@ -185,7 +189,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             echo "⚠ Warning: No changes detected between current branch and $base_branch"
         end
     end
-    
+
     # Check for PR template
     set -l template_path ""
     set -l template_content ""
@@ -196,7 +200,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             break
         end
     end
-    
+
     # Generate PR title and body via AI
     set -l pr_title ""
     set -l pr_body ""
@@ -304,7 +308,7 @@ $truncated_commit_messages"
             # Write to temp file so awk can extract the body with newlines intact.
             # Fish splits strings on newlines into lists, which destroys formatting.
             set -l tmp (mktemp)
-            printf "%s" $ai_output > $tmp
+            printf "%s" $ai_output >$tmp
             set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp | string collect)
             rm -f $tmp
 
@@ -338,7 +342,7 @@ $truncated_commit_messages"
         end
         echo "⚠ Using fallback title: $pr_title"
     end
-    
+
     # Validation hold - show preview
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -347,15 +351,15 @@ $truncated_commit_messages"
     echo ""
     echo "Title: $pr_title"
     echo "Base:  $base_branch"
-    
+
     echo "Head:  $current_branch"
-    
+
     if test -n "$draft_flag"
         echo "Draft: Yes"
     end
-    
+
     echo ""
-    
+
     if test "$use_fill" = true
         echo "Body: (will use --fill, gh will open editor)"
     else
@@ -364,19 +368,19 @@ $truncated_commit_messages"
         printf "%s\n" $pr_body
         echo "────────────────────────────────────────────────────"
     end
-    
+
     echo ""
-    
+
     # Dry run exits here
     if test "$dry_run" = true
         echo "Dry run - no PR created"
         return 0
     end
-    
+
     # Prompt for confirmation with edit option
     while true
         read -P "Create this PR? [Y/n/e(dit)]: " -l confirm
-        
+
         switch $confirm
             case "" Y y
                 break
@@ -441,7 +445,7 @@ $truncated_commit_messages"
                 return 0
         end
     end
-    
+
     # Create PR
     echo ""
     echo "✓ Creating PR..."
@@ -449,7 +453,7 @@ $truncated_commit_messages"
     set -l body_file ""
     if test "$use_fill" = false
         set body_file (mktemp)
-        printf "%s\n" $pr_body > $body_file
+        printf "%s\n" $pr_body >$body_file
     end
 
     set -l gh_status 0
