@@ -122,6 +122,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
 
     # Detect parent bookmark for stacked PRs (JJ only)
     set -l comparison_base ""
+    set -l is_stacked_pr false
     if test "$is_jj" = true
         # ancestors() excluding the bookmark commit itself gives us the parent layer
         set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
@@ -134,6 +135,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
             set comparison_base "$parent_bookmark"
             set base_branch "$parent_bookmark"
+            set is_stacked_pr true
             echo "✓ Stacked PR: base and comparison set to parent bookmark '$parent_bookmark'"
         else
             set comparison_base "trunk()"
@@ -142,7 +144,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set comparison_base "$base_branch"
     end
 
-    if test -z "$comparison_base"
+    if test "$is_stacked_pr" = false
         echo "✓ Base branch: $base_branch"
     end
 
