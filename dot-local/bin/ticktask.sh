@@ -22,7 +22,9 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-task_title=$(echo "$@" | sed 's/\\/\\\\/g; s/"/\\"/g')
+json_escape() { sed 's/\\/\\\\/g; s/"/\\"/g'; }
+
+task_title=$(echo "$@" | json_escape)
 
 if [ ! -f "$ACCESS_TOKEN_FILE" ]; then
   if [ ! -f "$CONFIG_FILE" ]; then
@@ -30,9 +32,7 @@ if [ ! -f "$ACCESS_TOKEN_FILE" ]; then
       echo "Found 1Password CLI at $ONE_PASSWORD_BIN. Fetching credentials..."
       credentials="$($ONE_PASSWORD_BIN item get 'TickTick Access Token' --reveal --format json |
         jq -r '.fields[] | "CLIENT_ID=\"\(select(.label=="username").value)\"; export CLIENT_ID", "CLIENT_SECRET=\"\(select(.label=="credential").value)\"; export CLIENT_SECRET"')"
-      for cred in "$credentials"; do
-        eval "${cred}"
-      done
+      eval "$credentials"
     else
       echo "Please create config file: $CONFIG_FILE"
       exit 1
@@ -53,7 +53,7 @@ else
 
   echo "Opening browser"
   user_auth_url=$(curl -ILsS -w "%{url_effective}\n" "$auth_url" | tail -n1)
-  xdg-open $user_auth_url 2>/dev/null
+  xdg-open "$user_auth_url" 2>/dev/null
 
   read -ep "Paste url you've been redirected: " url_with_code
   code=$(echo -n $url_with_code | tail -c +$(($URL_LEN + 7)) | head -c 6)
@@ -61,7 +61,7 @@ else
 
   payload_get_access_token="grant_type=authorization_code&code=$code&redirect_uri=$REDIRECT_URL"
   resp_get_access_token=$(curl -s --header "Content-Type: application/x-www-form-urlencoded" \
-    -u $CLIENT_ID:$CLIENT_SECRET \
+    -u "$CLIENT_ID:$CLIENT_SECRET" \
     --request POST \
     --data "$payload_get_access_token" \
     https://ticktick.com/oauth/token)
@@ -75,13 +75,6 @@ else
     echo "Bad response for getting access_token: $resp_get_access_token"
     exit 2
   fi
-fi
-
-# getting task description
-if [ "$(declare -F cmd_get_description)" ]; then
-  desc=$(cmd_get_description | sed 's/\\/\\\\/g; s/"/\\"/g' |
-    awk '{printf "%s\\n", $0}')
-  field_content=', "content": "'"$desc"'"'
 fi
 
 # parse priority: !high = 5, !medium = 3, !low = 1
