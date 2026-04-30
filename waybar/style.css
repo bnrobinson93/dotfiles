@@ -71,44 +71,37 @@ tooltip {
   margin-left: 8.75px;
 }
 
+#custom-ticktick,
+#custom-ticktick-spacer {
+  min-width: 32px;
+}
+
+#custom-ticktick-spacer {
+  color: transparent;
+}
+
 .hidden {
   opacity: 0;
 }
 
 #custom-screenrecording-indicator,
 #custom-idle-indicator,
-#custom-notification-silencing-indicator {
+#custom-notification-silencing-indicator,
+#custom-privacy-indicator,
+#custom-voxtype {
   min-width: 12px;
-  margin-left: 5px;
-  margin-right: 0;
-  font-size: 10px;
-  padding-bottom: 1px;
+  margin: 0 7.5px;
 }
 
-#custom-screenrecording-indicator.active {
-  color: #a55555;
-}
-
+#custom-screenrecording-indicator.active,
 #custom-idle-indicator.active,
-#custom-notification-silencing-indicator.active {
-  color: #a55555;
-}
-
-#custom-privacy-indicator {
-  min-width: 18px;
-  margin-left: 5px;
-  margin-right: 3px;
-  font-size: 10px;
-  padding-bottom: 1px;
-}
-
+#custom-notification-silencing-indicator.active,
 #custom-privacy-indicator.active {
   color: #a55555;
 }
 
-#custom-voxtype {
-  min-width: 12px;
-  margin: 0 0 0 7.5px;
+#custom-voxtype.recording {
+  color: #a55555;
 }
 
 #custom-voxtype.recording {
