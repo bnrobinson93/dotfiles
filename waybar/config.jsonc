@@ -8,7 +8,7 @@
   "modules-center": [
     "custom/ticktick",
     "clock",
-    "custom/ticktick-spacer",
+    "custom/ticktick-spacer"
   ],
   "modules-right": ["group/tray-expander", "bluetooth", "network", "pulseaudio", "cpu", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator", "custom/privacy-indicator", "custom/update", "battery"],
   "hyprland/workspaces": {
@@ -43,12 +43,13 @@
     "interval": 300,
     "signal": 11,
     "on-click": "ticktick-add-launch",
-    "tooltip": true,
+    "on-click-right": "omarchy-launch-or-focus ticktick",
+    "tooltip": true
   },
 
   "custom/ticktick-spacer": {
     "format": " ",
-    "tooltip": false,
+    "tooltip": false
   },
 
   "custom/omarchy": {
@@ -126,6 +127,7 @@
     "interval": 5,
     "on-click": "omarchy-menu power",
     "states": {
+      "full": 100,
       "warning": 20,
       "critical": 10
     }
