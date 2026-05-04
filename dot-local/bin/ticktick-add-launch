@@ -1,0 +1,5 @@
+#!/bin/bash
+task=$(walker --dmenu --inputonly -e --width 644 --height 60 --placeholder "new task  ·  *friday  ·  !high  ·  ~project  ·  #tag")
+[ -n "$task" ] || exit 0
+ticktask.sh "$task"
+pkill -RTMIN+11 waybar

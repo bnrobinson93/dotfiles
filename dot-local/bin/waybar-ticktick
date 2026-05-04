@@ -1,0 +1,49 @@
+#!/bin/bash
+
+ACCESS_TOKEN_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/token"
+
+if [ ! -f "$ACCESS_TOKEN_FILE" ]; then
+  printf '{"text":"","tooltip":"TickTick: run ticktask.sh first to authenticate"}'
+  exit 0
+fi
+
+access_token=$(<"$ACCESS_TOKEN_FILE")
+today=$(date +%Y-%m-%d)
+
+projects=$(curl -sf \
+  --header "Authorization: Bearer $access_token" \
+  https://api.ticktick.com/open/v1/project)
+
+if [ $? -ne 0 ] || [ -z "$projects" ]; then
+  printf '{"text":"","tooltip":"TickTick: API error"}'
+  exit 0
+fi
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+
+fetch_project() {
+  local id="$1"
+  curl -sf \
+    --header "Authorization: Bearer $access_token" \
+    "https://api.ticktick.com/open/v1/project/$id/data" \
+    -o "$tmpdir/$id"
+}
+
+while IFS= read -r id; do
+  fetch_project "$id" &
+done < <({ printf '%s' "$projects" | jq -r '.[].id'; printf 'inbox\n'; })
+wait
+
+count=0
+for f in "$tmpdir"/*; do
+  [ -f "$f" ] || continue
+  n=$(jq --arg today "$today" \
+    '[.tasks[] | select(.dueDate != null and (.dueDate | startswith($today)) and .status == 0)] | length' \
+    "$f" 2>/dev/null)
+  [ -n "$n" ] && count=$((count + n))
+done
+
+tooltip="$count tasks due today"
+[ "$count" -eq 0 ] && tooltip="No tasks due today"
+printf '{"text":"%d 󰄲","tooltip":"%s"}' "$count" "$tooltip"
