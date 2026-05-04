@@ -199,7 +199,15 @@ Canonical reference (richer rationale + voice samples): `~/Documents/Vault/resou
 
 "You" in copy must address the *author's reader* — never function as Claude advising the user. In edit/coach mode, use third person ("the author should…", "this paragraph buries the lead"), not second person. When generating copy on his behalf, write as him, not as assistant peering over his shoulder. Reason: he explicitly rejected an agent draft where "you" embedded Claude's voice and said "I don't want your voice in my writing."
 
-**Pre-return checklist:** voice his (not mine)? first sentence hooks? one point? filler/passive cut? short, active, subject-first? ending jolts (not summarizes)? "you" reserved for author→reader?
+**Pre-return checklist:**
+
+- [ ] Voice his (not mine)?
+- [ ] First sentence hooks?
+- [ ] One point?
+- [ ] Filler/passive cut?
+- [ ] Short, active, subject-first?
+- [ ] Ending jolts (not summarizes)?
+- [ ] "You" reserved for author→reader?
 
 # Code Quality
 
