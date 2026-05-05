@@ -95,6 +95,26 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         end
     end
 
+    # Check for an existing open PR before generating anything with AI
+    set -l existing_pr_number ""
+    set -l existing_pr_title ""
+    set -l existing_pr_url ""
+    set -l forced_dry_run false
+    set -l existing_pr_info (gh pr list --head "$current_branch" --state open --limit 1 \
+        --json number,title,url --jq '.[0] | [.number, .title, .url] | @tsv' 2>/dev/null | string collect)
+
+    if test -n "$existing_pr_info" -a "$existing_pr_info" != "null"
+        set -l existing_pr_fields (string split \t -- $existing_pr_info)
+        set existing_pr_number $existing_pr_fields[1]
+        set existing_pr_title $existing_pr_fields[2]
+        set existing_pr_url $existing_pr_fields[3]
+        set dry_run true
+        set forced_dry_run true
+
+        echo "✓ Existing PR found: #$existing_pr_number $existing_pr_url"
+        echo "✓ Switching to --dry-run and skipping AI generation"
+    end
+
     # Determine base branch
     set -l base_branch ""
     if test -n "$custom_base"
@@ -210,7 +230,12 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set pr_title $custom_title
     end
 
-    if type -q opencode
+    if test "$forced_dry_run" = true
+        if test -z "$pr_title" -a -n "$existing_pr_title"
+            set pr_title $existing_pr_title
+        end
+        set pr_body "Existing PR: $existing_pr_url"
+    else if type -q opencode
         echo "✓ Generating PR title and body with OpenCode..."
 
         set -l prompt "Generate a GitHub PR title and description for these changes.
@@ -373,7 +398,11 @@ $truncated_commit_messages"
 
     # Dry run exits here
     if test "$dry_run" = true
+        if test "$forced_dry_run" = true
+            echo "Dry run - existing PR already open: #$existing_pr_number $existing_pr_url"
+        else
         echo "Dry run - no PR created"
+        end
         return 0
     end
 
