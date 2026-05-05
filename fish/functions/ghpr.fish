@@ -6,8 +6,10 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l dry_run false
     set -l custom_base ""
     set -l custom_title ""
+    set -l target_bookmark ""
+    set -l target_revision ""
 
-    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' -- $argv
+    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' -- $argv
     or return 1
 
     if set -q _flag_draft
@@ -26,9 +28,17 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set custom_title $_flag_title
     end
 
-    set -l target_bookmark ""
     if set -q _flag_bookmark
         set target_bookmark $_flag_bookmark
+    end
+
+    if set -q _flag_revision
+        set target_revision $_flag_revision
+    end
+
+    if test -n "$target_bookmark" -a -n "$target_revision"
+        echo "Error: Use either -b/--bookmark or -r/--revision, not both"
+        return 1
     end
 
     # Check dependencies
@@ -54,9 +64,24 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     if test -n "$target_bookmark"
         set current_branch $target_bookmark
     else if test "$is_jj" = true
-        # Strip trailing * (indicates unpushed local changes in JJ output)
-        set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
+        if test -n "$target_revision"
+            set current_branch (jj log -r "$target_revision" -T 'local_bookmarks.map(|b| b.name()).join("\n")' --no-graph 2>/dev/null | head -n1 | string trim)
+
+            if test -z "$current_branch"
+                echo "Error: Revision '$target_revision' has no local bookmark"
+                echo "  Pass -b <bookmark> or create one with: jj bookmark create <name> -r '$target_revision'"
+                return 1
+            end
+        else
+            # Strip trailing * (indicates unpushed local changes in JJ output)
+            set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
+        end
     else
+        if test -n "$target_revision"
+            echo "Error: -r/--revision only works in jj repositories"
+            return 1
+        end
+
         set current_branch (git branch --show-current 2>/dev/null)
     end
 
@@ -101,17 +126,28 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l existing_pr_url ""
     set -l forced_dry_run false
     set -l existing_pr_info (gh pr list --head "$current_branch" --state open --limit 1 \
-        --json number,title,url --jq '.[0] | [.number, .title, .url] | @tsv' 2>/dev/null | string collect)
+        --json number,title,url --jq '.[0] | [(.number | tostring), (.title // ""), (.url // "")] | join("\n")' \
+        2>/dev/null | string collect)
 
     if test -n "$existing_pr_info" -a "$existing_pr_info" != "null"
-        set -l existing_pr_fields (string split \t -- $existing_pr_info)
+        set -l existing_pr_fields (string split \n -- $existing_pr_info)
         set existing_pr_number $existing_pr_fields[1]
         set existing_pr_title $existing_pr_fields[2]
         set existing_pr_url $existing_pr_fields[3]
+    end
+
+    if test -n "$existing_pr_number"
         set dry_run true
         set forced_dry_run true
 
-        echo "✓ Existing PR found: #$existing_pr_number $existing_pr_url"
+        set -l existing_pr_summary "#$existing_pr_number"
+        if test -n "$existing_pr_url"
+            set existing_pr_summary "$existing_pr_summary $existing_pr_url"
+        else if test -n "$existing_pr_title"
+            set existing_pr_summary "$existing_pr_summary $existing_pr_title"
+        end
+
+        echo "✓ Existing PR found: $existing_pr_summary"
         echo "✓ Switching to --dry-run and skipping AI generation"
     end
 
@@ -234,7 +270,11 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         if test -z "$pr_title" -a -n "$existing_pr_title"
             set pr_title $existing_pr_title
         end
-        set pr_body "Existing PR: $existing_pr_url"
+        set pr_body "Existing PR: #$existing_pr_number"
+        if test -n "$existing_pr_url"
+            set pr_body "$pr_body
+$existing_pr_url"
+        end
     else if type -q opencode
         echo "✓ Generating PR title and body with OpenCode..."
 
@@ -399,7 +439,13 @@ $truncated_commit_messages"
     # Dry run exits here
     if test "$dry_run" = true
         if test "$forced_dry_run" = true
-            echo "Dry run - existing PR already open: #$existing_pr_number $existing_pr_url"
+            set -l dry_run_message "Dry run - existing PR already open: #$existing_pr_number"
+            if test -n "$existing_pr_url"
+                set dry_run_message "$dry_run_message $existing_pr_url"
+            else if test -n "$existing_pr_title"
+                set dry_run_message "$dry_run_message $existing_pr_title"
+            end
+            echo $dry_run_message
         else
         echo "Dry run - no PR created"
         end
@@ -520,3 +566,31 @@ $truncated_commit_messages"
         return 1
     end
 end
+
+function __ghpr_in_jj_repo
+    type -q jj; and jj workspace root >/dev/null 2>&1
+end
+
+function __ghpr_bookmark_names
+    if not __ghpr_in_jj_repo
+        return
+    end
+
+    jj bookmark list 2>/dev/null | string replace -r ':.*$' ''
+end
+
+function __ghpr_recent_revisions
+    if not __ghpr_in_jj_repo
+        return
+    end
+
+    jj log -r 'recent()' -T 'change_id.shortest(8) ++ "\t" ++ description.first_line() ++ "\n"' --no-graph 2>/dev/null | head -n 20
+end
+
+complete -c ghpr -f
+complete -c ghpr -s d -l draft -d "Create draft PR"
+complete -c ghpr -l dry-run -d "Preview PR without creating it"
+complete -c ghpr -s B -l base -d "Override base branch" -r
+complete -c ghpr -s t -l title -d "Override PR title" -r
+complete -c ghpr -s b -l bookmark -x -d "Use JJ bookmark" -a '(__ghpr_bookmark_names)'
+complete -c ghpr -s r -l revision -x -d "Resolve bookmark from JJ revision" -a '(__ghpr_recent_revisions)'
