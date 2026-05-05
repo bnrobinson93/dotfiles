@@ -6,8 +6,10 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l dry_run false
     set -l custom_base ""
     set -l custom_title ""
+    set -l target_bookmark ""
+    set -l target_revision ""
 
-    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' -- $argv
+    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' -- $argv
     or return 1
 
     if set -q _flag_draft
@@ -26,9 +28,17 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set custom_title $_flag_title
     end
 
-    set -l target_bookmark ""
     if set -q _flag_bookmark
         set target_bookmark $_flag_bookmark
+    end
+
+    if set -q _flag_revision
+        set target_revision $_flag_revision
+    end
+
+    if test -n "$target_bookmark" -a -n "$target_revision"
+        echo "Error: Use either -b/--bookmark or -r/--revision, not both"
+        return 1
     end
 
     # Check dependencies
@@ -54,9 +64,37 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     if test -n "$target_bookmark"
         set current_branch $target_bookmark
     else if test "$is_jj" = true
-        # Strip trailing * (indicates unpushed local changes in JJ output)
-        set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
+        if test -n "$target_revision"
+            if not jj log -r "$target_revision" -T 'commit_id.short()' --no-graph >/dev/null 2>&1
+                echo "Error: Revision '$target_revision' not found"
+                return 1
+            end
+
+            set -l revision_bookmarks (jj log -r "$target_revision" -T 'local_bookmarks.map(|b| b.name()).join("\n")' --no-graph 2>/dev/null | string split '\n' | string trim | string match -rv '^$')
+
+            if test (count $revision_bookmarks) -gt 1
+                echo "Error: Revision '$target_revision' has multiple local bookmarks"
+                echo "  Use -b/--bookmark with one of: "(string join ", " $revision_bookmarks)
+                return 1
+            end
+
+            if test (count $revision_bookmarks) -eq 0
+                echo "Error: Revision '$target_revision' has no local bookmark"
+                echo "  Pass -b <bookmark> or create one with: jj bookmark create <name> -r '$target_revision'"
+                return 1
+            end
+
+            set current_branch $revision_bookmarks[1]
+        else
+            # Strip trailing * (indicates unpushed local changes in JJ output)
+            set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
+        end
     else
+        if test -n "$target_revision"
+            echo "Error: -r/--revision only works in jj repositories"
+            return 1
+        end
+
         set current_branch (git branch --show-current 2>/dev/null)
     end
 
@@ -70,6 +108,22 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     end
 
     echo "✓ Current "(test "$is_jj" = true; and echo "bookmark"; or echo "branch")": $current_branch"
+
+    set -l current_repo ""
+    set -l target_repo ""
+    set -l current_repo_owner ""
+    set -l pr_head_selector $current_branch
+    set -l repo_info (gh repo view --json nameWithOwner,owner,parent --jq '[.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login] | @tsv' 2>/dev/null | string trim)
+    if test -n "$repo_info"
+        set -l repo_fields (string split \t -- $repo_info)
+        set current_repo $repo_fields[1]
+        set target_repo $repo_fields[2]
+        set current_repo_owner $repo_fields[3]
+
+        if test -n "$current_repo_owner" -a "$target_repo" != "$current_repo"
+            set pr_head_selector "$current_repo_owner:$current_branch"
+        end
+    end
 
     # Ensure changes are pushed before creating a PR
     if test "$is_jj" = true
@@ -100,18 +154,32 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l existing_pr_title ""
     set -l existing_pr_url ""
     set -l forced_dry_run false
-    set -l existing_pr_info (gh pr list --head "$current_branch" --state open --limit 1 \
-        --json number,title,url --jq '.[0] | [.number, .title, .url] | @tsv' 2>/dev/null | string collect)
+    set -l existing_pr_args pr list --head "$pr_head_selector" --state open --limit 1 \
+        --json number,title,url --jq '.[0] | [(.number | tostring), (.title // ""), (.url // "")] | join("\n")'
+    if test -n "$target_repo"
+        set existing_pr_args $existing_pr_args --repo $target_repo
+    end
+    set -l existing_pr_info (gh $existing_pr_args 2>/dev/null | string collect)
 
     if test -n "$existing_pr_info" -a "$existing_pr_info" != "null"
-        set -l existing_pr_fields (string split \t -- $existing_pr_info)
+        set -l existing_pr_fields (string split \n -- $existing_pr_info)
         set existing_pr_number $existing_pr_fields[1]
         set existing_pr_title $existing_pr_fields[2]
         set existing_pr_url $existing_pr_fields[3]
+    end
+
+    if test -n "$existing_pr_number"
         set dry_run true
         set forced_dry_run true
 
-        echo "✓ Existing PR found: #$existing_pr_number $existing_pr_url"
+        set -l existing_pr_summary "#$existing_pr_number"
+        if test -n "$existing_pr_url"
+            set existing_pr_summary "$existing_pr_summary $existing_pr_url"
+        else if test -n "$existing_pr_title"
+            set existing_pr_summary "$existing_pr_summary $existing_pr_title"
+        end
+
+        echo "✓ Existing PR found: $existing_pr_summary"
         echo "✓ Switching to --dry-run and skipping AI generation"
     end
 
@@ -234,7 +302,11 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         if test -z "$pr_title" -a -n "$existing_pr_title"
             set pr_title $existing_pr_title
         end
-        set pr_body "Existing PR: $existing_pr_url"
+        set pr_body "Existing PR: #$existing_pr_number"
+        if test -n "$existing_pr_url"
+            set pr_body "$pr_body
+$existing_pr_url"
+        end
     else if type -q opencode
         echo "✓ Generating PR title and body with OpenCode..."
 
@@ -266,7 +338,11 @@ $changed_files_str"
         end
 
         # Recent PR titles show this repo's scope conventions (or lack thereof)
-        set -l recent_titles (gh pr list --limit 5 --json title --jq '.[].title' 2>/dev/null | string collect)
+        set -l recent_titles_args pr list --limit 5 --json title --jq '.[].title'
+        if test -n "$target_repo"
+            set recent_titles_args $recent_titles_args --repo $target_repo
+        end
+        set -l recent_titles (gh $recent_titles_args 2>/dev/null | string collect)
         if test -n "$recent_titles"
             set prompt "$prompt
 
@@ -399,9 +475,15 @@ $truncated_commit_messages"
     # Dry run exits here
     if test "$dry_run" = true
         if test "$forced_dry_run" = true
-            echo "Dry run - existing PR already open: #$existing_pr_number $existing_pr_url"
+            set -l dry_run_message "Dry run - existing PR already open: #$existing_pr_number"
+            if test -n "$existing_pr_url"
+                set dry_run_message "$dry_run_message $existing_pr_url"
+            else if test -n "$existing_pr_title"
+                set dry_run_message "$dry_run_message $existing_pr_title"
+            end
+            echo $dry_run_message
         else
-        echo "Dry run - no PR created"
+            echo "Dry run - no PR created"
         end
         return 0
     end
@@ -489,11 +571,14 @@ $truncated_commit_messages"
 
     # Build gh args as a list so empty draft_flag doesn't sneak in as a blank argument
     set -l gh_args pr create --base $base_branch --title "$pr_title"
+    if test -n "$target_repo"
+        set gh_args $gh_args --repo $target_repo
+    end
 
     # JJ doesn't update git HEAD to the current bookmark, so gh can't detect the branch
     # automatically - we must pass -H explicitly with the closest bookmark name
-    if test "$is_jj" = true
-        set gh_args $gh_args -H $current_branch
+    if test "$is_jj" = true -o "$pr_head_selector" != "$current_branch"
+        set gh_args $gh_args -H $pr_head_selector
     end
 
     if test "$use_fill" = true
