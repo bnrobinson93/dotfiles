@@ -1,12 +1,12 @@
 #!/bin/bash
 echo Installing programs...
 if type apt >/dev/null; then
-  sudo apt install -y git zsh fish ripgrep tmux stow curl wget
+  sudo apt install -y git zsh fish ripgrep tmux stow curl wget pipx
 elif type pacman >/dev/null; then
-  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget python-pipx
 else
   echo "Couldn't detect package manager"
-  echo "Please install \`git zsh fish ripgrep tmux stow curl wget\` manually and re-run this script."
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget pipx\` manually and re-run this script."
 fi
 
 echo Ensuring we have the latest...
@@ -40,24 +40,108 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise gh pipx dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
-pushd "$(dirnam "$0")" || exit
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.claude ~/.codex ~/.config/opencode
+pushd "$(dirname -- "$0")" || exit
+
+find_superclaude_bin() {
+  if command -v superclaude >/dev/null 2>&1; then
+    command -v superclaude
+    return 0
+  fi
+
+  local pipx_bin_dir="${PIPX_BIN_DIR:-}"
+  if [[ -z "$pipx_bin_dir" ]] && command -v pipx >/dev/null 2>&1; then
+    pipx_bin_dir="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || true)"
+  fi
+
+  local candidate_dir=""
+  for candidate_dir in "$pipx_bin_dir" "$HOME/.local/bin"; do
+    if [[ -n "$candidate_dir" && -x "$candidate_dir/superclaude" ]]; then
+      printf '%s\n' "$candidate_dir/superclaude"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+backup_conflicting_ai_entrypoint() {
+  local target="$1"
+  if [[ ! -e "$target" && ! -L "$target" ]]; then
+    return 0
+  fi
+
+  local backup_target="${target}.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak"
+  echo "Backing up existing $(basename "$target") to $backup_target"
+  mv "$target" "$backup_target"
+}
+
+if superclaude_bin="$(find_superclaude_bin)"; then
+  :
+else
+  echo "Installing SuperClaude CLI with pipx..."
+  pipx ensurepath || true
+  if pipx install superclaude || pipx upgrade superclaude; then
+    superclaude_bin="$(find_superclaude_bin || true)"
+  else
+    superclaude_bin=""
+    echo "Warning: SuperClaude CLI install failed; continuing with dotfiles setup."
+  fi
+fi
+
+if [[ -n "${superclaude_bin:-}" ]]; then
+  echo "Installing SuperClaude into ~/.claude..."
+  if ! "$superclaude_bin" install; then
+    echo "Warning: SuperClaude install failed; continuing with dotfiles setup."
+  fi
+
+  echo "Verifying SuperClaude installation..."
+  "$superclaude_bin" install --list || true
+  "$superclaude_bin" doctor || true
+
+  if [[ -t 0 ]]; then
+    echo "Install SuperClaude MCP servers? [y/N] "
+    read -r superclaude_mcp_choice
+    shopt -s nocasematch
+    if [[ "${superclaude_mcp_choice}" == "y" ]]; then
+      "$superclaude_bin" mcp --list || true
+      "$superclaude_bin" mcp || true
+    fi
+    shopt -u nocasematch
+  else
+    echo "Non-interactive shell detected; skipping optional SuperClaude MCP setup."
+  fi
+else
+  echo "SuperClaude CLI not found after pipx step; skipping SuperClaude setup."
+fi
 
 echo Clearing install files to avoid stow conflicts...
 for path in alacritty fish ghostty git kitty nvim mise tmux starship.toml; do
   rm -rf "$HOME/.config/$path"
 done
 
+echo "Removing previously stowed AI instruction links..."
+stow -D -t ~/.claude ai 2>/dev/null || true
+stow -D -t ~/.codex ai 2>/dev/null || true
+stow -D -t ~/.config/opencode ai 2>/dev/null || true
+
+echo "Backing up conflicting Claude entrypoints before restowing..."
+backup_conflicting_ai_entrypoint "$HOME/.claude/AGENTS.md"
+backup_conflicting_ai_entrypoint "$HOME/.claude/CLAUDE.md"
+
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh gitmux ai --dotfiles
+stow -v2 -t ~ -S zsh gitmux --dotfiles
+stow -v2 -t ~/.claude ai
+stow -v2 -t ~/.codex ai
+stow -v2 -t ~/.config/opencode ai
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
 cp -pR hypr/* ~/.config/hypr/

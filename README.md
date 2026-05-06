@@ -25,6 +25,7 @@ Contains all the dotfiles that I use in my development environment.
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
+- pipx - `brew install pipx` or `sudo apt install pipx`
 
 ## SSH, Signing, and 1Password
 
@@ -155,7 +156,7 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 # Deploy shell config (choose one):
 
 # Option 1: Zsh (traditional)
-stow -v2 -t ~ -S zsh ai --dotfiles
+stow -v2 -t ~ -S zsh --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 chsh -s /bin/zsh
 
@@ -172,6 +173,33 @@ chsh -s $(which fish)
 stow -v2 -t ~ -S gitmux --dotfiles
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 bat cache --build
+
+# Shared AI instruction files and SuperClaude (either shell)
+pipx ensurepath
+pipx install superclaude
+# open a new shell if pipx just updated PATH
+superclaude install
+
+# Remove previously stowed AI links before restowing
+stow -D -t ~/.claude ai || true
+stow -D -t ~/.codex ai || true
+stow -D -t ~/.config/opencode ai || true
+
+# Back up SuperClaude-created Claude entrypoints before restowing
+mv ~/.claude/AGENTS.md ~/.claude/AGENTS.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
+mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
+
+stow -v2 -t ~/.claude ai
+stow -v2 -t ~/.codex ai
+stow -v2 -t ~/.config/opencode ai
+
+# Optional MCP servers
+superclaude mcp --list
+superclaude mcp
+
+# Verify
+superclaude install --list
+superclaude doctor
 
 ### Default SSH key setup (no 1Password)
 
