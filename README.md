@@ -25,6 +25,7 @@ Contains all the dotfiles that I use in my development environment.
 - Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
+- pipx - `brew install pipx` or `sudo apt install pipx`
 
 ## SSH, Signing, and 1Password
 
@@ -155,9 +156,26 @@ stow -v2 -t ~/.local -S dot-local --dotfiles
 # Deploy shell config (choose one):
 
 # Option 1: Zsh (traditional)
-stow -v2 -t ~ -S zsh ai --dotfiles
+stow -v2 -t ~ -S zsh --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 chsh -s /bin/zsh
+
+# Install shared AI instruction files
+stow -v2 -t ~/.claude ai
+stow -v2 -t ~/.codex ai
+stow -v2 -t ~/.config/opencode ai
+
+# Install SuperClaude
+pipx install superclaude
+superclaude install
+
+# Optional MCP servers
+superclaude mcp --list
+superclaude mcp
+
+# Verify
+superclaude install --list
+superclaude doctor
 
 # Option 2: Fish (modern, faster)
 # Fish config already deployed via 'stow -v2 .' above
