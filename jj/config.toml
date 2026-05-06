@@ -130,6 +130,7 @@ merge-tool-edits-conflict-markers = true
 signature = "blue"
 unsigned = "cyan"
 empty = "red"
+empty_clean = "bright black"
 tag = "red"
 change_id = "#fab387"
 "working_copy change_id" = "#b4befe"
@@ -161,11 +162,14 @@ sign-on-push = true
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
-log = "builtin_log_compact"                        # or builtin_log_online
+log = "builtin_log_compact"
 git_push_bookmark = '"temp/" ++ change_id.short()'
 
 [template-aliases]
-my_default_log = "change_id.shortest(8) ++ ' - ' ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ if(description, truncate_end(30, description.first_line(), '…') ++ ' ') ++ if(empty, label('empty','(empty) '), '') ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ') ') ++ label('author', '<' ++ author.name() ++ '> ') ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
+# Alternative: 'format_short_signature(signature)' = 'signature.email().local()'
+'format_short_signature(signature)' = 'signature.name()'
+workspace_markers = "label('working_copy', if(working_copies, working_copies.map(|w| '<' ++ w.name() ++ '>@ ').join(''), ''))"
+my_default_log = "change_id.shortest(8) ++ if(divergent, format_change_offset(self), '') ++ ' - ' ++ workspace_markers ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ if(description, truncate_end(30, description.first_line(), '…') ++ ' ', if(empty, label('empty_clean', '(empty) '), label('empty', '(no desc) '))) ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ') ') ++ label('author', '<' ++ author.name() ++ '> ') ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
