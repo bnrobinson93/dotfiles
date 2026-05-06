@@ -1,12 +1,12 @@
 #!/bin/bash
 echo Installing programs...
 if type apt >/dev/null; then
-  sudo apt install -y git zsh fish ripgrep tmux stow curl wget
+  sudo apt install -y git zsh fish ripgrep tmux stow curl wget pipx
 elif type pacman >/dev/null; then
-  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget python-pipx
 else
   echo "Couldn't detect package manager"
-  echo "Please install \`git zsh fish ripgrep tmux stow curl wget\` manually and re-run this script."
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget pipx\` manually and re-run this script."
 fi
 
 echo Ensuring we have the latest...
@@ -40,24 +40,71 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise gh dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise gh pipx dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.claude ~/.codex ~/.config/opencode
 pushd "$(dirnam "$0")" || exit
+
+if command -v superclaude >/dev/null 2>&1; then
+  superclaude_bin="superclaude"
+else
+  echo "Installing SuperClaude CLI with pipx..."
+  pipx ensurepath || true
+  if pipx install superclaude; then
+    superclaude_bin="$HOME/.local/bin/superclaude"
+  elif pipx upgrade superclaude; then
+    superclaude_bin="$HOME/.local/bin/superclaude"
+  else
+    superclaude_bin=""
+    echo "Warning: SuperClaude CLI install failed; continuing with dotfiles setup."
+  fi
+fi
+
+if [[ -n "${superclaude_bin:-}" && -x "$superclaude_bin" ]]; then
+  echo "Installing SuperClaude into ~/.claude..."
+  if ! "$superclaude_bin" install; then
+    echo "Warning: SuperClaude install failed; continuing with dotfiles setup."
+  fi
+
+  echo "Verifying SuperClaude installation..."
+  "$superclaude_bin" install --list || true
+  "$superclaude_bin" doctor || true
+
+  echo "Install SuperClaude MCP servers? [y/N] "
+  read -r superclaude_mcp_choice
+  shopt -s nocasematch
+  if [[ "${superclaude_mcp_choice}" == "y" ]]; then
+    "$superclaude_bin" mcp --list || true
+    "$superclaude_bin" mcp || true
+  fi
+  shopt -u nocasematch
+else
+  echo "SuperClaude CLI not found after pipx step; skipping SuperClaude setup."
+fi
 
 echo Clearing install files to avoid stow conflicts...
 for path in alacritty fish ghostty git kitty nvim mise tmux starship.toml; do
   rm -rf "$HOME/.config/$path"
 done
 
+echo Clearing AI instruction files to avoid stow conflicts...
+for target in "$HOME/.claude" "$HOME/.codex" "$HOME/.config/opencode"; do
+  for source in ai/*.md; do
+    rm -f "$target/$(basename "$source")"
+  done
+done
+
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh gitmux ai --dotfiles
+stow -v2 -t ~ -S zsh gitmux --dotfiles
+stow -v2 -t ~/.claude ai
+stow -v2 -t ~/.codex ai
+stow -v2 -t ~/.config/opencode ai
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
 cp -pR hypr/* ~/.config/hypr/
