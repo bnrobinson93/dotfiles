@@ -38,3 +38,7 @@ end
 set -gx GOPRIVATE "github.com/virtru-corp/*"
 set -gx GONOPROXY "github.com/virtru-corp/*"
 set -gx GONOSUMDB "github.com/virtru-corp/*"
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+set --export --prepend PATH "/Users/brad.robinson/.rd/bin"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
