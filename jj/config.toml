@@ -169,7 +169,7 @@ git_push_bookmark = '"temp/" ++ change_id.short()'
 # Alternative: 'format_short_signature(signature)' = 'signature.email().local()'
 'format_short_signature(signature)' = 'signature.name()'
 workspace_markers = "label('working_copy', if(working_copies, working_copies ++ ' ', ''))"
-my_default_log = "change_id.shortest(8) ++ if(divergent, format_change_offset(self), '') ++ ' - ' ++ workspace_markers ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ if(description, truncate_end(30, description.first_line(), '…') ++ ' ', if(empty, label('empty_clean', '(empty) '), label('empty', '(no desc) '))) ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ') ') ++ label('author', '<' ++ author.name() ++ '> ') ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
+my_default_log = "change_id.shortest(8) ++ if(divergent, format_change_offset(self), '') ++ ' - ' ++ workspace_markers ++ label('bookmark', if(bookmarks, '(' ++ bookmarks.join(', ') ++ ') ', '')) ++ if(description, truncate_end(30, description.first_line(), '…') ++ ' ', if(empty, label('empty_clean', '(empty) '), label('empty', '(no desc) '))) ++ label('timestamp', '(' ++ committer.timestamp().ago() ++ ') ') ++ label('author', '<' ++ format_short_signature(author) ++ '> ') ++ if(signature, label('signature', ' '), label('unsigned', ' '))"
 
 [remotes.origin]
 auto-track-bookmarks = "glob:*"
