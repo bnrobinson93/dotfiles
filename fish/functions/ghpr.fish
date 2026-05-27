@@ -113,9 +113,8 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l target_repo ""
     set -l current_repo_owner ""
     set -l pr_head_selector $current_branch
-    set -l repo_info (gh repo view --json nameWithOwner,owner,parent --jq '[.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login] | @tsv' 2>/dev/null | string trim)
-    if test -n "$repo_info"
-        set -l repo_fields (string split \t -- $repo_info)
+    set -l repo_fields (gh repo view --json nameWithOwner,owner,parent --jq '.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login' 2>/dev/null)
+    if test (count $repo_fields) -ge 3
         set current_repo $repo_fields[1]
         set target_repo $repo_fields[2]
         set current_repo_owner $repo_fields[3]
@@ -155,14 +154,12 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l existing_pr_url ""
     set -l forced_dry_run false
     set -l existing_pr_args pr list --head "$pr_head_selector" --state open --limit 1 \
-        --json number,title,url --jq '.[0] | [(.number | tostring), (.title // ""), (.url // "")] | join("\n")'
+        --json number,title,url --jq 'if .[0] then (. [0].number | tostring), (. [0].title // ""), (. [0].url // "") else empty end'
     if test -n "$target_repo"
         set existing_pr_args $existing_pr_args --repo $target_repo
     end
-    set -l existing_pr_info (gh $existing_pr_args 2>/dev/null | string collect)
-
-    if test -n "$existing_pr_info" -a "$existing_pr_info" != "null"
-        set -l existing_pr_fields (string split \n -- $existing_pr_info)
+    set -l existing_pr_fields (gh $existing_pr_args 2>/dev/null)
+    if test (count $existing_pr_fields) -ge 1 -a "$existing_pr_fields[1]" != "null"
         set existing_pr_number $existing_pr_fields[1]
         set existing_pr_title $existing_pr_fields[2]
         set existing_pr_url $existing_pr_fields[3]
