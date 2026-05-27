@@ -1,23 +1,6 @@
-# SuperClaude Entry Point
+# AI Entry Point
 
-Entry point for SuperClaude framework. Add custom instructions and configs here.
-
-Framework components auto-imported below.
-
-## SuperClaude Framework Components
-
-### Core Framework
-
-@BUSINESS_PANEL_EXAMPLES.md @BUSINESS_SYMBOLS.md @FLAGS.md @PRINCIPLES.md @RESEARCH_CONFIG.md @RULES.md
-
-### Behavioral Modes
-
-@MODE_Brainstorming.md @MODE_Business_Panel.md @MODE_DeepResearch.md @MODE_Introspection.md @MODE_Orchestration.md
-@MODE_Task_Management.md @MODE_Token_Efficiency.md
-
-### MCP Documentation
-
-@MCP_Context7.md @MCP_Morphllm.md @MCP_Sequential.md @MCP_Serena.md @MCP_Tavily.md
+Shared instruction entry point for Claude, Codex, and OpenCode.
 
 ## Communication Style
 
@@ -36,7 +19,7 @@ Dev server already running with `pnpm` or `go`. Ask me to run tests/dev servers 
 
 # VCS - Version Control
 
-Before starting work, if you detected either a JJ or git folder, refer to @VCS.md for details. To check, you can use `test -d .git || test -d .jj`
+Before starting work, if you detected either a JJ or git folder, refer to @VCS.md for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
 
 # Writing Voice
 
@@ -46,6 +29,6 @@ Before starting work, if you detected either a JJ or git folder, refer to @VCS.m
 
 When coding, consider @CodeQuality.md
 
-# MCP Documentation
+# Caveman
 
-@MCP_Magic.md
+@caveman.md for explicit caveman mode usage.
