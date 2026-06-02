@@ -19,16 +19,16 @@ Dev server already running with `pnpm` or `go`. Ask me to run tests/dev servers 
 
 # VCS - Version Control
 
-Before starting work, if you detected either a JJ or git folder, refer to @VCS.md for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
+Before starting work, if you detected either a JJ or git folder, refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
 
 # Writing Voice
 
-@WritingVoice.md for long-form prose, documentation, or code comments where prose matters, decision docs, READMEs, anything user will publish or share. Does not apply to caveman-mode chat, terse status updates, or routine code.
+WritingVoice.md (at root, e.g. ~/.claude or ~/.codex) for long-form prose, documentation, or code comments where prose matters, decision docs, READMEs, anything user will publish or share. Does not apply to caveman-mode chat, terse status updates, or routine code.
 
 # Code Quality
 
-When coding, consider @CodeQuality.md
+When coding, consider CodeQuality.md (at root, e.g. ~/.claude or ~/.codex)
 
 # Caveman
 
-@caveman.md for explicit caveman mode usage.
+caveman.md (at root, e.g. ~/.claude or ~/.codex) for explicit caveman mode usage.
