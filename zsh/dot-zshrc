@@ -131,9 +131,10 @@ function ignore {
     done
 }
 
-# Optional: use 1Password SSH agent when explicitly enabled
-if [[ -n "${USE_1PASSWORD_SSH:-}" ]]; then
-  export SSH_AUTH_SOCK=~/.1password/agent.sock
+# Use 1Password for SSH signing; SSH auth stays scoped by ~/.ssh/config.
+: "${USE_1PASSWORD_SSH:=1}"
+export USE_1PASSWORD_SSH
+if [[ "${USE_1PASSWORD_SSH}" == "1" ]]; then
   if type op >/dev/null 2>&1 && [[ ! -f $HOME/.ssh/allowed_signers ]]; then
     op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
   fi
