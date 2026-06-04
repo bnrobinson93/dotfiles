@@ -77,7 +77,7 @@ if not vim.g.vscode and JJ_exists() then
   map("n", "<leader>jf", picker.file_history, { desc = "JJ file history" })
   map("n", "<leader>jd", diff.open_vdiff, { desc = "JJ diff current buffer" })
 
-  map("n", "<leader>jj", function()
+  map("n", "<leader>jl", function()
     cmd.log({ summary = false })
   end, { desc = "JJ log" })
 
