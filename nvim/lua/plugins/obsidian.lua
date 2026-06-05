@@ -226,8 +226,6 @@ return {
         },
       },
       completion = {
-        blink = true,
-        nvim_cmp = false,
         min_chars = 2,
         create_new = false,
       },
