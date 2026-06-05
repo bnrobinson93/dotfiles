@@ -24,7 +24,7 @@
   program = "~/.local/bin/ssh-sign-wrapper.sh"
 	allowedSignersFile = "~/.ssh/allowed_signers"
 [user]
-	signingkey = "~/.ssh/id_ed25519_GitHubSigning.pub"
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEue29p9rw3Auo+JQVEHydzJyEsMir+EFKQVn7b2qX03
 [include]
     path = ~/.gitlocal
 [filter "lfs"]

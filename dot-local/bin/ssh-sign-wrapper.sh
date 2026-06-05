@@ -50,6 +50,7 @@ for ((i=0; i<${#args[@]}; i++)); do
       tmp_pub="${TMPDIR:-/tmp}/ssh-sign-pub-$$.pub"
       printf '%s\n' "$val" > "$tmp_pub"
       pub_source="$tmp_pub"
+      args[i+1]="$tmp_pub"
       log "Converted inline pubkey to temp file: $tmp_pub"
     fi
 
@@ -114,7 +115,7 @@ ensure_loaded() {
 # Helper: ensure an SSH agent is available (does not guarantee keys are loaded)
 ensure_agent_and_keys() {
   # If using 1Password explicitly, do nothing here
-  [[ -n "${USE_1PASSWORD_SSH:-}" ]] && return 0
+  [[ "${USE_1PASSWORD_SSH:-}" == "1" ]] && return 0
 
   # If a 1Password socket is present but not opted in, ignore it
   if [[ "${SSH_AUTH_SOCK:-}" == *"/.1password/agent.sock" ]]; then
@@ -157,7 +158,7 @@ ensure_agent_and_keys() {
 }
 
 # Choose signer: default to system ssh-keygen (agent-backed), 1Password only if requested
-if [[ -n "${USE_1PASSWORD_SSH:-}" ]]; then
+if [[ "${USE_1PASSWORD_SSH:-}" == "1" ]]; then
   log "Using 1Password SSH agent (op-ssh-sign)"
   exec "$OPSIGN" "${args[@]}"
 else

@@ -3,6 +3,9 @@
 # Default: use system ssh-agent everywhere; use macOS Keychain when available.
 # Linux safely ignores UseKeychain via IgnoreUnknown.
 
+Host github.com
+  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
 Host *
   IgnoreUnknown UseKeychain
   AddKeysToAgent yes
