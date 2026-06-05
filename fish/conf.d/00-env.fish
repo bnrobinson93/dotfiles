@@ -27,9 +27,14 @@ set -gx TRY_PATH $HOME/Documents/code/tries
 # Homebrew auto-update (4 hours)
 set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 
-# SSH agent (1Password) - optional via USE_1PASSWORD_SSH
-if set -q USE_1PASSWORD_SSH
-    set -gx SSH_AUTH_SOCK ~/.1password/agent.sock
+# SSH signing (1Password); SSH auth stays scoped by ~/.ssh/config.
+if not set -q USE_1PASSWORD_SSH
+    set -gx USE_1PASSWORD_SSH 1
+end
+if test "$USE_1PASSWORD_SSH" = "1"
+    if type -q op; and not test -f $HOME/.ssh/allowed_signers
+        op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
+    end
 else
     # Guardrail: if a lingering 1Password socket is set as a universal/parent var, clear it
     if set -q SSH_AUTH_SOCK; and string match -q '*/.1password/agent.sock' -- $SSH_AUTH_SOCK
