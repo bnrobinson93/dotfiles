@@ -14,6 +14,19 @@ end
 
 return {
   {
+    "JulianNymark/neojjit",
+    keys = {
+      {
+        "<leader>jj",
+        function()
+          require("neojjit").open()
+        end,
+        desc = "Neojjit",
+      },
+    },
+  },
+
+  {
     "folke/which-key.nvim",
     opts = function(_, opts)
       if not JJ_exists() then
@@ -22,7 +35,7 @@ return {
       opts.spec = opts.spec or {}
       vim.list_extend(opts.spec, {
         { "<leader>j", group = "JJ VCS", icon = "" },
-        { "<leader>jj", icon = { icon = "", color = "azure" } },
+        { "<leader>jl", icon = { icon = "", color = "azure" } },
         { "<leader>jL", icon = { icon = "", color = "blue" } },
         { "<leader>jt", icon = { icon = "󰓂", color = "cyan" } },
         { "<leader>jT", icon = { icon = "󰓂", color = "cyan" } },
