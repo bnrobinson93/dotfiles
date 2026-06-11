@@ -24,14 +24,7 @@ fi
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
-export BUN_INSTALL="$HOME/.bun"
-export PNPM_HOME="$HOME/.local/share/pnpm"
-ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" -print0 2>/dev/null | tr '\0' ':') # .local, .bun, etc
-HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
-
-# Essential PATH - single assignment
-export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
 # Basic settings
 set -o emacs
@@ -98,6 +91,11 @@ fi
 
 if type zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
+fi
+
+if type mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+  source <(mise completion zsh)
 fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
@@ -325,7 +323,6 @@ function get_completions() {
 
   # Ruby lazy loading
   if [[ -d $HOME/.rbenv ]]; then
-    export PATH="$HOME/.rbenv/bin:$PATH"
     rbenv() {
       if [[ -z $RBENV_LOADED ]]; then
         eval "$(command rbenv init - zsh)"
@@ -341,8 +338,8 @@ function get_completions() {
   fi
 }
 
-if test carapace >/dev/null 2>&1; then
-  source <(carapace _carapace)
+if type carapace >/dev/null 2>&1; then
+  source <(carapace _carapace zsh)
 else
   get_completions
 fi
@@ -368,7 +365,3 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/brad.robinson/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
