@@ -1,6 +1,9 @@
 export ANDROID_SDK=$HOME/Android/sdk
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
+export KUBECONFIG="$HOME/.kube/config"
+export TRY_PATH="$HOME/Documents/code/tries"
+export BAT_THEME="Catppuccin Mocha"
 
 # Keep non-interactive zsh able to find core dev tools.
 zshenv_path_dirs=()

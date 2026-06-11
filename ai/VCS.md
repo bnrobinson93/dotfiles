@@ -28,8 +28,8 @@ If JJ commands fail because working-copy snapshot signing cannot access 1Passwor
 commands with one-shot config:
 
 ```
-jj --config signing.behavior=keep status
-jj --config signing.behavior=keep diff --summary
+jj --config signing.behavior=drop status
+jj --config signing.behavior=drop diff --summary
 ```
 
 Use this for inspection/status/diff commands only. Do not use sign-on-push as an agent workaround; it can sign or rewrite commits outside

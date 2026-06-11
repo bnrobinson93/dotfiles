@@ -98,6 +98,17 @@ if type mise >/dev/null 2>&1; then
   source <(mise completion zsh)
 fi
 
+export fzf_preview_dir_cmd="eza --all --color=always"
+export FZF_DEFAULT_OPTS="\
+--height=50% \
+--tmux bottom,40% \
+--layout=reverse \
+--border top \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#6C7086,label:#CDD6F4"
+
 # type rg >/dev/null 2>&1 && alias grep="rg"
 # type fd >/dev/null 2>&1 && alias find="fd"
 # type bat >/dev/null 2>&1 && alias cat="bat"
@@ -128,6 +139,124 @@ function ignore {
         echo "$dir" >> ${root:-$HOME}/.gitignore
     done
 }
+
+_jj_workspace_sync_git_env() {
+  local workspace_root workspace_base main_base main_root git_dir
+  local workspace_suffix_re='-(ai[0-9]*|exp|explore)$'
+
+  workspace_root=$(jj workspace root 2>/dev/null) || {
+    unset GIT_DIR
+    return 0
+  }
+
+  workspace_base=${workspace_root:t}
+  if [[ ! "$workspace_base" =~ "$workspace_suffix_re" ]]; then
+    unset GIT_DIR
+    return 0
+  fi
+
+  main_base=${workspace_base%-ai<->}
+  main_base=${main_base%-exp}
+  main_base=${main_base%-explore}
+  main_root="${workspace_root:h}/$main_base"
+  git_dir="$main_root/.git"
+
+  if [[ -e "$git_dir" ]]; then
+    export GIT_DIR="$git_dir"
+  else
+    unset GIT_DIR
+  fi
+}
+
+_jj_workspace_sync_git_env_on_pwd() {
+  _jj_workspace_sync_git_env
+}
+
+if (( ${+functions[_jj_workspace_sync_git_env]} )); then
+  chpwd_functions=(${chpwd_functions:#_jj_workspace_sync_git_env_on_pwd} _jj_workspace_sync_git_env_on_pwd)
+  _jj_workspace_sync_git_env
+fi
+
+_jj_workspace_jump() {
+  local suffix="$1"
+  local root base change_id workspace_suffix_re main_root target_dir original_dir git_dir
+  local has_git_dir=false
+  local supports_update_stale=false
+
+  root=$(jj workspace root 2>/dev/null) || {
+    echo "Not in a jj repository" >&2
+    return 1
+  }
+
+  base=${root:t}
+  change_id=$(jj log -r @ --no-graph -T 'change_id')
+  workspace_suffix_re='-(ai[0-9]*|exp|explore)$'
+
+  if [[ "$base" =~ "$workspace_suffix_re" ]]; then
+    base=${base%-ai<->}
+    base=${base%-exp}
+    base=${base%-explore}
+  fi
+
+  main_root="${root:h}/$base"
+  target_dir="$main_root-$suffix"
+  git_dir="$main_root/.git"
+
+  [[ -e "$git_dir" ]] && has_git_dir=true
+  jj workspace update-stale --help >/dev/null 2>&1 && supports_update_stale=true
+
+  if [[ "$target_dir" == "$root" ]]; then
+    echo "Already in $suffix workspace" >&2
+    return 0
+  fi
+
+  original_dir="$PWD"
+
+  if [[ ! -d "$target_dir" ]]; then
+    jj workspace add "$target_dir" || return 1
+    cd "$target_dir" || {
+      [[ -n "$TMUX" ]] && cd "$original_dir"
+      return 1
+    }
+    jj new "$change_id" || {
+      [[ -n "$TMUX" ]] && cd "$original_dir"
+      return 1
+    }
+  else
+    cd "$target_dir" || {
+      [[ -n "$TMUX" ]] && cd "$original_dir"
+      return 1
+    }
+
+    if [[ "$supports_update_stale" == true ]]; then
+      jj workspace update-stale || {
+        [[ -n "$TMUX" ]] && cd "$original_dir"
+        return 1
+      }
+    fi
+
+    jj new "$change_id" || {
+      [[ -n "$TMUX" ]] && cd "$original_dir"
+      return 1
+    }
+  fi
+
+  if [[ -n "$TMUX" ]]; then
+    cd "$original_dir"
+    local -a tmux_args
+    tmux_args=(new-window -c "$target_dir" -n "$suffix")
+    [[ "$has_git_dir" == true ]] && tmux_args+=(-e "GIT_DIR=$git_dir")
+    tmux "${tmux_args[@]}" "mise trust 2>/dev/null; $SHELL"
+  else
+    cd "$target_dir" || return 1
+    _jj_workspace_sync_git_env
+    mise trust 2>/dev/null
+  fi
+}
+
+function ai1 { _jj_workspace_jump ai1; }
+function ai2 { _jj_workspace_jump ai2; }
+function explore { _jj_workspace_jump exp; }
 
 # Use 1Password for SSH signing; SSH auth stays scoped by ~/.ssh/config.
 : "${USE_1PASSWORD_SSH:=1}"
