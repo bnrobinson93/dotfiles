@@ -30,7 +30,7 @@ return {
           end
         end
 
-        return vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc"
+        return vim.fn.stdpath("config") .. "/lua/plugins/fallback-config/markdownlint-cli2.jsonc"
       end
 
       return {

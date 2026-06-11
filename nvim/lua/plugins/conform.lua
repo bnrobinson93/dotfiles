@@ -26,7 +26,7 @@ return {
           end
         end
 
-        return vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc"
+        return vim.fn.stdpath("config") .. "/lua/plugins/fallback-config/markdownlint-cli2.jsonc"
       end
 
       local function prettier_config_root(dirname)
@@ -59,7 +59,7 @@ return {
         end)
       end
 
-      local prettier_dotfiles_config = vim.fn.stdpath("config") .. "/utils/linter-config/prettier.json"
+      local prettier_dotfiles_config = vim.fn.stdpath("config") .. "/lua/plugins/fallback-config/prettier.json"
 
       opts.formatters = vim.tbl_deep_extend("force", opts.formatters or {}, {
         prettier = {
