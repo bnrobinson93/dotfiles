@@ -16,6 +16,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'bases' = 'trunk() | present(develop)'
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
+'base(to)' = '::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
 'curbranch' = 'latest(mybranches::@- & mybranches)'
 'nextbranch' = 'roots(@:: & branchesandheads)'
 'my_other_bookmarks' = 'mybranches & ~(curbranch::@)'
@@ -101,6 +102,7 @@ default-command = ["my_log"]
 diff-editor = "nvim"
 diff-formatter = ":git"
 merge-editor = "nvim"
+show-cryptographic-signatures = true
 
 [merge-tools.nvim]
 program = "nvim"
