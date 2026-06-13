@@ -1,3 +1,43 @@
+local js_filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
+
+local eslint_config_files = {
+  ".eslintrc",
+  ".eslintrc.js",
+  ".eslintrc.cjs",
+  ".eslintrc.mjs",
+  ".eslintrc.json",
+  ".eslintrc.yaml",
+  ".eslintrc.yml",
+  "eslint.config.js",
+  "eslint.config.cjs",
+  "eslint.config.mjs",
+  "eslint.config.ts",
+  "eslint.config.cts",
+  "eslint.config.mts",
+}
+
+local function eslint_config_root(dirname)
+  return dirname and vim.fs.root(dirname, function(name, path)
+    if name == "package.json" then
+      local file = io.open(vim.fs.joinpath(path, name), "r")
+      if not file then
+        return false
+      end
+
+      local ok, package_json = pcall(vim.json.decode, file:read("*all"))
+      file:close()
+      return ok and package_json and package_json.eslintConfig ~= nil
+    end
+
+    return vim.tbl_contains(eslint_config_files, name)
+  end)
+end
+
+local function current_dirname()
+  local filename = vim.api.nvim_buf_get_name(0)
+  return filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+end
+
 return {
   {
     "mfussenegger/nvim-lint",
@@ -41,14 +81,24 @@ return {
         -- Event to trigger linters
         events = { "BufWritePost", "BufReadPost", "InsertLeave" },
         linters_by_ft = {
-          typescript = { "eslint_d" },
-          typescriptreact = { "eslint_d" },
-          javascript = { "eslint_d" },
-          javascriptreact = { "eslint_d" },
+          typescript = { "biomejs", "eslint_d" },
+          typescriptreact = { "biomejs", "eslint_d" },
+          javascript = { "biomejs", "eslint_d" },
+          javascriptreact = { "biomejs", "eslint_d" },
           markdown = { "markdownlint-cli2" },
           yaml = {},
         },
         linters = {
+          biomejs = {
+            condition = function(ctx)
+              return eslint_config_root(ctx.dirname) == nil
+            end,
+          },
+          eslint_d = {
+            condition = function(ctx)
+              return eslint_config_root(ctx.dirname) ~= nil
+            end,
+          },
           ["markdownlint-cli2"] = {
             args = markdownlint_args(),
           },
@@ -70,10 +120,23 @@ return {
   {
     "local/eslint-fix",
     dir = vim.fn.stdpath("config"),
-    ft = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+    ft = js_filetypes,
     config = function()
+      local function skip_eslint_for_biome()
+        if not eslint_config_root(current_dirname()) then
+          vim.notify("No ESLint config found; use Biome instead.", vim.log.levels.INFO)
+          return true
+        end
+
+        return false
+      end
+
       -- Your eslint_fix_trouble function here (from your eslint-fix.lua)
       local function eslint_fix_trouble()
+        if skip_eslint_for_biome() then
+          return
+        end
+
         local trouble_ok, trouble = pcall(require, "trouble")
         if not trouble_ok then
           vim.notify("Trouble plugin not available", vim.log.levels.ERROR)
@@ -209,6 +272,10 @@ return {
       end
 
       vim.api.nvim_create_user_command("EslintFix", function()
+        if skip_eslint_for_biome() then
+          return
+        end
+
         -- Simple version without trouble integration
         local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
         local spinner_index = 1
