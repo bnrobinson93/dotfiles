@@ -1,2 +1,31 @@
 export ANDROID_SDK=$HOME/Android/sdk
-[ -d $HOME/.cargo ] && . "$HOME/.cargo/env"
+export BUN_INSTALL="$HOME/.bun"
+export PNPM_HOME="$HOME/.local/share/pnpm"
+export KUBECONFIG="$HOME/.kube/config"
+export TRY_PATH="$HOME/Documents/code/tries"
+export BAT_THEME="Catppuccin Mocha"
+
+# Keep non-interactive zsh able to find core dev tools.
+zshenv_path_dirs=()
+for dir in \
+  "$HOME/.local/bin" \
+  "$HOME/.local/share/mise/shims" \
+  /opt/homebrew/bin \
+  /home/linuxbrew/.linuxbrew/bin \
+  "$PNPM_HOME" \
+  "$BUN_INSTALL/bin" \
+  "$HOME/go/bin" \
+  "$HOME/.cargo/bin" \
+  "$HOME/.docker/bin" \
+  "$HOME/.rd/bin" \
+  "$HOME/.rvm/bin" \
+  "$HOME/.yarn/bin" \
+  "$HOME/.rbenv/bin" \
+  /home/brad/.opencode/bin
+do
+  [[ -d "$dir" ]] && zshenv_path_dirs+=("$dir")
+done
+path=($zshenv_path_dirs $path)
+typeset -U path
+export PATH
+unset zshenv_path_dirs dir
