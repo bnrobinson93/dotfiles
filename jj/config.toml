@@ -1,7 +1,7 @@
 "$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
 
 [user]
-name = "Brad R"
+name = "Brad"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
@@ -13,7 +13,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks() & ~trunk())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
-'bases' = 'trunk() | present(develop) | present(feat/PEP-2386-dsp-v1-integration)'
+'bases' = 'trunk() | present(develop)'
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
 'curbranch' = 'latest(mybranches::@- & mybranches)'
@@ -147,7 +147,7 @@ committer = "#94e2d5"
 
 [signing]
 behavior = "own"
-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEue29p9rw3Auo+JQVEHydzJyEsMir+EFKQVn7b2qX03"
+key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
 backend = "ssh"
 
 [core]

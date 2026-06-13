@@ -3,13 +3,9 @@
 # Default: use system ssh-agent everywhere; use macOS Keychain when available.
 # Linux safely ignores UseKeychain via IgnoreUnknown.
 
-Host github.com
+Match exec "test $(uname) = Darwin"
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
 Host *
-  IgnoreUnknown UseKeychain
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile ~/.ssh/id_ed25519_GitHub
-  IdentityFile ~/.ssh/id_ed25519_GitHubSigning
+  IdentityAgent ~/.1password/agent.sock
 
