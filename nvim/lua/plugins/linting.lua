@@ -14,27 +14,23 @@ return {
         ".markdownlint-cli2.yml",
       }
 
-      local function markdownlint_args()
-        return function(_, ctx)
-          local config_root = vim.fs.root(ctx.dirname, function(name)
-            return vim.tbl_contains(markdownlint_config_files, name)
-          end)
+      local function markdownlint_config()
+        local filename = vim.api.nvim_buf_get_name(0)
+        local dirname = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+        local config_root = vim.fs.root(dirname, function(name)
+          return vim.tbl_contains(markdownlint_config_files, name)
+        end)
 
-          if config_root then
-            for _, name in ipairs(markdownlint_config_files) do
-              local candidate = vim.fs.joinpath(config_root, name)
-              if vim.uv.fs_stat(candidate) then
-                return { "--config", candidate, "--" }
-              end
+        if config_root then
+          for _, name in ipairs(markdownlint_config_files) do
+            local candidate = vim.fs.joinpath(config_root, name)
+            if vim.uv.fs_stat(candidate) then
+              return candidate
             end
           end
-
-          return {
-            "--config",
-            vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
-            "--",
-          }
         end
+
+        return vim.fn.stdpath("config") .. "/lua/plugins/fallback-config/markdownlint-cli2.jsonc"
       end
 
       return {
@@ -50,7 +46,7 @@ return {
         },
         linters = {
           ["markdownlint-cli2"] = {
-            args = markdownlint_args(),
+            args = { "-", "--config", markdownlint_config },
           },
         },
       }
