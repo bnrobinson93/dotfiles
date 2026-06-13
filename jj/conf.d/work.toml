@@ -1,0 +1,9 @@
+--when.hostnames = ["work-laptop"]
+
+[signing]
+key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEue29p9rw3Auo+JQVEHydzJyEsMir+EFKQVn7b2qX03"
+
+[[--scope]]
+--when.repositories = ["~/.dotfiles"]
+[--scope.signing]
+key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
