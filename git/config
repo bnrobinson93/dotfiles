@@ -1,6 +1,7 @@
 [user]
 	name = Brad R
   email = "31802085+bnrobinson93@users.noreply.github.com"
+  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO
 [init]
   defaultBranch = main
 [push]
@@ -23,10 +24,12 @@
 [gpg "ssh"]
   program = "~/.local/bin/ssh-sign-wrapper.sh"
 	allowedSignersFile = "~/.ssh/allowed_signers"
-[user]
-  signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEue29p9rw3Auo+JQVEHydzJyEsMir+EFKQVn7b2qX03
 [include]
     path = ~/.gitlocal
+[includeIf "hasconfig:remote.*.url:**virtru**"]
+    path = ~/.config/git/config_work
+[includeIf "hasconfig:remote.*.url:**opentdf**"]
+    path = ~/.config/git/config_work
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
