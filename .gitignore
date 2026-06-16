@@ -34,6 +34,7 @@ fish/themes/**
 fish/conf.d/fish_frozen_key_bindings.fish
 jj/repos/
 jj/conf.d/z-local.toml
+hypr/*.bak*
 nvim/lazy-lock.json
 nvim/spell/
 tmux/plugins/

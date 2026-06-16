@@ -1,7 +1,7 @@
 "$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
 
 [user]
-name = "Brad"
+name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
@@ -102,7 +102,6 @@ default-command = ["my_log"]
 diff-editor = "nvim"
 diff-formatter = ":git"
 merge-editor = "nvim"
-show-cryptographic-signatures = true
 
 [merge-tools.nvim]
 program = "nvim"
