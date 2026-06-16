@@ -24,7 +24,14 @@ fi
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
+export BUN_INSTALL="$HOME/.bun"
+export PNPM_HOME="$HOME/.local/share/pnpm"
+ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" 2>/dev/null | paste -sd ':') # .local, .bun, .cargo, etc
+HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
+
+# Essential PATH - single assignment
+export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
 # Basic settings
 set -o emacs
@@ -452,6 +459,7 @@ function get_completions() {
 
   # Ruby lazy loading
   if [[ -d $HOME/.rbenv ]]; then
+    export PATH="$HOME/.rbenv/bin:$PATH"
     rbenv() {
       if [[ -z $RBENV_LOADED ]]; then
         eval "$(command rbenv init - zsh)"
@@ -494,3 +502,4 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
