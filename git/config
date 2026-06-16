@@ -24,12 +24,6 @@
 [gpg "ssh"]
   program = "~/.local/bin/ssh-sign-wrapper.sh"
 	allowedSignersFile = "~/.ssh/allowed_signers"
-[include]
-    path = ~/.gitlocal
-[includeIf "hasconfig:remote.*.url:**virtru**"]
-    path = ~/.config/git/config_work
-[includeIf "hasconfig:remote.*.url:**opentdf**"]
-    path = ~/.config/git/config_work
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -37,3 +31,9 @@
 	required = true
 [url "ssh://git@github.com/"]
   insteadOf = https://github.com/
+[include]
+    path = ~/.gitlocal
+[includeIf "hasconfig:remote.*.url:**virtru**"]
+    path = ~/.config/git/config_work
+[includeIf "hasconfig:remote.*.url:**opentdf**"]
+    path = ~/.config/git/config_work

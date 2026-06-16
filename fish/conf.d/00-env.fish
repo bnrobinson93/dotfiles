@@ -32,6 +32,11 @@ if not set -q USE_1PASSWORD_SSH
     set -gx USE_1PASSWORD_SSH 1
 end
 if test "$USE_1PASSWORD_SSH" = "1"
+    set -l onepassword_ssh_sock "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    if test -S "$onepassword_ssh_sock"
+        set -gx SSH_AUTH_SOCK "$onepassword_ssh_sock"
+    end
+
     if type -q op; and not test -f $HOME/.ssh/allowed_signers
         op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
     end

@@ -5,6 +5,10 @@ export KUBECONFIG="$HOME/.kube/config"
 export TRY_PATH="$HOME/Documents/code/tries"
 export BAT_THEME="Catppuccin Mocha"
 
+onepassword_ssh_sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+[[ -S "$onepassword_ssh_sock" ]] && export SSH_AUTH_SOCK="$onepassword_ssh_sock"
+unset onepassword_ssh_sock
+
 # Keep non-interactive zsh able to find core dev tools.
 zshenv_path_dirs=()
 for dir in \
