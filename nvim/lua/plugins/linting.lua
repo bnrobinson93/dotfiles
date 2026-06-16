@@ -1,56 +1,58 @@
+local project = require("utils.project")
+
+local js_filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
+
+local eslint_config_files = {
+  ".eslintrc",
+  ".eslintrc.js",
+  ".eslintrc.cjs",
+  ".eslintrc.mjs",
+  ".eslintrc.json",
+  ".eslintrc.yaml",
+  ".eslintrc.yml",
+  "eslint.config.js",
+  "eslint.config.cjs",
+  "eslint.config.mjs",
+  "eslint.config.ts",
+  "eslint.config.cts",
+  "eslint.config.mts",
+}
+
+local function find_eslint_config(dirname)
+  return project.find_config(dirname, eslint_config_files, "eslintConfig")
+end
+
 return {
   {
     "mfussenegger/nvim-lint",
     optional = true,
     event = "LazyFile",
     opts = function()
-      local markdownlint_config_files = {
-        ".markdownlint.json",
-        ".markdownlint.jsonc",
-        ".markdownlint.yaml",
-        ".markdownlint.yml",
-        ".markdownlint-cli2.jsonc",
-        ".markdownlint-cli2.yaml",
-        ".markdownlint-cli2.yml",
-      }
-
-      local function markdownlint_args()
-        return function(_, ctx)
-          local config_root = vim.fs.root(ctx.dirname, function(name)
-            return vim.tbl_contains(markdownlint_config_files, name)
-          end)
-
-          if config_root then
-            for _, name in ipairs(markdownlint_config_files) do
-              local candidate = vim.fs.joinpath(config_root, name)
-              if vim.uv.fs_stat(candidate) then
-                return { "--config", candidate, "--" }
-              end
-            end
-          end
-
-          return {
-            "--config",
-            vim.fn.stdpath("config") .. "/lua/plugins/lint/global.markdownlint-cli2.jsonc",
-            "--",
-          }
-        end
-      end
-
       return {
-        -- Event to trigger linters
         events = { "BufWritePost", "BufReadPost", "InsertLeave" },
         linters_by_ft = {
-          typescript = { "eslint_d" },
-          typescriptreact = { "eslint_d" },
-          javascript = { "eslint_d" },
-          javascriptreact = { "eslint_d" },
+          typescript = { "biomejs", "eslint_d" },
+          typescriptreact = { "biomejs", "eslint_d" },
+          javascript = { "biomejs", "eslint_d" },
+          javascriptreact = { "biomejs", "eslint_d" },
           markdown = { "markdownlint-cli2" },
           yaml = {},
         },
         linters = {
+          biomejs = {
+            -- biome.json present, or no eslint config (biome is the default)
+            condition = function(ctx)
+              return project.find_biome_config(ctx.dirname) ~= nil or find_eslint_config(ctx.dirname) == nil
+            end,
+          },
+          eslint_d = {
+            -- eslint config present and no biome.json (biome wins when both exist)
+            condition = function(ctx)
+              return find_eslint_config(ctx.dirname) ~= nil and project.find_biome_config(ctx.dirname) == nil
+            end,
+          },
           ["markdownlint-cli2"] = {
-            args = markdownlint_args(),
+            args = { "-", "--config", function() return project.find_markdownlint_config(project.current_dirname()) end },
           },
         },
       }
@@ -70,10 +72,24 @@ return {
   {
     "local/eslint-fix",
     dir = vim.fn.stdpath("config"),
-    ft = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+    ft = js_filetypes,
     config = function()
-      -- Your eslint_fix_trouble function here (from your eslint-fix.lua)
+      local function skip_eslint_for_biome()
+        local dirname = project.current_dirname()
+        local has_biome = project.find_biome_config(dirname) ~= nil
+        local has_eslint = find_eslint_config(dirname) ~= nil
+        if has_biome or not has_eslint then
+          vim.notify("Biome project; use Biome instead.", vim.log.levels.INFO)
+          return true
+        end
+        return false
+      end
+
       local function eslint_fix_trouble()
+        if skip_eslint_for_biome() then
+          return
+        end
+
         local trouble_ok, trouble = pcall(require, "trouble")
         if not trouble_ok then
           vim.notify("Trouble plugin not available", vim.log.levels.ERROR)
@@ -209,7 +225,10 @@ return {
       end
 
       vim.api.nvim_create_user_command("EslintFix", function()
-        -- Simple version without trouble integration
+        if skip_eslint_for_biome() then
+          return
+        end
+
         local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
         local spinner_index = 1
         local spinner_timer = nil
