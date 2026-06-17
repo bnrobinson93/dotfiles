@@ -50,6 +50,12 @@ return {
 
       opts.scroll = { enabled = false }
 
+      -- Treat JJSigns* the same as GitSigns* so they render in the right-side
+      -- git slot of the statuscolumn, not the left-side general sign slot.
+      opts.statuscolumn = opts.statuscolumn or {}
+      opts.statuscolumn.git = opts.statuscolumn.git or {}
+      opts.statuscolumn.git.patterns = { "GitSign", "MiniDiffSign", "JJSign" }
+
       table.insert(opts.dashboard.preset.keys, 3, {
         icon = "󰃭 ",
         key = "o",

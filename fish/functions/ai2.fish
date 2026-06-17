@@ -1,3 +1,3 @@
-function ai2
-    _jj_workspace_jump ai2
+function ai2 --argument-names task
+    jj-agent spawn 2 "$task"
 end

@@ -14,6 +14,37 @@ end
 
 return {
   {
+    -- dir = "/home/brad/Documents/code/jj-ide-system/jj-signs.nvim",
+    -- name = "jj-signs.nvim",
+    "bnrobinson93/jj-signs.nvim",
+    event = "LazyFile",
+    opts = {},
+  },
+
+  -- Prevent gitsigns from attaching in JJ repos — jj-signs handles signs there.
+  -- Wraps LazyVim's on_attach so keymaps still apply for pure-git repos.
+  {
+    "lewis6991/gitsigns.nvim",
+    opts = function(_, opts)
+      local lazyvim_on_attach = opts.on_attach
+      opts.on_attach = function(bufnr)
+        local filepath = vim.api.nvim_buf_get_name(bufnr)
+        if filepath ~= "" then
+          local dir = vim.fn.fnamemodify(filepath, ":h")
+          local result = vim.system({ "jj", "root" }, { cwd = dir }):wait()
+          if result.code == 0 then
+            return false -- JJ repo: let jj-signs handle it
+          end
+        end
+        -- Pure git repo: run LazyVim's on_attach (sets keymaps etc.)
+        if lazyvim_on_attach then
+          return lazyvim_on_attach(bufnr)
+        end
+      end
+    end,
+  },
+
+  {
     "JulianNymark/neojjit",
     keys = {
       {
