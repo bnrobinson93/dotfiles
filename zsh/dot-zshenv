@@ -5,7 +5,7 @@ export KUBECONFIG="$HOME/.kube/config"
 export TRY_PATH="$HOME/Documents/code/tries"
 export BAT_THEME="Catppuccin Mocha"
 
-onepassword_ssh_sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+onepassword_ssh_sock="$(ls -1 $HOME/{.1password,Library/Group Containers/2BUA8C4S2C.com.1password/t}/agent.sock 2>/dev/null | head -1)"
 [[ -S "$onepassword_ssh_sock" ]] && export SSH_AUTH_SOCK="$onepassword_ssh_sock"
 unset onepassword_ssh_sock
 
