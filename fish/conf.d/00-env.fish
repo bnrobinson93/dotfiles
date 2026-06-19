@@ -31,7 +31,12 @@ set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 if not set -q USE_1PASSWORD_SSH
     set -gx USE_1PASSWORD_SSH 1
 end
-if test "$USE_1PASSWORD_SSH" = "1"
+if test "$USE_1PASSWORD_SSH" = 1
+    set -l onepassword_ssh_sock "(ls -1 $HOME/{.1password,Library/Group Containers/2BUA8C4S2C.com.1password/t}/agent.sock 2>/dev/null | head -1)"
+    if test -S "$onepassword_ssh_sock"
+        set -gx SSH_AUTH_SOCK "$onepassword_ssh_sock"
+    end
+
     if type -q op; and not test -f $HOME/.ssh/allowed_signers
         op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
     end
@@ -41,7 +46,7 @@ else
         set -e SSH_AUTH_SOCK
     end
     # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
-    if test (uname) = "Darwin"; and not set -q SSH_AUTH_SOCK
+    if test (uname) = Darwin; and not set -q SSH_AUTH_SOCK
         set -l lsock (launchctl getenv SSH_AUTH_SOCK ^/dev/null)
         if test -n "$lsock"
             set -gx SSH_AUTH_SOCK $lsock
