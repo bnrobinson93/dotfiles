@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(jj diff *)",
-      "Bash(jj log *)"
+      "Bash(jj log *)",
+      "Bash(sesh list *)"
     ]
   }
 }
