@@ -166,7 +166,7 @@ fi
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
-fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish"
+fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent"
 
 echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
