@@ -32,8 +32,8 @@ map("n", "<leader>Y", [["+Y]], { desc = "Yank entire line to system clipboard" }
 -- Disable Q
 map("n", "Q", "<nop>")
 
--- Tmux sessionizer (if you use tmux)
-map("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>", { desc = "Open tmux sessionizer" })
+-- Sesh session picker (if you use tmux + sesh)
+map("n", "<C-f>", "<cmd>silent !tmux display-popup -E -b rounded 'sesh connect \"$(sesh list | fzf --no-sort --ansi --border-label \" sesh \" --prompt \"⚡  \")'<CR>", { desc = "Sesh session picker" })
 
 -- GitHub browse (if you use gh CLI)
 map({ "n", "v" }, "<F5>", function()
@@ -75,7 +75,7 @@ if not vim.g.vscode and JJ_exists() then
   map("n", "<leader>jc", cmd.commit, { desc = "JJ commit" })
   map("n", "<leader>js", picker.status, { desc = "JJ status" })
   map("n", "<leader>jf", picker.file_history, { desc = "JJ file history" })
-  map("n", "<leader>jd", diff.open_vdiff, { desc = "JJ diff current buffer" })
+  map("n", "<leader>jd", cmd.describe, { desc = "JJ describe" })
 
   map("n", "<leader>jl", function()
     cmd.log({ summary = false })
@@ -95,9 +95,10 @@ if not vim.g.vscode and JJ_exists() then
     cmd.log({})
   end, { desc = "JJ tug-" })
 
-  map("n", "<leader>jD", function()
-    diff.show_revision({ rev = "@", left = "base", right = "@" })
-  end, { desc = "JJ diff revision against base" })
+  map("n", "<leader>jD", diff.open_vdiff, { desc = "JJ diff current buffer" })
+  map("n", "<leader>ja", function()
+    cmd.j("absorb")
+  end, { desc = "JJ absorb" })
 end
 
 -- New note in Obsidian

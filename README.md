@@ -26,6 +26,7 @@ Contains all the dotfiles that I use in my development environment.
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
 - pipx - `brew install pipx` or `sudo apt install pipx`
+- sesh - `brew install joshmedeski/sesh/sesh`
 
 ## SSH, Signing, and 1Password
 

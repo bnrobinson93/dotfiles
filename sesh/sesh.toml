@@ -1,0 +1,28 @@
+# blacklist: regex patterns matched against session names
+# filters jj-agent workspace dirs and the bare ~/Documents/code dir
+blacklist = ["^code$", "-ai", "-exp$", "-orch"]
+
+[[session]]
+name = "Vault"
+path = "~/Documents/Vault"
+startup_command = "nvim"
+
+[[session]]
+name = "dotfiles"
+path = "~/.dotfiles"
+startup_command = "jj pull"
+
+# code/* subdirs: open with 4-window layout
+[[wildcard]]
+pattern = "~/Documents/code/*"
+startup_command = "jj pull || git pull origin main || true && exit"
+windows = ["edit", "orch", "run"]
+
+[[window]]
+name = "edit"
+
+[[window]]
+name = "orch"
+
+[[window]]
+name = "run"
