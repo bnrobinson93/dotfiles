@@ -25,6 +25,8 @@ fish/functions/__bass.py
 fish/functions/bass.fish
 fish/functions/jj-agent.fish
 fish/functions/jj-orch.fish
+fish/functions/_jj_workspace_jump.fish
+fish/functions/_jj_workspace_sync_git_env.fish
 fish/functions/fisher.fish
 fish/functions/fzf_configure_bindings.fish
 fish/functions/_fzf_*.fish
