@@ -13,11 +13,11 @@ Shared instruction entry point for Claude, Codex, and OpenCode.
 - Code/commits/PRs: normal.
 - Off: "stop caveman" / "normal mode".
 
-# Running Development Servers and Tests
+## Running Development Servers
 
-Dev server already running with `pnpm` or `go`. Ask me to run tests/dev servers rather than running yourself. Can provide output if needed.
+Dev server already running with `pnpm` or `go`. Can provide output if needed.
 
-# Shared Memory
+## Shared Memory
 
 For durable project/user memory, read: `~/.claude/projects/-Users-brad-robinson--dotfiles/memory/MEMORY.md`
 
@@ -31,18 +31,18 @@ When user asks to remember a decision, code nuance, workflow, or location:
 - Add one bullet to `MEMORY.md` linking it.
 - Capture Why, Applies to, and Failure mode when useful.
 
-# VCS - Version Control
+## VCS - Version Control
 
-Before starting work, if you detected either a JJ or git folder, refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
+Unless I already stated that it's git vs jj, before starting work that would mutate files, check if you can detected either a JJ or git folder. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
 
-# Writing Voice
+## Writing Voice
 
 WritingVoice.md (at root, e.g. ~/.claude or ~/.codex) for long-form prose, documentation, or code comments where prose matters, decision docs, READMEs, anything user will publish or share. Does not apply to caveman-mode chat, terse status updates, or routine code.
 
-# Code Quality
+## Code Quality
 
 When coding, consider CodeQuality.md (at root, e.g. ~/.claude or ~/.codex)
 
-# Caveman
+## Caveman
 
 caveman.md (at root, e.g. ~/.claude or ~/.codex) for explicit caveman mode usage.

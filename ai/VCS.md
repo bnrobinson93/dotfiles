@@ -72,7 +72,7 @@ If creating local milestone commit/change:
 - No bookmark create/move as part of that step.
 - No rewriting earlier commits unless explicitly asked.
 
-## Workspace policy
+## Workspace Policy
 
 JJ workspaces = task sandboxes.
 
@@ -81,7 +81,7 @@ JJ workspaces = task sandboxes.
 - No additional workspaces unless explicitly asked.
 - If task should happen in different workspace/change, say so — don't auto-execute.
 
-## Common JJ commands
+## Common JJ Commands
 
 - Check current state: `jj status`
 - Show current diff: `jj diff`
@@ -102,14 +102,14 @@ JJ workspaces = task sandboxes.
 - In JJ repos, `gh` commands may need explicit bookmark/revision — JJ often operates headlessly.
 - If instruction suggests Git ops but in JJ repo, prefer JJ semantics.
 
-## Task-local overrides
+## Task-Local Overrides
 
 Task prompt may override default JJ behavior for session. Human may instruct to:
 
-- stay in single-change mode
-- create milestone commits for coherent subtasks
-- draft PR text after implementation
-- inspect or move to specific revision
-- prepare work for bookmark-based PR flow
+- Stay in single-change mode
+- Create milestone commits for coherent subtasks
+- Draft PR text after implementation
+- Inspect or move to specific revision
+- Prepare work for bookmark-based PR flow
 
 Task-local instructions override defaults here.
