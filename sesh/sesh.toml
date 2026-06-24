@@ -12,17 +12,7 @@ name = "dotfiles"
 path = "~/.dotfiles"
 startup_command = "jj pull"
 
-# code/* subdirs: open with 4-window layout
+# code/* subdirs: pull, single window
 [[wildcard]]
 pattern = "~/Documents/code/*"
-startup_command = "jj pull || git pull origin main || true && exit"
-windows = ["edit", "orch", "run"]
-
-[[window]]
-name = "edit"
-
-[[window]]
-name = "orch"
-
-[[window]]
-name = "run"
+startup_command = "jj pull || git pull origin main || true"
