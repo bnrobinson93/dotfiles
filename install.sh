@@ -197,6 +197,7 @@ if command -v herdr >/dev/null 2>&1; then
   herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
   herdr plugin install rjyo/herdr-window-title-sync --yes
   herdr plugin install third774/herdr-last-workspace --yes
+  [ -d "$HOME/Documents/code/herdr-jj-bookmark" ] && herdr plugin link "$HOME/Documents/code/herdr-jj-bookmark"
 fi
 
 if uname -a | grep -q "WSL"; then

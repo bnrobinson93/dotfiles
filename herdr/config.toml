@@ -86,3 +86,6 @@ cjk_ime_agents = ["claude", "codex", "gemini", "opencode"]
 
 [ui.toast]
 delivery = "system"
+
+[ui.sound]
+enabled = false
