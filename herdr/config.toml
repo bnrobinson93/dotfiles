@@ -4,15 +4,20 @@ onboarding = false
 # show full config with prefix-? or herdr --default-config
 
 [theme]
-name = "tokyo-night"
+name = "terminal"
 
 # Follow host terminal light/dark appearance and switch Herdr UI themes.
 # Existing manual behavior is unchanged unless this is true.
 auto_switch = false
 
+[ui]
+pane_gaps = true
+
 [keys]
 split_vertical = "prefix+|"
 split_horizontal = "prefix+-"
+next_workspace = "prefix+ctrl+n"
+previous_workspace = "prefix+ctrl+p"
 
 # Sesh clone
 [[keys.command]]
