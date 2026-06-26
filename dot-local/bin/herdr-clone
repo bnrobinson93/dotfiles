@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# herdr-clone — clone GitHub repo with jj, then open native Herdr workspace
+
+set -euo pipefail
+
+read -r -p "GitHub repo (owner/repo): " repo
+
+repo=${repo#https://github.com/}
+repo=${repo#git@github.com:}
+repo=${repo#ssh://git@github.com/}
+repo=${repo%.git}
+repo=${repo#/}
+repo=${repo%/}
+
+if [[ ! "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+  printf "Expected GitHub repo as owner/repo. Got: %s\n" "$repo" >&2
+  exit 1
+fi
+
+dest="$HOME/Documents/code/$repo"
+remote="git@github.com:$repo.git"
+
+if [[ ! -d "$dest" ]]; then
+  mkdir -p "$(dirname "$dest")"
+  jj git clone "$remote" "$dest"
+fi
+
+workspace_id=$(
+  herdr pane list | jq -r --arg cwd "$dest" '
+    .result.panes[]
+    | select(.cwd == $cwd or .foreground_cwd == $cwd)
+    | .workspace_id
+  ' | head -n 1
+)
+
+if [[ -n "$workspace_id" ]]; then
+  herdr workspace focus "$workspace_id" >/dev/null
+else
+  label=${repo##*/}
+  herdr workspace create --cwd "$dest" --label "$label" --focus >/dev/null
+fi

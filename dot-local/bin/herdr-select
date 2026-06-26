@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# herdr-select — fzf picker for native Herdr workspaces and project folders
+
+set -euo pipefail
+
+BLACKLIST_PATTERNS=(
+  '^code$'
+  '-ai'
+  '-exp$'
+  '-orch'
+)
+
+PINNED_DIRS=(
+  ~/.dotfiles
+  ~/Documents/Vault
+)
+
+SEARCH_PATHS=(
+  ~
+  ~/Documents
+  ~/Downloads
+  ~/Documents/code
+  ~/Documents/code/tries
+  ~/Documents/code/integrations-monorepo/integrations
+  ~/Documents/code/js-lib-monorepo/libraries
+)
+
+is_blacklisted() {
+  local name=$1
+  local pattern
+
+  for pattern in "${BLACKLIST_PATTERNS[@]}"; do
+    [[ "$name" =~ $pattern ]] && return 0
+  done
+
+  return 1
+}
+
+if [[ "${1:-}" == "--preview" ]]; then
+  type=${2:-}
+  target=${3:-}
+
+  case "$type" in
+    workspace)
+      herdr pane list --workspace "$target" | jq -r '
+        .result.panes[]
+        | "pane: \(.pane_id)\n  cwd: \(.cwd // "-")\n"
+      '
+      ;;
+    folder)
+      if command -v eza >/dev/null 2>&1; then
+        eza --all --color=always "$target"
+      else
+        ls -la "$target"
+      fi
+      ;;
+  esac
+
+  exit 0
+fi
+
+workspace_rows() {
+  herdr workspace list | jq -r '
+    .result.workspaces[]
+    | ["󰆍", .label, "workspace", .workspace_id]
+    | @tsv
+  '
+}
+
+directory_rows() {
+  local include_blacklisted=${1:-false}
+
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    zoxide query -l 2>/dev/null || true
+  } | sed 's:/*$::' \
+    | awk 'NF && !seen[$0]++' \
+    | while IFS= read -r path; do
+        path=${path%/}
+        name=${path##*/}
+        [[ "$include_blacklisted" == true ]] || {
+          is_blacklisted "$name" && continue
+        }
+        [[ -d "$path" ]] || continue
+        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+      done
+}
+
+folder_rows() {
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
+  } | sed 's:/*$::' \
+    | awk 'NF && !seen[$0]++' \
+    | while IFS= read -r path; do
+        path=${path%/}
+        name=${path##*/}
+        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+      done
+}
+
+script_path=$(printf '%q' "${BASH_SOURCE[0]}")
+default_reload_cmd=$(printf '%q --default' "${BASH_SOURCE[0]}")
+all_reload_cmd=$(printf '%q --all' "${BASH_SOURCE[0]}")
+workspace_reload_cmd=$(printf '%q --workspaces' "${BASH_SOURCE[0]}")
+folder_reload_cmd=$(printf '%q --folders' "${BASH_SOURCE[0]}")
+close_workspace_cmd=$(printf '%q --close-workspace {3} {4}' "${BASH_SOURCE[0]}")
+
+case "${1:-}" in
+  --default)
+    { workspace_rows; directory_rows; }
+    exit 0
+    ;;
+  --all)
+    { workspace_rows; directory_rows true; }
+    exit 0
+    ;;
+  --workspaces)
+    workspace_rows
+    exit 0
+    ;;
+  --folders)
+    folder_rows
+    exit 0
+    ;;
+  --close-workspace)
+    if [[ "${2:-}" == "workspace" && -n "${3:-}" ]]; then
+      herdr workspace close "$3" >/dev/null
+    fi
+    exit 0
+    ;;
+esac
+
+selection=$(
+  { workspace_rows; directory_rows; } |
+    fzf --no-sort --ansi \
+      --delimiter '\t' --with-nth '1,2' \
+      --border rounded --border-label ' herdr ' \
+      --header '  ^a all ^w workspaces ^d close workspace ^p projects' \
+      --bind "ctrl-a:change-prompt(⚡  )+reload($all_reload_cmd)" \
+      --bind "ctrl-w:change-prompt(󰆍  )+reload($workspace_reload_cmd)" \
+      --bind "ctrl-d:execute-silent($close_workspace_cmd)+reload($default_reload_cmd)" \
+      --bind "ctrl-p:change-prompt(📁  )+reload($folder_reload_cmd)" \
+      --preview-window 'right:55%' \
+      --preview "$script_path --preview {3} {4}"
+)
+
+[[ -n "${selection:-}" ]] || exit 0
+
+type=$(cut -f3 <<<"$selection")
+target=$(cut -f4- <<<"$selection")
+
+case "$type" in
+  workspace)
+    herdr workspace focus "$target" >/dev/null
+    ;;
+  folder)
+    label=${target%/}
+    label=${label##*/}
+    herdr workspace create --cwd "$target" --label "$label" --focus >/dev/null
+    ;;
+esac
