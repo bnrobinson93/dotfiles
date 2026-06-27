@@ -155,8 +155,6 @@ case "$type" in
     herdr workspace focus "$target" >/dev/null
     ;;
   folder)
-    label=${target%/}
-    label=${label##*/}
-    herdr workspace create --cwd "$target" --label "$label" --focus >/dev/null
+    herdr-workspace-at "$target"
     ;;
 esac
