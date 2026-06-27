@@ -33,7 +33,9 @@ map("n", "<leader>Y", [["+Y]], { desc = "Yank entire line to system clipboard" }
 map("n", "Q", "<nop>")
 
 -- Sesh session picker (if you use tmux + sesh)
-map("n", "<C-f>", "<cmd>silent !tmux display-popup -E -b rounded 'sesh connect \"$(sesh list | fzf --no-sort --ansi --border-label \" sesh \" --prompt \"⚡  \")'<CR>", { desc = "Sesh session picker" })
+map("n", "<C-f>", "<cmd>~/.local/bin/herdr-select<CR>", { desc = "Sesh session picker" })
+
+map({ "i", "v" }, "<c-o>zz", "<Esc>:norm! zz<CR>i", { desc = "Center vertically in one-shot mode" })
 
 -- GitHub browse (if you use gh CLI)
 map({ "n", "v" }, "<F5>", function()
