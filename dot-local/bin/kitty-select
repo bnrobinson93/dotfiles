@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# kitty-select — fzf picker for kitty sessions (workspaces) and project folders.
+# Port of herdr-select. Workspaces = generated .kitty-session files in the cache dir.
+# goto_session focuses-if-live, else creates. Folders create a workspace via kitty-workspace-at.
+
+set -euo pipefail
+
+cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/kitty-sessions
+
+BLACKLIST_PATTERNS=(
+  '^code$'
+  '-ai'
+  '-exp$'
+  '-orch'
+)
+
+PINNED_DIRS=(
+  ~/.dotfiles
+  ~/Documents/Vault
+)
+
+SEARCH_PATHS=(
+  ~
+  ~/Documents
+  ~/Downloads
+  ~/Documents/code
+  ~/Documents/code/tries
+  ~/Documents/code/integrations-monorepo/integrations
+  ~/Documents/code/js-lib-monorepo/libraries
+)
+
+is_blacklisted() {
+  local name=$1 pattern
+  for pattern in "${BLACKLIST_PATTERNS[@]}"; do
+    [[ "$name" =~ $pattern ]] && return 0
+  done
+  return 1
+}
+
+# fields: <icon>\t<display>\t<type>\t<target>\t<session-name>
+# Session name carries a path hash; display the clean dir name (+ dim parent) read
+# from the session file's `cd` line so same-basename workspaces are distinguishable.
+workspace_rows() {
+  [[ -d "$cache_dir" ]] || return 0
+  local f sname path disp parent
+  for f in "$cache_dir"/*.kitty-session; do
+    [[ -e "$f" ]] || continue
+    sname=${f##*/}; sname=${sname%.kitty-session}
+    path=$(grep -m1 '^cd ' "$f" | cut -d' ' -f2-)
+    if [[ -n "$path" ]]; then
+      disp=${path##*/}; parent=$(basename "$(dirname "$path")")
+    else
+      disp=${sname%-*}; parent=""
+    fi
+    printf '󰆍\t%s \033[2m%s\033[0m\tworkspace\t%s\t%s\n' "$disp" "$parent" "$f" "$sname"
+  done
+}
+
+directory_rows() {
+  local include_blacklisted=${1:-false}
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    zoxide query -l 2>/dev/null || true
+  } | sed 's:/*$::' \
+    | awk 'NF && !seen[$0]++' \
+    | while IFS= read -r path; do
+        path=${path%/}; name=${path##*/}
+        [[ "$include_blacklisted" == true ]] || { is_blacklisted "$name" && continue; }
+        [[ -d "$path" ]] || continue
+        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+      done
+}
+
+folder_rows() {
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
+  } | sed 's:/*$::' \
+    | awk 'NF && !seen[$0]++' \
+    | while IFS= read -r path; do
+        path=${path%/}; name=${path##*/}
+        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+      done
+}
+
+if [[ "${1:-}" == "--preview" ]]; then
+  type=${2:-}; target=${3:-}
+  case "$type" in
+    workspace) [[ -f "$target" ]] && cat "$target" ;;
+    folder)
+      if command -v eza >/dev/null 2>&1; then eza --all --color=always "$target"
+      else ls -la "$target"; fi ;;
+  esac
+  exit 0
+fi
+
+case "${1:-}" in
+  --default)     { workspace_rows; directory_rows; };      exit 0 ;;
+  --all)         { workspace_rows; directory_rows true; };  exit 0 ;;
+  --workspaces)  workspace_rows;                            exit 0 ;;
+  --folders)     folder_rows;                               exit 0 ;;
+  --close-workspace)
+    [[ "${2:-}" == "workspace" && -n "${3:-}" ]] && kitten @ action close_session "$3"
+    exit 0 ;;
+esac
+
+script_path=$(printf '%q' "${BASH_SOURCE[0]}")
+all_reload=$(printf '%q --all' "${BASH_SOURCE[0]}")
+ws_reload=$(printf '%q --workspaces' "${BASH_SOURCE[0]}")
+def_reload=$(printf '%q --default' "${BASH_SOURCE[0]}")
+folder_reload=$(printf '%q --folders' "${BASH_SOURCE[0]}")
+# close by session NAME (field 5 = hashed session name), guarded by type (field 3)
+close_cmd=$(printf '%q --close-workspace {3} {5}' "${BASH_SOURCE[0]}")
+
+selection=$(
+  { workspace_rows; directory_rows; } |
+    fzf --no-sort --ansi \
+      --delimiter '\t' --with-nth '1,2' \
+      --border rounded --border-label ' kitty ' \
+      --header '  ^a all  ^w workspaces  ^d close workspace  ^p projects' \
+      --bind "ctrl-a:change-prompt(⚡  )+reload($all_reload)" \
+      --bind "ctrl-w:change-prompt(󰆍  )+reload($ws_reload)" \
+      --bind "ctrl-d:execute-silent($close_cmd)+reload($def_reload)" \
+      --bind "ctrl-p:change-prompt(📁  )+reload($folder_reload)" \
+      --preview-window 'right:55%' \
+      --preview "$script_path --preview {3} {4}"
+)
+
+[[ -n "${selection:-}" ]] || exit 0
+type=$(cut -f3 <<<"$selection")
+target=$(cut -f4 <<<"$selection")
+
+case "$type" in
+  workspace) kitten @ action goto_session "$target" ;;
+  folder)    kitty-workspace-at "$target" ;;
+esac

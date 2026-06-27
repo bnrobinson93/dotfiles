@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# kitty-clone — clone a GitHub repo with jj, then open a kitty session (workspace).
+# Port of herdr-clone. Focus-or-create handled by kitty-workspace-at -> goto_session.
+
+set -euo pipefail
+
+read -r -p "GitHub repo (owner/repo): " repo
+
+repo=${repo#https://github.com/}
+repo=${repo#git@github.com:}
+repo=${repo#ssh://git@github.com/}
+repo=${repo%.git}
+repo=${repo#/}
+repo=${repo%/}
+
+if [[ ! "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+  printf "Expected GitHub repo as owner/repo. Got: %s\n" "$repo" >&2
+  exit 1
+fi
+
+dest="$HOME/Documents/code/$repo"
+remote="git@github.com:$repo.git"
+
+if [[ ! -d "$dest" ]]; then
+  mkdir -p "$(dirname "$dest")"
+  jj git clone "$remote" "$dest"
+fi
+
+kitty-workspace-at "$dest"
