@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# kitty-worktree [NAME] — open a kitty session on a jj workspace or git worktree.
+#
+#   kitty-worktree ai           create/reuse <repo>-ai beside the repo, jump to it
+#   kitty-worktree              pick an existing one with fzf
+#   kitty-worktree --remove ai  forget it, close its session, delete the dir
+
+set -euo pipefail
+
+remove=false
+if [[ "${1:-}" == "--remove" ]]; then
+  remove=true
+  shift
+fi
+
+root=$(jj workspace root 2>/dev/null) || root=""
+vcs=jj
+if [[ -z "$root" ]]; then
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    printf "Not in a jj or git repository\n" >&2
+    exit 1
+  }
+  vcs=git
+fi
+
+repo=${root##*/}
+list_worktrees() {
+  if [[ "$vcs" == jj ]]; then
+    jj workspace list | sed 's/:.*//' | grep -vx default || true
+  else
+    git worktree list --porcelain | sed -n 's|^worktree ||p' | grep -vxF "$root" |
+      while IFS= read -r path; do printf "%s\n" "${path##*"$repo"-}"; done
+  fi
+}
+
+name=${1:-}
+if [[ -z "$name" ]]; then
+  name=$(list_worktrees | fzf --border rounded --border-label " $repo worktrees ") || exit 0
+fi
+[[ -n "$name" ]] || exit 0
+
+dest="${root%/*}/$repo-$name"
+
+if [[ "$remove" == true ]]; then
+  if [[ "$vcs" == jj ]]; then
+    jj workspace forget "$name" 2>/dev/null || true
+  else
+    git worktree remove --force "$dest" 2>/dev/null || true
+  fi
+  rm -rf "$dest"
+  kitten @ action close_session "$repo-$name" 2>/dev/null || true
+  rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/kitty/sessions/$repo-$name.kitty-session"
+  exit 0
+fi
+
+if [[ ! -d "$dest" ]]; then
+  if [[ "$vcs" == jj ]]; then
+    jj workspace add --name "$name" "$dest"
+  else
+    git worktree add "$dest" -b "$name"
+  fi
+fi
+
+kitty-session-at "$dest"
