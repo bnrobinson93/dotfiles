@@ -3,31 +3,40 @@
 
 list="sesh list --icons"
 
+# Same roots as tmux-sessionizer — surfaces folders zoxide hasn't seen yet.
+SEARCH_PATHS=(
+  ~
+  ~/Documents
+  ~/Downloads
+  ~/Documents/code
+  ~/Documents/code/tries
+  ~/Documents/code/integrations-monorepo/integrations
+  ~/Documents/code/js-lib-monorepo/libraries
+)
+folder_cmd="fd . ${SEARCH_PATHS[*]} -d 1 -t d -H -E .Trash"
+
 if [[ "$1" == "all" ]]; then
-    listcmd=$($list -b --icons)
-    label=' all sessions '
+  listcmd=$($list -b)
+  label=' all sessions '
 else
-    listcmd=$($list --icons)
-    label=' sesh '
+  listcmd=$($list)
+  label=' sesh '
 fi
 
 extra_opts=(
---bind "tab:down,btab:up"
---bind "ctrl-a:change-prompt(⚡️  )+reload($list)"
---bind "ctrl-t:change-prompt(🪟  )+reload($list -t)"
---bind "ctrl-g:change-prompt(⚙️  )+reload($list -c)"
---bind "ctrl-x:change-prompt(📁  )+reload($list -z)"
---bind "ctrl-f:change-prompt(🔍️  )+reload(fd -H -d 2 -t d -E .Trash . ~)"
---bind "ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(⚡️  )+reload($list)"
---preview-window "right:55%"
---preview "sesh preview {}"
+  --bind "tab:down,btab:up"
+  --bind "ctrl-a:change-prompt(⚡️  )+reload($list -b)"
+  --bind "ctrl-t:change-prompt(🪟  )+reload($list -t)"
+  --bind "ctrl-f:change-prompt(📁  )+reload($folder_cmd)"
+  --bind "ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(⚡️  )+reload($list)"
+  --preview-window "right:55%"
+  --preview "sesh preview {}"
 )
 
-
-session=$(printf "%s\n" "$listcmd" | \
+session=$(printf "%s\n" "$listcmd" |
   fzf --tmux center,80%,70% --no-sort --ansi \
-  --border rounded --border-label "$label" \
-  --header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find' \
-  "${extra_opts[@]}")
+    --border rounded --border-label "$label" \
+    --header '  ^a all ^t tmux ^d tmux kill ^f find' \
+    "${extra_opts[@]}")
 [[ -n "$session" ]] && sesh connect "$session"
 exit 0
