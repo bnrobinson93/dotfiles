@@ -88,7 +88,6 @@ tooltip {
 #custom-idle-indicator,
 #custom-notification-silencing-indicator,
 #custom-privacy-indicator,
-#custom-orientation,
 #custom-voxtype {
   min-width: 12px;
   margin: 0 7.5px;
@@ -98,10 +97,6 @@ tooltip {
 #custom-idle-indicator.active,
 #custom-notification-silencing-indicator.active,
 #custom-privacy-indicator.active {
-  color: #a55555;
-}
-
-#custom-orientation.locked {
   color: #a55555;
 }
 

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# Screen auto-rotate control for Hyprland via the accelerometer.
+#
+# iio-hyprland is unusable on current Hyprland: it emits the shorthand
+# `monitor=eDP-1,transform,N`, which this Hyprland silently ignores (parses
+# "transform" as a resolution). So this script is its own daemon — it reads
+# orientation from iio-sensor-proxy (`monitor-sensor`) and applies the FULL
+# monitor string, which works.
+#
+# Auto-rotate is a backgrounded daemon. "Lock" kills it (freezes orientation);
+# "unlock" restarts it (re-syncs to current physical orientation). Lock state =
+# presence of the flag file.
+#
+# Subcommands:
+#   start   - launch daemon unless locked or already running
+#   stop    - kill daemon (freeze current orientation)
+#   toggle  - flip locked/auto, then refresh the waybar icon
+#   status  - emit waybar JSON (icon + class + tooltip)
+#   _daemon - internal: the sensor loop (do not call directly)
+
+set -euo pipefail
+
+MONITOR="eDP-1"
+RUNDIR="${XDG_RUNTIME_DIR:-/tmp}"
+LOCK_FLAG="$RUNDIR/orientation-lock"
+PIDFILE="$RUNDIR/orientation-daemon.pid"
+WAYBAR_SIGNAL=12 # RTMIN+12, matches custom/orientation "signal" in waybar config
+
+# Nerd Font (Material Design) glyphs
+ICON_AUTO="󰑵"   # screen-rotation
+ICON_LOCK="󰍁"   # lock
+
+SELF="$(command -v "$0" 2>/dev/null || readlink -f "$0")"
+
+is_locked() { [ -e "$LOCK_FLAG" ]; }
+running()   { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; }
+
+# Map iio-sensor-proxy orientation -> Hyprland transform.
+# Hyprland: 0=normal 1=90° 2=180° 3=270°. Swap left-up/right-up if portrait
+# comes out upside-down for your hardware.
+map_transform() {
+  case "$1" in
+    normal)    echo 0 ;;
+    left-up)   echo 1 ;;
+    bottom-up) echo 2 ;;
+    right-up)  echo 3 ;;
+    *)         echo "" ;;
+  esac
+}
+
+apply() {
+  local t="$1" scale
+  scale=$(hyprctl monitors -j all | jq -r --arg m "$MONITOR" '.[]|select(.name==$m)|.scale')
+  case "$scale" in ''|null) scale=1 ;; esac
+  hyprctl --batch "keyword monitor $MONITOR,preferred,auto,$scale,transform,$t ; keyword input:touchdevice:transform $t ; keyword input:tablet:transform $t" >/dev/null 2>&1 || true
+}
+
+_daemon() {
+  echo "$$" >"$PIDFILE"
+  trap 'rm -f "$PIDFILE"; kill 0' EXIT
+  # monitor-sensor prints the initial orientation then "changed:" lines.
+  stdbuf -oL monitor-sensor 2>/dev/null | while IFS= read -r line; do
+    o=$(printf '%s' "$line" | sed -nE 's/.*(changed|orientation): ([a-z-]+).*/\2/p')
+    [ -z "$o" ] && continue
+    t=$(map_transform "$o")
+    [ -n "$t" ] && apply "$t"
+  done
+}
+
+start() {
+  is_locked && return 0
+  running && return 0
+  # setsid -> daemon is its own process-group leader (PGID == its PID), so stop
+  # can kill the whole group (daemon + monitor-sensor child).
+  setsid "$SELF" _daemon >/dev/null 2>&1 </dev/null &
+}
+
+stop() {
+  if running; then
+    kill -- -"$(cat "$PIDFILE")" 2>/dev/null || true
+  fi
+  rm -f "$PIDFILE"
+}
+
+refresh_waybar() { pkill -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true; }
+
+toggle() {
+  if is_locked; then
+    rm -f "$LOCK_FLAG"
+    start
+  else
+    : >"$LOCK_FLAG"
+    stop
+  fi
+  refresh_waybar
+}
+
+status() {
+  if is_locked; then
+    printf '{"text":"%s","class":"locked","tooltip":"Orientation locked — click for auto-rotate"}\n' "$ICON_LOCK"
+  else
+    printf '{"text":"%s","class":"auto","tooltip":"Auto-rotate on — click to lock"}\n' "$ICON_AUTO"
+  fi
+}
+
+case "${1:-status}" in
+  start)   start ;;
+  stop)    stop ;;
+  toggle)  toggle ;;
+  status)  status ;;
+  _daemon) _daemon ;;
+  *) echo "usage: orientation {start|stop|toggle|status}" >&2; exit 1 ;;
+esac
