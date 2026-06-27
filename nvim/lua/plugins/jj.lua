@@ -14,8 +14,6 @@ end
 
 return {
   {
-    -- dir = "/home/brad/Documents/code/jj-ide-system/jj-signs.nvim",
-    -- name = "jj-signs.nvim",
     "bnrobinson93/jj-signs.nvim",
     event = "LazyFile",
     opts = {},
