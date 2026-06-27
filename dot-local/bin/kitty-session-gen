@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# kitty-session-gen PATH — generate a .kitty-session file for PATH and print its path.
+# Mirrors sesh.toml templates (Vault, dotfiles, code/*). Session name = dir basename,
+# so kitty's goto_session dedups (focus-if-live, else create) by that name.
+
+set -euo pipefail
+
+target=${1:?Usage: kitty-session-gen PATH}
+target=${target/#\~/$HOME}
+target=${target%/}
+[[ -d "$target" ]] || { printf "Not a directory: %s\n" "$target" >&2; exit 1; }
+
+name=${target##*/}
+name=${name#.}
+
+# Session name (= filename stem) is deduped by kitty's goto_session. Suffix a short
+# hash of the FULL path so same-basename dirs (e.g. monorepo subdirs) stay distinct.
+hash=$(printf '%s' "$target" | sha1sum | cut -c1-6)
+
+cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/kitty-sessions
+mkdir -p "$cache_dir"
+file="$cache_dir/$name-$hash.kitty-session"
+
+pull_then_shell='launch sh -c "jj pull 2>/dev/null || git pull --ff-only 2>/dev/null || true; exec ${SHELL:-/bin/sh} -l"'
+
+{
+  case "$target" in
+    "$HOME/Documents/Vault")
+      printf 'new_tab %s\ncd %s\nlayout splits\nlaunch nvim\n' "$name" "$target"
+      ;;
+    "$HOME/.dotfiles")
+      printf 'new_tab %s\ncd %s\nlayout splits\n%s\n' "$name" "$target" "$pull_then_shell"
+      ;;
+    "$HOME/Documents/code/"*)
+      # 3-tab layout mirroring sesh.toml code/* (edit / orch / run)
+      printf 'new_tab edit\ncd %s\nlayout splits\nlaunch sh -c "jj pull 2>/dev/null || git pull --ff-only 2>/dev/null || true; exec nvim"\n' "$target"
+      printf 'new_tab orch\ncd %s\nlayout splits\nlaunch\n' "$target"
+      printf 'new_tab run\ncd %s\nlayout splits\nlaunch\n' "$target"
+      ;;
+    *)
+      printf 'new_tab %s\ncd %s\nlayout splits\nlaunch\n' "$name" "$target"
+      ;;
+  esac
+} > "$file"
+
+printf '%s\n' "$file"
