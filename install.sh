@@ -1,12 +1,12 @@
 #!/bin/bash
 echo Installing programs...
 if type apt >/dev/null; then
-  sudo apt install -y git zsh fish ripgrep tmux stow curl wget pipx
+  sudo apt install -y git zsh fish ripgrep tmux stow curl wget pipx jq
 elif type pacman >/dev/null; then
-  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget python-pipx
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget python-pipx jq
 else
   echo "Couldn't detect package manager"
-  echo "Please install \`git zsh fish ripgrep tmux stow curl wget pipx\` manually and re-run this script."
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget pipx jq\` manually and re-run this script."
 fi
 
 echo Ensuring we have the latest...
@@ -40,7 +40,7 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise gh pipx dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise gh pipx jq dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
@@ -189,7 +189,15 @@ fi
 chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
-brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat
+brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat herdr
+
+if command -v herdr >/dev/null 2>&1; then
+  herdr integration install claude
+  herdr integration install codex
+  herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
+  herdr plugin install rjyo/herdr-window-title-sync --yes
+  herdr plugin install third774/herdr-last-workspace --yes
+fi
 
 if uname -a | grep -q "WSL"; then
   echo "Detected WSL, installing additional dependencies..."

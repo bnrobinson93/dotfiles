@@ -16,6 +16,7 @@ Contains all the dotfiles that I use in my development environment.
   - Make sure you have a C compiler
   - Make sure that `npm` or similar is installed
 - fzf - `sudo apt install fzf`
+- jq - `sudo apt install jq`
 - Atuin - `curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh`
 - ripgrep - `sudo apt install ripgrep`
 - lazygit - `brew install lazygit`
@@ -27,6 +28,7 @@ Contains all the dotfiles that I use in my development environment.
 - Zoxide - `brew install zoxide`
 - pipx - `brew install pipx` or `sudo apt install pipx`
 - sesh - `brew install joshmedeski/sesh/sesh`
+- herdr - `brew install herdr`
 
 ## SSH, Signing, and 1Password
 

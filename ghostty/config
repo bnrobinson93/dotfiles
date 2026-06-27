@@ -3,7 +3,7 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "DankMono Nerd Font"
+font-family = "Dank Mono Nerd Font Propo"
 font-style = Regular
 font-size = 14
 

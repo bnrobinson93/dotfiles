@@ -13,7 +13,7 @@ SEARCH_PATHS=(
   ~/Documents/code/integrations-monorepo/integrations
   ~/Documents/code/js-lib-monorepo/libraries
 )
-folder_cmd="fd . ${SEARCH_PATHS[*]} -d 1 -t d -H -E .Trash"
+folder_cmd="{ printf '%s\n' ~/.dotfiles; fd . ${SEARCH_PATHS[*]} -d 1 -t d -E .Trash; } | sed 's:/*$::' | awk 'NF && !seen[\$0]++'"
 
 if [[ "$1" == "all" ]]; then
   listcmd=$($list -b)

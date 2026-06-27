@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# herdr-workspace-at PATH — focus/create native Herdr workspace at PATH
+
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  printf "Usage: herdr-workspace-at PATH\n" >&2
+  exit 2
+fi
+
+target=${1/#\~/$HOME}
+target=${target%/}
+
+if [[ ! -d "$target" ]]; then
+  printf "Not a directory: %s\n" "$target" >&2
+  exit 1
+fi
+
+workspace_id=$(
+  herdr pane list | jq -r --arg cwd "$target" '
+    .result.panes[]
+    | select(.cwd == $cwd or .foreground_cwd == $cwd)
+    | .workspace_id
+  ' | head -n 1
+)
+
+if [[ -n "$workspace_id" ]]; then
+  herdr workspace focus "$workspace_id" >/dev/null
+else
+  label=${target##*/}
+  label=${label#.}
+  herdr workspace create --cwd "$target" --label "$label" --focus >/dev/null
+fi

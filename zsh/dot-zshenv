@@ -33,3 +33,4 @@ path=($zshenv_path_dirs $path)
 typeset -U path
 export PATH
 unset zshenv_path_dirs dir
+. "$HOME/.cargo/env"
