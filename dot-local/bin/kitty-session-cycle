@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# kitty-session-cycle {next|prev} — cycle through known kitty workspaces.
+# Port of herdr next/previous_workspace. kitty has no native session cycle and
+# does not expose live-session membership over remote control, so this cycles the
+# known workspaces (generated .kitty-session files) via goto_session, which
+# focuses-if-live, else recreates.
+
+set -euo pipefail
+
+dir=${1:?Usage: kitty-session-cycle {next|prev}}
+
+cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/kitty-sessions
+mapfile -t files < <(ls -1 "$cache_dir"/*.kitty-session 2>/dev/null | sort)
+n=${#files[@]}
+(( n > 0 )) || exit 0
+
+# kitty does not expose the active session over remote control, so advance from a
+# persisted index marker rather than the live current session.
+idx_file="$cache_dir/.cycle-idx"
+i=0
+[[ -f "$idx_file" ]] && i=$(<"$idx_file")
+case "$dir" in
+  next) i=$(( (i + 1) % n )) ;;
+  prev) i=$(( (i - 1 + n) % n )) ;;
+  *) printf "next|prev only\n" >&2; exit 2 ;;
+esac
+printf '%s' "$i" > "$idx_file"
+
+kitten @ action goto_session "${files[$i]}"

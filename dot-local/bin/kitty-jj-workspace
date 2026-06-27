@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# kitty-jj-workspace {new|new-tab|remove} [name]
+# Port of the herdr jj-workspace plugin bindings to kitty native sessions.
+#   new       jj workspace add  -> open as a new kitty session (workspace)
+#   new-tab   jj workspace add  -> open as a tab in the CURRENT session
+#   remove    jj workspace forget (pick from list) -> close matching session
+#
+# Workspace dir convention: sibling of the current workspace root, named
+# <root-basename>-<name>. Adjust if your plugin used a different layout.
+
+set -euo pipefail
+
+action=${1:?Usage: kitty-jj-workspace {new|new-tab|remove} [name]}
+shift || true
+
+root=$(jj workspace root 2>/dev/null) || { printf "Not in a jj repo\n" >&2; exit 1; }
+parent=$(dirname "$root")
+base=$(basename "$root")
+# strip a trailing -<existing-workspace> so nesting from a workspace stays flat
+base=${base%-*}
+
+case "$action" in
+  new|new-tab)
+    name=${1:-}
+    [[ -n "$name" ]] || read -r -p "New jj workspace name: " name
+    [[ -n "$name" ]] || { printf "No name given\n" >&2; exit 1; }
+    dest="$parent/${base}-${name}"
+
+    if [[ ! -d "$dest" ]]; then
+      ( cd "$root" && jj workspace add --name "$name" "$dest" )
+    fi
+
+    if [[ "$action" == "new-tab" ]]; then
+      # add a tab to the current session (--add-to-session . = source window's session)
+      kitten @ launch --type=tab --cwd "$dest" --add-to-session . --tab-title "$name"
+    else
+      kitty-workspace-at "$dest"
+    fi
+    ;;
+
+  remove)
+    name=${1:-}
+    if [[ -z "$name" ]]; then
+      name=$(
+        ( cd "$root" && jj workspace list ) \
+          | sed 's/:.*//' \
+          | grep -vx default \
+          | fzf --border rounded --border-label ' remove jj workspace ' --no-sort
+      ) || exit 0
+    fi
+    [[ -n "$name" ]] || exit 0
+    ( cd "$root" && jj workspace forget "$name" )
+    # best-effort: close the matching kitty session + drop its cached file
+    kitten @ action close_session "${base}-${name}" 2>/dev/null || true
+    rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/kitty-sessions/${base}-${name}.kitty-session"
+    ;;
+
+  *)
+    printf "Unknown action: %s\n" "$action" >&2
+    exit 2
+    ;;
+esac

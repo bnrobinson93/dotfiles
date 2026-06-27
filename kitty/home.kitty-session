@@ -1,0 +1,7 @@
+# Default startup session so the initial context is a named session ("home").
+# Ensures goto_session swaps are clean and reversible (goto_session -1 returns here)
+# instead of leaving a session-less tab that feels "replaced".
+new_tab home
+cd ~
+layout splits
+launch
