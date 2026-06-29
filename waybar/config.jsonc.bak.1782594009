@@ -22,7 +22,6 @@
     "cpu",
     "custom/weather",
     "custom/voxtype",
-    "custom/orientation",
     "custom/screenrecording-indicator",
     "custom/idle-indicator",
     "custom/notification-silencing-indicator",
@@ -227,14 +226,6 @@
     "on-scroll-down": "",
     "on-scroll-left": "",
     "on-scroll-right": "",
-  },
-  "custom/orientation": {
-    "exec": "orientation status",
-    "return-type": "json",
-    "signal": 12,
-    "format": "{}",
-    "on-click": "orientation toggle",
-    "tooltip": true,
   },
   "custom/screenrecording-indicator": {
     "on-click": "omarchy-capture-screenrecording",
