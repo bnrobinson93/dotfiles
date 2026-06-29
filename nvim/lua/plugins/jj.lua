@@ -70,6 +70,7 @@ return {
         { "<leader>jT", icon = { icon = "󰓂", color = "cyan" } },
         { "<leader>js", icon = { icon = "󱖫", color = "green" } },
         { "<leader>jf", icon = { icon = "", color = "blue" } },
+        { "<leader>jh", icon = { icon = "󰈙", color = "orange" } },
         { "<leader>jd", icon = { icon = "", color = "orange" } },
         { "<leader>jD", icon = { icon = "", color = "red" } },
       })

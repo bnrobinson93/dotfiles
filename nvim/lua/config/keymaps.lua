@@ -70,10 +70,42 @@ if not vim.g.vscode and JJ_exists() then
   local cmd = require("jj.cmd")
   local picker = require("jj.picker")
   local diff = require("jj.diff")
+
+  local function jj_hunks_quickfix()
+    local lines = vim.fn.systemlist({ "jj", "diff", "--git", "--color=never" })
+    if vim.v.shell_error ~= 0 then
+      vim.notify(table.concat(lines, "\n"), vim.log.levels.ERROR)
+      return
+    end
+
+    local items = {}
+    local file
+    for _, line in ipairs(lines) do
+      local old_file = line:match("^%-%-%- a/(.+)$")
+      local new_file = line:match("^%+%+%+ b/(.+)$")
+      if old_file then
+        file = old_file
+      elseif new_file then
+        file = new_file
+      elseif file and line:match("^@@") then
+        local lnum = tonumber(line:match("^@@ %-%d+,?%d* %+(%d+)")) or 1
+        items[#items + 1] = { filename = file, lnum = math.max(lnum, 1), text = line }
+      end
+    end
+
+    vim.fn.setqflist({}, " ", { title = "JJ hunks", items = items })
+    if #items == 0 then
+      vim.notify("No JJ hunks")
+      return
+    end
+    vim.cmd("copen")
+  end
+
   map("n", "<leader>jn", cmd.new, { desc = "JJ new" })
   map("n", "<leader>jc", cmd.commit, { desc = "JJ commit" })
   map("n", "<leader>js", picker.status, { desc = "JJ status" })
   map("n", "<leader>jf", picker.file_history, { desc = "JJ file history" })
+  map("n", "<leader>jh", jj_hunks_quickfix, { desc = "JJ hunks quickfix" })
   map("n", "<leader>jd", cmd.describe, { desc = "JJ describe" })
 
   map("n", "<leader>jl", function()
