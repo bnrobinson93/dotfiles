@@ -44,7 +44,7 @@ function commit --description 'AI-generated commit message'
     else if type -q opencode
         set -l oc_model opencode/big-pickle
         if test (uname -s) = Darwin
-            set oc_model openai/gpt-4o-mini
+            set oc_model anthropic/claude-haiku-4-5
         end
 
         echo "✓ Generating commit message..."
