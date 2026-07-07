@@ -200,6 +200,10 @@ stow -v2 -t ~/.config/opencode ai
 superclaude mcp --list
 superclaude mcp
 
+# Update agent skills/plugins
+update-skills.sh
+# Optional: TEACH_SKILL_SOURCE=owner/repo update-skills.sh
+
 # Verify
 superclaude install --list
 superclaude doctor
