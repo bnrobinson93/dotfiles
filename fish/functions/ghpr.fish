@@ -8,8 +8,9 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     set -l custom_title ""
     set -l target_bookmark ""
     set -l target_revision ""
+    set -l labels ""
 
-    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' -- $argv
+    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' 'l/label=' -- $argv
     or return 1
 
     if set -q _flag_draft
@@ -34,6 +35,10 @@ function ghpr --description "Create GitHub PR with conventional commit format"
 
     if set -q _flag_revision
         set target_revision $_flag_revision
+    end
+
+    if set -q _flag_label
+        set labels $_flag_label
     end
 
     if test -n "$target_bookmark" -a -n "$target_revision"
@@ -127,7 +132,10 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     # Ensure changes are pushed before creating a PR
     if test "$is_jj" = true
         # A bookmark is pushed only if its block contains "@origin:" without "not created yet"
-        set -l escaped_branch (string escape --style=regex -- $current_branch)
+        # Unescape hyphens: string escape emits \-, which GNU grep warns on
+        # ("stray \ before -") and BSD grep silently accepts. Hyphen is never
+        # special in a POSIX BRE outside brackets, so bare - satisfies both.
+        set -l escaped_branch (string escape --style=regex -- $current_branch | string replace -a '\-' -)
         set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 -- "^$escaped_branch:")
         set -l has_origin (echo $bookmark_block | string match -r '@origin:')
         set -l not_created (echo $bookmark_block | string match -r 'not created yet')
@@ -159,7 +167,7 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         set existing_pr_args $existing_pr_args --repo $target_repo
     end
     set -l existing_pr_fields (gh $existing_pr_args 2>/dev/null)
-    if test (count $existing_pr_fields) -ge 1 -a "$existing_pr_fields[1]" != "null"
+    if test (count $existing_pr_fields) -ge 1 -a "$existing_pr_fields[1]" != null
         set existing_pr_number $existing_pr_fields[1]
         set existing_pr_title $existing_pr_fields[2]
         set existing_pr_url $existing_pr_fields[3]
@@ -205,10 +213,13 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         end
     end
 
-    # Detect parent bookmark for stacked PRs (JJ only)
+    # Detect parent bookmark for stacked PRs (JJ only).
+    # Explicit -B/--base means "normal PR against this base" — skip stacking.
     set -l comparison_base ""
     set -l is_stacked_pr false
-    if test "$is_jj" = true
+    if test "$is_jj" = true -a -n "$custom_base"
+        set comparison_base "$base_branch"
+    else if test "$is_jj" = true
         # ancestors() excluding the bookmark commit itself gives us the parent layer
         set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
             -T 'bookmarks.join(",")' --no-graph --limit 1 2>/dev/null | \
@@ -305,6 +316,11 @@ function ghpr --description "Create GitHub PR with conventional commit format"
 $existing_pr_url"
         end
     else if type -q opencode
+        set -l oc_model opencode/big-pickle
+        if test (uname -s) = Darwin
+            set oc_model anthropic/claude-haiku-4-5
+        end
+
         echo "✓ Generating PR title and body with OpenCode..."
 
         set -l prompt "Generate a GitHub PR title and description for these changes.
@@ -396,7 +412,7 @@ $truncated_diff
 ## Commit Messages
 $truncated_commit_messages"
 
-        set -l ai_output (printf "%s" $prompt | opencode run --model anthropic/claude-haiku-4-5 --format default 2>/dev/null | string collect)
+        set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
 
         if test -n "$ai_output"
             # string match -r with a capture group returns two items: full match, then capture
@@ -586,6 +602,10 @@ $truncated_commit_messages"
 
     if test -n "$draft_flag"
         set gh_args $gh_args --draft
+    end
+
+    if test -n "$labels"
+        set gh_args $gh_args --label $labels
     end
 
     gh $gh_args
