@@ -33,7 +33,7 @@ When user asks to remember a decision, code nuance, workflow, or location:
 
 ## VCS - Version Control
 
-Unless I already stated that it's git vs jj, before starting work that would mutate files, check if you can detected either a JJ or git folder. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `test -d .jj && echo "JJ" || (test -d .git && echo "GIT" || echo "NEITHER")`
+Before starting work that would mutate files, unless I already stated that it's git vs jj, detected whether a JJ or git folder exist. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `jj workspace root 2&>/dev/null && echo JJ || (git rev-parse --show-toplevel 2&>/dev/null || echo NEITHER)`
 
 ## Writing Voice
 
