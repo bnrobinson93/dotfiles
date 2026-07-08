@@ -32,14 +32,13 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'other_branches_summary()' = "ancestors(other_feature_branches(), 4) | descendants(other_feature_branches())"
 
 [aliases]
-my_log = ["log", "-T", "my_default_log", "--no-pager"]
+my_log = ["log", "-T", "my_default_log"]
 l = [
   "log",
   "-r",
   "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(trunk() | main, 3) | @::, 30)",
 ]
-s = ["status", "--no-pager"]
-st = ["status", "--no-pager"]
+s = ["status"]
 retrunk = ["rebase", "-d", "trunk()"]
 lr = ["log", "-r", "recent()"]
 e = ["edit"]
@@ -98,11 +97,16 @@ push = [
 sign = true
 
 [ui]
-pager = ["hunk", "pager"]
+pager = "cat"
 default-command = ["my_log"]
 diff-editor = "nvim"
 diff-formatter = ":git"
 merge-editor = "nvim"
+
+[[--scope]]
+--when.commands = ["diff"]
+[--scope.ui]
+pager = ["hunk", "pager"]
 
 [merge-tools.nvim]
 program = "nvim"

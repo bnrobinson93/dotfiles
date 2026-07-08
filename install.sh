@@ -200,6 +200,8 @@ if command -v herdr >/dev/null 2>&1; then
   herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
   herdr plugin install rjyo/herdr-window-title-sync --yes
   herdr plugin install third774/herdr-last-workspace --yes
+  herdr plugin install Newt6611/herdr-tab-title --yes
+  herdr plugin install scott306lr/herdr-plugin-hunk-autodiff --yes
 fi
 
 if uname -a | grep -q "WSL"; then
