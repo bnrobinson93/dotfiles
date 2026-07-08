@@ -189,7 +189,7 @@ fi
 chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
-brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat
+brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
 
 echo Installing Herdr...
 curl -fsSL https://herdr.dev/install.sh | sh

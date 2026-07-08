@@ -43,3 +43,4 @@ nvim/spell/languagetool_dictionary_personal.csv
 tmux/plugins/
 zed/conversations/
 zed/prompts/
+hunk/state.json
