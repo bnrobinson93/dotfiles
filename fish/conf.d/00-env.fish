@@ -28,11 +28,11 @@ set -gx TRY_PATH $HOME/Documents/code/tries
 set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 
 # SSH signing (1Password); SSH auth stays scoped by ~/.ssh/config.
-if not set -q USE_1PASSWORD_SSH
+if test (uname) = Darwin; and not set -q USE_1PASSWORD_SSH
     set -gx USE_1PASSWORD_SSH 1
 end
 if test "$USE_1PASSWORD_SSH" = 1
-    set -l onepassword_ssh_sock "(ls -1 $HOME/{.1password,Library/Group Containers/2BUA8C4S2C.com.1password/t}/agent.sock 2>/dev/null | head -1)"
+    set -l onepassword_ssh_sock (ls -1 "$HOME/.1password/agent.sock" "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" 2>/dev/null | head -1)
     if test -S "$onepassword_ssh_sock"
         set -gx SSH_AUTH_SOCK "$onepassword_ssh_sock"
     end
@@ -47,7 +47,7 @@ else
     end
     # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
     if test (uname) = Darwin; and not set -q SSH_AUTH_SOCK
-        set -l lsock (launchctl getenv SSH_AUTH_SOCK ^/dev/null)
+        set -l lsock (launchctl getenv SSH_AUTH_SOCK 2>/dev/null)
         if test -n "$lsock"
             set -gx SSH_AUTH_SOCK $lsock
         end
