@@ -304,8 +304,8 @@ return {
     priority = 100,
     ft = "markdown",
     init = function()
-      vim.api.nvim_create_autocmd({ "BufReadPost", "BufEnter" }, {
-        pattern = "*.md",
+      vim.api.nvim_create_autocmd("BufReadPost", {
+        pattern = vault_path .. "/**/*.md",
         callback = function(args)
           jump_to_template_cursor(args.buf)
         end,
