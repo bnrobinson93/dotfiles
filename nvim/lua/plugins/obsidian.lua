@@ -111,8 +111,22 @@ local function jump_to_template_cursor(bufnr)
   for row, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
     local col = line:find(marker, 1, true)
     if col then
-      vim.api.nvim_buf_set_lines(bufnr, row - 1, row, false, { line:gsub(marker, "", 1) })
-      pcall(vim.api.nvim_win_set_cursor, 0, { row, col - 1 })
+      local replacement = line:gsub(marker, "", 1)
+      vim.api.nvim_buf_set_lines(bufnr, row - 1, row, false, { replacement })
+      vim.defer_fn(function()
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+          return
+        end
+
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == bufnr then
+            pcall(vim.api.nvim_set_current_win, win)
+            pcall(vim.api.nvim_win_set_cursor, win, { row, col - 1 })
+            vim.cmd("startinsert")
+            return
+          end
+        end
+      end, 20)
       return
     end
   end
@@ -342,6 +356,9 @@ return {
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
       frontmatter = {
+        enabled = function(path)
+          return not vim.startswith(tostring(path), "resources/templates/")
+        end,
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
           -- NOTE: the `note.metadata` object contains ONLY:
