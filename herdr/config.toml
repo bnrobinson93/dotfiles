@@ -92,7 +92,7 @@ cjk_ime_agents = ["claude", "codex", "gemini", "opencode"]
 # scrollback_limit_bytes = 10000000
 
 [ui.toast]
-delivery = "system"
+delivery = "off"
 
 [ui.sound]
 enabled = false
