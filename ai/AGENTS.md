@@ -43,6 +43,10 @@ WritingVoice.md (at root, e.g. ~/.claude or ~/.codex) for long-form prose, docum
 
 When coding, consider CodeQuality.md (at root, e.g. ~/.claude or ~/.codex)
 
+## Skills
+
+skills/<name>/SKILL.md (at root, e.g. ~/.dotfiles/ai/skills) for named or clearly applicable local skills. Read the specific skill only when needed.
+
 ## Caveman
 
 caveman.md (at root, e.g. ~/.claude or ~/.codex) for explicit caveman mode usage.
