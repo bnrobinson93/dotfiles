@@ -16,7 +16,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'bases' = 'trunk() | present(develop)'
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
-'base(to)' = '::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
+'base(to)' = 'trunk() | ::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
 'curbranch' = 'latest(mybranches::@- & mybranches)'
 'nextbranch' = 'roots(@:: & branchesandheads)'
 'my_other_bookmarks' = 'mybranches & ~(curbranch::@)'
@@ -32,6 +32,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'other_branches_summary()' = "ancestors(other_feature_branches(), 4) | descendants(other_feature_branches())"
 
 [aliases]
+base = ["log", "-r", "base(@)", "-T", "bookmarks", "--no-graph", "--limit", "1"]
 my_log = ["log", "-T", "my_default_log"]
 l = [
   "log",
@@ -64,8 +65,7 @@ tug = [
   "closest_pushable(@)",
 ]
 d = ["util", "exec", "--", "bash", "-c", """
-set -o pipefail
-jj diff --git "$@" | diffnav
+hunk diff --watch
 """, "jj"]
 check = ["util", "exec", "--", ".husky/pre-commit"]
 push = [
