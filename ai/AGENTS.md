@@ -33,11 +33,11 @@ When user asks to remember a decision, code nuance, workflow, or location:
 
 ## VCS - Version Control
 
-Before starting work that would mutate files, unless I already stated that it's git vs jj, detected whether a JJ or git folder exist. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check, you can use `(jj workspace root 2&>/dev/null && echo JJ) || (git rev-parse --show-toplevel 2&>/dev/null && echo GIT) || echo NEITHER` in bash
+I generally work in JJ VCS, as such, assume that you're in a JJ workspace by default. Before starting work that would mutate files, unless I already stated that it's git vs jj, detected whether in a JJ or git repo, so that you're grounded in reality. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check which VCS is in use, you can use `(jj workspace root 2&>/dev/null && echo JJ) || (git rev-parse --show-toplevel 2&>/dev/null && echo GIT) || echo NEITHER` in bash. JJ = JJ repo, GIT = git repo, NEITHER = not tracked via a VCS.
 
 ## Writing Voice
 
-WritingVoice.md (at root, e.g. ~/.claude or ~/.codex) for long-form prose, documentation, or code comments where prose matters, decision docs, READMEs, anything user will publish or share. Does not apply to caveman-mode chat, terse status updates, or routine code.
+Before writing or editing long-form prose, documentation, decision docs, READMEs, or publishable code comments, MUST read WritingVoice.md (at root, e.g. ~/.claude or ~/.codex). Applies when prose matters or user will share the artifact. Does not apply to caveman-mode chat, terse status updates, or routine code.
 
 ## Code Quality
 
