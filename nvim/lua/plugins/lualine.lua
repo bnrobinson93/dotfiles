@@ -33,63 +33,32 @@ local function is_jujutsu_repo()
   return cache.is_jj
 end
 
--- Async function to get JJ bookmark
-local function get_jj_bookmark_async(callback)
-  -- If we have a pending job, don't start another one
-  if cache.pending_job then
-    callback(cache.branch_info or "jj")
-    return
+-- JJ change label from jj-signs' buffer var — no subprocess. Prefer the bookmark,
+-- then the change description (truncated), then the short change_id. The dict is
+-- buffer-local and only set on attached file buffers, so cache the last non-empty
+-- label to keep showing it in unattached buffers (file explorer, dashboard).
+local last_jj_label = ""
+local function nonempty(s)
+  return s ~= nil and s ~= "" and s or nil
+end
+local function jj_label()
+  local d = vim.b.jjsigns_status_dict
+  if not d then
+    return last_jj_label
   end
 
-  local output = {}
-  local function on_stdout(_, data)
-    if data then
-      for _, line in ipairs(data) do
-        if line ~= "" then
-          table.insert(output, line)
-        end
-      end
-    end
+  -- nil-safe: an older jj-signs (or a dict written before these fields existed)
+  -- has no bookmark/description keys, so guard for nil, not just "".
+  local label = nonempty(d.bookmark) or nonempty(d.description) or nonempty(d.head)
+  if not label then
+    return last_jj_label
   end
 
-  local function on_exit()
-    cache.pending_job = nil
-    local result = table.concat(output, "\n")
-
-    if result and result ~= "" then
-      local bookmark = result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
-      if bookmark ~= "" and bookmark ~= "(empty)" then
-        local first_bookmark = bookmark:match("^([^%s]+)")
-        callback(first_bookmark or bookmark)
-        return
-      end
-    end
-
-    -- Fallback to description
-    output = {}
-    vim.fn.jobstart("jj log -r @ -T 'description.first_line()' --no-graph 2>/dev/null", {
-      stdout_buffered = true,
-      on_stdout = on_stdout,
-      on_exit = function()
-        local desc_result = table.concat(output, "\n")
-        if desc_result and desc_result ~= "" then
-          local desc = desc_result:gsub("%s+", " "):gsub("^%s*", ""):gsub("%s*$", "")
-          if #desc > 20 then
-            desc = desc:sub(1, 17) .. "..."
-          end
-          callback(desc ~= "" and desc or "jj")
-        else
-          callback("jj")
-        end
-      end,
-    })
+  if #label > 20 then
+    label = label:sub(1, 17) .. "..."
   end
-
-  cache.pending_job = vim.fn.jobstart("jj log -r @ --no-graph -T bookmarks 2>/dev/null", {
-    stdout_buffered = true,
-    on_stdout = on_stdout,
-    on_exit = on_exit,
-  })
+  last_jj_label = label
+  return label
 end
 
 -- Async function to get Git branch
@@ -159,27 +128,20 @@ local function update_branch_async()
   cache.job_generation = cache.job_generation + 1
   local this_generation = cache.job_generation
 
+  -- jj label is read synchronously from the buffer var in branch_component; no job.
   if is_jujutsu_repo() then
-    get_jj_bookmark_async(function(branch)
-      if this_generation ~= cache.job_generation then
-        return
-      end
-      cache.branch_info = branch or "jj"
-      cache.cwd = current_dir
-      cache.last_check = uv.now() / 1000
-      vim.cmd("redrawstatus!")
-    end)
-  else
-    get_git_branch_async(function(branch)
-      if this_generation ~= cache.job_generation then
-        return
-      end
-      cache.branch_info = branch or ""
-      cache.cwd = current_dir
-      cache.last_check = uv.now() / 1000
-      vim.cmd("redrawstatus!")
-    end)
+    return
   end
+
+  get_git_branch_async(function(branch)
+    if this_generation ~= cache.job_generation then
+      return
+    end
+    cache.branch_info = branch or ""
+    cache.cwd = current_dir
+    cache.last_check = uv.now() / 1000
+    vim.cmd("redrawstatus!")
+  end)
 end
 
 local function cleanup_update_timer()
@@ -217,6 +179,11 @@ end
 
 -- Main component function
 local function branch_component()
+  -- jj repos: read jj-signs' buffer var synchronously (no job, no cache).
+  if is_jujutsu_repo() then
+    return jj_label()
+  end
+
   local current_dir = vim.fn.getcwd()
   local now = uv.now() / 1000
 
