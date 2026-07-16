@@ -6,7 +6,7 @@ vim.opt.confirm = false
 local opt = vim.opt
 
 -- Your custom options from sets/set.lua
-opt.conceallevel = 1 -- For Obsidian
+-- opt.conceallevel = 1 -- For Obsidian
 vim.cmd([[let g:pencil#conceallevel = 1]])
 
 opt.spell = true
