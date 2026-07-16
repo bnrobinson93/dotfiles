@@ -1,6 +1,6 @@
 theme = "catppuccin-mocha"
 mode = "auto"
-vcs = "jj"
+vcs = "auto"
 watch = false
 exclude_untracked = false
 line_numbers = true

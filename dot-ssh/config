@@ -3,11 +3,20 @@
 # Default: use system ssh-agent everywhere; use macOS Keychain when available.
 # Linux safely ignores UseKeychain via IgnoreUnknown.
 
+# macOS: 1Password agent only. No IdentityFile listed here, so nothing
+# but the 1Password agent is ever offered = 100% 1Password.
 Match exec "test $(uname) = Darwin"
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
-Host *
-  IdentityAgent ~/.1password/agent.sock
+# Other machines: if the key file is present, use it and DISABLE the agent so
+# ssh signs locally (no 1Password prompt). Agent signing otherwise wins even
+# when the file is found, because ssh only reads the pubkey from disk.
+Match exec "test $(uname) != Darwin && test -f \"$HOME/.ssh/id_ed25519_GitHub\""
   IdentityFile ~/.ssh/id_ed25519_GitHub
   IdentityFile ~/.ssh/id_ed25519_GitHubSigning
+  IdentityAgent none
+
+# No local key file: fall back to 1Password agent.
+Match exec "test $(uname) != Darwin"
+  IdentityAgent ~/.1password/agent.sock
 

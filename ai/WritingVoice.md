@@ -16,6 +16,13 @@ Canonical reference (richer rationale + voice samples): `~/Documents/Vault/resou
 - Close with question or jolt — never summary
 - For bullets and lists, do not use ending periods. If ending in a question or exclamation mark, keep it
 
+**Markdown references:**
+
+- Use footnote references for supporting ADRs, issues, specs, and source links when a body claim points at them
+- Put each footnote definition immediately below the paragraph or list block containing the first reference, even when referenced again later. Markdown renderers move footnotes to the bottom anyway; local placement makes writing and updating easier
+- Leave links with no body reference under one `## Links` section for later use
+- For mixed source lists, skip subheaders. Prefix each bullet with the source, e.g. `adr:` or `platform:`
+
 **Craft rules (Zinsser/Strunk-White/Orwell/Adams/DFW/Zweig):**
 
 - Cut filler: very, really, just, basically, simply, actually, quite, rather, a bit, sort of, kind of, pretty much

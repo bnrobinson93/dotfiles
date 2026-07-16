@@ -25,6 +25,113 @@ local function current_sprint_number(now)
   return sprint_anchor_number + sprint_offset
 end
 
+local function template_title(ctx)
+  if ctx and ctx.partial_note then
+    local title = ctx.partial_note:display_name()
+    if title and title ~= "" then
+      return title
+    end
+  end
+  return ""
+end
+
+local function yaml_string(value)
+  return '"' .. tostring(value):gsub("\\", "\\\\"):gsub('"', '\\"') .. '"'
+end
+
+local function person_aliases(ctx)
+  local title = template_title(ctx)
+  local first, last = title:match("^(%S+)%s+(%S+)")
+
+  if first and last then
+    return "[" .. yaml_string(first) .. ", " .. yaml_string(first .. " " .. last:sub(1, 1)) .. "]"
+  end
+
+  first = title:match("^(%S+)")
+  if first then
+    return "[" .. yaml_string(first) .. "]"
+  end
+
+  return "[]"
+end
+
+local function month_ts(ctx, offset)
+  local year, month = template_title(ctx):match("(%d%d%d%d)%-(%d%d)")
+  return os.time({
+    year = tonumber(year) or tonumber(os.date("%Y")),
+    month = (tonumber(month) or tonumber(os.date("%m"))) + offset,
+    day = 1,
+    hour = 12,
+  })
+end
+
+local function year_ts(ctx, offset)
+  local year = template_title(ctx):match("(%d%d%d%d)")
+  return os.time({
+    year = (tonumber(year) or tonumber(os.date("%Y"))) + offset,
+    month = 1,
+    day = 1,
+    hour = 12,
+  })
+end
+
+local function day_ts(ctx, offset)
+  local year, month, day = template_title(ctx):match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
+  if not year or not month or not day then
+    return os.time() + offset * 86400
+  end
+
+  return os.time({
+    year = tonumber(year),
+    month = tonumber(month),
+    day = tonumber(day) + offset,
+    hour = 12,
+  })
+end
+
+local function week_ts(ctx, offset)
+  local year, week = template_title(ctx):match("(%d%d%d%d)%-W(%d%d)")
+  if not year or not week then
+    return os.time() + offset * 7 * 86400
+  end
+
+  local jan4 = os.time({ year = tonumber(year), month = 1, day = 4, hour = 12 })
+  local days_since_monday = (tonumber(os.date("%w", jan4)) + 6) % 7
+  local week1_monday = jan4 - days_since_monday * 86400
+  return week1_monday + (tonumber(week) - 1 + offset) * 7 * 86400
+end
+
+local function jump_to_template_cursor(bufnr)
+  bufnr = bufnr or 0
+  if not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+
+  local marker = "__CURSOR__"
+  for row, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
+    local col = line:find(marker, 1, true)
+    if col then
+      local replacement = line:gsub(marker, "", 1)
+      vim.api.nvim_buf_set_lines(bufnr, row - 1, row, false, { replacement })
+      vim.defer_fn(function()
+        if not vim.api.nvim_buf_is_valid(bufnr) then
+          return
+        end
+
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == bufnr then
+            pcall(vim.api.nvim_set_current_win, win)
+            pcall(vim.api.nvim_win_set_cursor, win, { row, col - 1 })
+            vim.cmd("startinsert")
+            return
+          end
+        end
+      end, 20)
+      return
+    end
+  end
+end
+
 local function wrap_selection(before, after)
   local mode = vim.api.nvim_get_mode().mode
   local bufnr = 0
@@ -210,6 +317,14 @@ return {
     version = "*",
     priority = 100,
     ft = "markdown",
+    init = function()
+      vim.api.nvim_create_autocmd("BufReadPost", {
+        pattern = vault_path .. "/**/*.md",
+        callback = function(args)
+          jump_to_template_cursor(args.buf)
+        end,
+      })
+    end,
     opts = {
       attachments = {
         confirm_img_paste = true,
@@ -236,11 +351,14 @@ return {
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
-        template = "Daily-nvim Template.md",
+        template = "Daily nvim Template.md",
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
       frontmatter = {
+        enabled = function(path)
+          return not vim.startswith(tostring(path), "resources/templates/")
+        end,
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
           -- NOTE: the `note.metadata` object contains ONLY:
@@ -282,35 +400,121 @@ return {
         end
       end,
       templates = {
-        folder = "resources/templates",
+        folder = "resources/templates/nvim",
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
+        customizations = {
+          ["bible insight nvim template"] = {
+            notes_subdir = "2-Areas/Bible/Topics",
+          },
+          ["bible study note nvim template"] = {
+            notes_subdir = "2-Areas/Bible/Topics",
+          },
+          ["bible study nvim template"] = {
+            notes_subdir = "2-Areas/Bible/Teaching",
+          },
+          ["highlands nvim template"] = {
+            notes_subdir = "2-Areas/Bible/Learning",
+          },
+          ["meeting nvim template"] = {
+            notes_subdir = "0-Inbox",
+          },
+          ["monthly nvim template"] = {
+            notes_subdir = "Periodic/Monthly",
+          },
+          ["person nvim template"] = {
+            notes_subdir = "3-Resources",
+          },
+          ["sermon nvim template"] = {
+            notes_subdir = "2-Areas/Bible/Learning",
+          },
+          ["weekly nvim template"] = {
+            notes_subdir = "Periodic/Weekly",
+          },
+          ["yearly nvim template"] = {
+            notes_subdir = "Periodic",
+          },
+        },
         substitutions = {
+          alias_title = function(ctx)
+            return template_title(ctx):gsub("^%d%d%d%d%-%d%d%-%d%d%s+", "")
+          end,
+          person_aliases = person_aliases,
+          body = function(ctx, name)
+            local path = vault_path .. "/resources/templates/bodies/" .. name .. " Body.md"
+            local file = io.open(path, "r")
+            if not file then
+              return ""
+            end
+            local body = file:read("*a")
+            file:close()
+            body = body:gsub("{{cursor}}", "__CURSOR__")
+            body = body:gsub("{{month}}", os.date("%Y-%m", week_ts(ctx, 0)))
+            body = body:gsub("{{year}}", os.date("%Y", year_ts(ctx, 0)))
+            if ctx and ctx.location then
+              local bufnr = ctx.location[1]
+              vim.schedule(function()
+                jump_to_template_cursor(bufnr)
+              end)
+            end
+            return body
+          end,
           content = function()
             return ""
+          end,
+          cursor = function(ctx)
+            if ctx and ctx.location then
+              local bufnr = ctx.location[1]
+              vim.schedule(function()
+                jump_to_template_cursor(bufnr)
+              end)
+            end
+            return "__CURSOR__"
           end,
           datetime = function()
             return os.date("%Y%m%d%H%M%S", os.time())
           end,
-          month = function()
-            return os.date("%Y-%m", os.time())
+          current_month = function(ctx)
+            return os.date("%Y-%m", day_ts(ctx, 0))
+          end,
+          last_week = function(ctx)
+            return os.date("%G-W%V", week_ts(ctx, -1))
+          end,
+          month = function(ctx)
+            return os.date("%Y-%m", week_ts(ctx, 0))
+          end,
+          next_month = function(ctx)
+            return os.date("%Y-%m", month_ts(ctx, 1))
+          end,
+          next_week = function(ctx)
+            return os.date("%G-W%V", week_ts(ctx, 1))
+          end,
+          next_year = function(ctx)
+            return os.date("%Y", year_ts(ctx, 1))
+          end,
+          prev_month = function(ctx)
+            return os.date("%Y-%m", month_ts(ctx, -1))
+          end,
+          prev_week = function(ctx)
+            return os.date("%G-W%V", week_ts(ctx, -1))
+          end,
+          prev_year = function(ctx)
+            return os.date("%Y", year_ts(ctx, -1))
           end,
           sprint = function()
             return tostring(current_sprint_number())
           end,
-          tomorrow = function()
-            local tomorrow_ts = os.time() + 86400
-            return os.date("%Y-%m-%d", tomorrow_ts)
+          tomorrow = function(ctx)
+            return os.date("%Y-%m-%d", day_ts(ctx, 1))
           end,
-          week = function()
-            return os.date("%G-W%V", os.time())
+          week = function(ctx)
+            return os.date("%G-W%V", day_ts(ctx, 0))
           end,
-          year = function()
-            return os.date("%Y", os.time())
+          year = function(ctx)
+            return os.date("%Y", year_ts(ctx, 0))
           end,
-          yesterday = function()
-            local yesterday_ts = os.time() - 86400
-            return os.date("%Y-%m-%d", yesterday_ts)
+          yesterday = function(ctx)
+            return os.date("%Y-%m-%d", day_ts(ctx, -1))
           end,
         },
       },

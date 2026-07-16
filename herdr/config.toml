@@ -13,6 +13,7 @@ auto_switch = false
 [ui]
 pane_gaps = true
 show_agent_labels_on_pane_borders = true
+prompt_new_tab_name = false
 
 [keys]
 split_vertical = "prefix+|"
@@ -91,7 +92,7 @@ cjk_ime_agents = ["claude", "codex", "gemini", "opencode"]
 # scrollback_limit_bytes = 10000000
 
 [ui.toast]
-delivery = "system"
+delivery = "off"
 
 [ui.sound]
 enabled = false

@@ -76,14 +76,6 @@ install_ponytail() {
 install_hunk() {
   local source="${HUNK_SKILL_SOURCE:-modem-dev/hunk}"
 
-  if have brew; then
-    step "brew install/upgrade hunk"
-    brew install hunk || brew upgrade hunk || {
-      failures=$((failures + 1))
-      printf 'warn: failed: brew install/upgrade hunk\n' >&2
-    }
-  fi
-
   if have npx; then
     try npx -y skills add "$source" --skill hunk-review -g -a claude-code -a codex -a opencode -y || true
   else
@@ -93,27 +85,13 @@ install_hunk() {
 }
 
 install_teach() {
-  if [[ -z "${TEACH_SKILL_SOURCE:-}" ]]; then
-    if [[ -d "$HOME/.claude/skills/teach" ]]; then
-      step "install teach from existing Claude skill"
-      mkdir -p "$HOME/.agents/skills"
-      rm -rf "$HOME/.agents/skills/teach"
-      cp -pR "$HOME/.claude/skills/teach" "$HOME/.agents/skills/teach"
-      mkdir -p "$HOME/.codex/skills"
-      ln -sfn ../../.agents/skills/teach "$HOME/.codex/skills/teach"
-      return 0
-    fi
-
-    printf '\n==> teach skill skipped\n'
-    printf 'set TEACH_SKILL_SOURCE=owner/repo or owner/repo/path, or install ~/.claude/skills/teach first\n'
-    return 0
-  fi
+  local source="${TEACH_SKILL_SOURCE:-mattpocock/skills}"
 
   if have npx; then
-    try npx -y skills add "$TEACH_SKILL_SOURCE" --skill teach -g -a claude-code -a codex -a opencode -y || true
+    try npx -y skills add "$source" --skill teach -g -a claude-code -a codex -a opencode -y || true
   else
     failures=$((failures + 1))
-    printf 'warn: npx not found; cannot install teach skill from %s\n' "$TEACH_SKILL_SOURCE" >&2
+    printf 'warn: npx not found; cannot install teach skill from %s\n' "$source" >&2
   fi
 }
 

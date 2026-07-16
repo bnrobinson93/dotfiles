@@ -129,19 +129,22 @@ echo "Removing previously stowed AI instruction links..."
 stow -D -t ~/.claude ai 2>/dev/null || true
 stow -D -t ~/.codex ai 2>/dev/null || true
 stow -D -t ~/.config/opencode ai 2>/dev/null || true
+stow -D -d ai -t ~/.codex dot-codex 2>/dev/null || true
 
 echo "Backing up conflicting Claude entrypoints before restowing..."
 backup_conflicting_ai_entrypoint "$HOME/.claude/AGENTS.md"
 backup_conflicting_ai_entrypoint "$HOME/.claude/CLAUDE.md"
+
+ai_stow_args=(--ignore=dot-codex --ignore='^skills/(teach|hunk-review)$')
 
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh gitmux --dotfiles
-stow -v2 -t ~/.claude ai
-stow -v2 -t ~/.codex ai
-stow -v2 -t ~/.config/opencode ai
+stow -v2 "${ai_stow_args[@]}" -t ~/.claude ai
+stow -v2 "${ai_stow_args[@]}" -t ~/.codex ai
+stow -v2 "${ai_stow_args[@]}" -t ~/.config/opencode ai
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
 cp -pR hypr/* ~/.config/hypr/
@@ -191,6 +194,9 @@ chsh -s "$(which fish)"
 echo Getting the nice to haves...
 brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
 
+echo "Installing AI skills and plugins..."
+"$PWD/update-skills.sh" || true
+
 echo Installing Herdr...
 curl -fsSL https://herdr.dev/install.sh | sh
 
@@ -200,6 +206,8 @@ if command -v herdr >/dev/null 2>&1; then
   herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
   herdr plugin install rjyo/herdr-window-title-sync --yes
   herdr plugin install third774/herdr-last-workspace --yes
+  herdr plugin install Newt6611/herdr-tab-title --yes
+  herdr plugin install scott306lr/herdr-plugin-hunk-autodiff --yes
 fi
 
 if uname -a | grep -q "WSL"; then
