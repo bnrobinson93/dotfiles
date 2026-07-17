@@ -121,23 +121,28 @@ stack-submit = ["git", "push", "-r", "stack", "--allow-new"]
 # Usage: jj stack-sync   (or the `sync` shortcut)
 stack-sync = ["util", "exec", "--", "bash", "-c", '''
 set -euo pipefail
+# All inner jj use --ignore-working-copy: this runs inside `jj util exec`, which
+# already holds the working copy. Letting inner commands check it out too races
+# the outer process -> "Concurrent checkout". Ignoring it here lets the outer
+# reconcile the working copy once, cleanly, when the script returns.
+J="jj --ignore-working-copy"
 # snapshot local bookmarks -> change_id BEFORE fetch (merged ones vanish on fetch)
-before=$(jj bookmark list -T 'name ++ "\t" ++ normal_target.change_id() ++ "\n"' --no-pager)
-jj git fetch
-after=$(jj bookmark list -T 'name ++ "\n"' --no-pager)
+before=$($J bookmark list -T 'name ++ "\t" ++ normal_target.change_id() ++ "\n"' --no-pager)
+$J git fetch
+after=$($J bookmark list -T 'name ++ "\n"' --no-pager)
 landed=0
 while IFS=$'\t' read -r name tip; do
   [ -n "$name" ] || continue
   printf '%s\n' "$after" | grep -qxF "$name" && continue   # still here -> not merged
   # vanished => squash-merged + branch-deleted upstream.
-  if [ -n "$(jj log -r "${tip}+::" -T '"x"' --no-graph --no-pager 2>/dev/null)" ]; then
-    jj rebase -s "roots(${tip}+::)" -d 'trunk()' >/dev/null   # children onto fresh trunk
+  if [ -n "$($J log -r "${tip}+::" -T '"x"' --no-graph --no-pager 2>/dev/null)" ]; then
+    $J rebase -s "roots(${tip}+::)" -d 'trunk()' >/dev/null   # children onto fresh trunk
   fi
-  jj abandon -r "::${tip} & ~::(trunk()) & mutable()" >/dev/null 2>&1 || true  # drop merged originals
+  $J abandon -r "::${tip} & ~::(trunk()) & mutable()" >/dev/null 2>&1 || true  # drop merged originals
   echo "  landed '$name' -- dropped merged duplicates, rebased children onto trunk"
   landed=1
 done < <(printf '%s\n' "$before")
-jj rebase -s stack_base -d 'trunk()' >/dev/null 2>&1 || true   # plain retrunk (no-op if already there)
+$J rebase -s stack_base -d 'trunk()' >/dev/null 2>&1 || true   # plain retrunk (no-op if already there)
 [ "$landed" -eq 1 ] && echo "  note: rewritten bookmarks need 'jj git push' (force-with-lease)"
 exit 0
 ''', ""]
