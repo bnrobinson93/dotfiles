@@ -71,7 +71,14 @@ restack = ["rebase", "-s", "stack_base", "-d", "trunk"]
 # What: Rebases all mutable stacks you've authored onto the latest trunk.
 # When: Use to update all your in-progress work with upstream changes.
 # Usage: jj restack-all
-restack-all = ["rebase", "-b", "roots(stacks)", "-d", "trunk()", "--skip-emptied"]
+restack-all = [
+  "rebase",
+  "-b",
+  "roots(stacks)",
+  "-d",
+  "trunk()",
+  "--skip-emptied",
+]
 
 # =============================================================================
 # BOOKMARK MANAGEMENT
@@ -95,7 +102,7 @@ create = ["bookmark", "create", "--to", "@-"]
 # What: Pushes all commits in your stack to remote, allowing new branches.
 # When: Use to push your stack for code review.
 # Usage: jj stack-submit
-stack-submit = ["git", "push", "-r", "stack", "--allow-new"]
+stack-submit = ["git", "push", "-r", "stack"]
 
 # =============================================================================
 # SYNC WORKFLOWS
@@ -119,7 +126,13 @@ stack-submit = ["git", "push", "-r", "stack", "--allow-new"]
 #       stale-reviews, will require re-approval — that's policy, not this command.
 # Validated in a throwaway repo against a real squash-merge + branch-delete.
 # Usage: jj stack-sync   (or the `sync` shortcut)
-stack-sync = ["util", "exec", "--", "bash", "-c", '''
+stack-sync = [
+  "util",
+  "exec",
+  "--",
+  "bash",
+  "-c",
+  '''
 set -euo pipefail
 # All inner jj use --ignore-working-copy: this runs inside `jj util exec`, which
 # already holds the working copy. Letting inner commands check it out too races
@@ -145,7 +158,9 @@ done < <(printf '%s\n' "$before")
 $J rebase -s stack_base -d 'trunk()' >/dev/null 2>&1 || true   # plain retrunk (no-op if already there)
 [ "$landed" -eq 1 ] && echo "  note: rewritten bookmarks need 'jj git push' (force-with-lease)"
 exit 0
-''', ""]
+''',
+  "",
+]
 
 # stack-start - Begin fresh work from trunk
 # What: Fetches latest changes and creates a new commit on trunk.
@@ -174,4 +189,3 @@ stack-diff-summary = ["diff-summary", "-f", "branch_off"]
 # When: Use to see which files changed across your whole stack.
 # Usage: jj stack-diff-files
 stack-diff-files = ["diff-files", "-f", "branch_off"]
-
