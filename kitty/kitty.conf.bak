@@ -1470,7 +1470,7 @@ background_opacity 0.97
 #: }}}
 
 # BEGIN_KITTY_THEME
-# Catppuccin-Macchiato
+# Catppuccin-Mocha
 include current-theme.conf
 # END_KITTY_THEME
 
@@ -1492,11 +1492,8 @@ enabled_layouts                 splits,stack
 tab_bar_filter                  session:~ or session:^$
 # session name shown at top-left via kitty/tab_bar.py (tmux-style)
 tab_bar_edge                    top
-# custom: loads kitty/tab_bar.py (draws session label, then wraps powerline)
-tab_bar_style                   custom
+tab_bar_style                   powerline
 tab_powerline_style             slanted
-# always show the bar (even with a single tab) so the session label is visible
-tab_bar_min_tabs                1
 tab_title_template              "{index}:{title}"
 # start in a named session ("home") so swaps are clean and reversible
 startup_session                 home.kitty-session
