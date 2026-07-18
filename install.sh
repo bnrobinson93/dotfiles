@@ -17,7 +17,7 @@ else
 fi
 
 # Starship prompt
-curl -sS https://starship.rs/install.sh | sh
+curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
 # tmux plugins
 mkdir -p ~/.config/tmux/plugins
