@@ -15,15 +15,10 @@ PINNED_DIRS=(
   ~/Documents/Vault
 )
 
-SEARCH_PATHS=(
-  ~
-  ~/Documents
-  ~/Downloads
-  ~/Documents/code
-  ~/Documents/code/tries
-  ~/Documents/code/integrations-monorepo/integrations
-  ~/Documents/code/js-lib-monorepo/libraries
-)
+SEARCH_PATHS=()
+while IFS= read -r line; do
+  SEARCH_PATHS+=("$line")
+done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
 
 is_blacklisted() {
   local name=$1
@@ -41,19 +36,19 @@ if [[ "${1:-}" == "--preview" ]]; then
   target=${3:-}
 
   case "$type" in
-    workspace)
-      herdr pane list --workspace "$target" | jq -r '
+  workspace)
+    herdr pane list --workspace "$target" | jq -r '
         .result.panes[]
         | "pane: \(.pane_id)\n  cwd: \(.cwd // "-")\n"
       '
-      ;;
-    folder)
-      if command -v eza >/dev/null 2>&1; then
-        eza --all --color=always "$target"
-      else
-        ls -la "$target"
-      fi
-      ;;
+    ;;
+  folder)
+    if command -v eza >/dev/null 2>&1; then
+      eza --all --color=always "$target"
+    else
+      ls -la "$target"
+    fi
+    ;;
   esac
 
   exit 0
@@ -73,30 +68,30 @@ directory_rows() {
   {
     printf "%s\n" "${PINNED_DIRS[@]}"
     zoxide query -l 2>/dev/null || true
-  } | sed 's:/*$::' \
-    | awk 'NF && !seen[$0]++' \
-    | while IFS= read -r path; do
-        path=${path%/}
-        name=${path##*/}
-        [[ "$include_blacklisted" == true ]] || {
-          is_blacklisted "$name" && continue
-        }
-        [[ -d "$path" ]] || continue
-        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
-      done
+  } | sed 's:/*$::' |
+    awk 'NF && !seen[$0]++' |
+    while IFS= read -r path; do
+      path=${path%/}
+      name=${path##*/}
+      [[ "$include_blacklisted" == true ]] || {
+        is_blacklisted "$name" && continue
+      }
+      [[ -d "$path" ]] || continue
+      printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+    done
 }
 
 folder_rows() {
   {
     printf "%s\n" "${PINNED_DIRS[@]}"
     fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
-  } | sed 's:/*$::' \
-    | awk 'NF && !seen[$0]++' \
-    | while IFS= read -r path; do
-        path=${path%/}
-        name=${path##*/}
-        printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
-      done
+  } | sed 's:/*$::' |
+    awk 'NF && !seen[$0]++' |
+    while IFS= read -r path; do
+      path=${path%/}
+      name=${path##*/}
+      printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+    done
 }
 
 script_path=$(printf '%q' "${BASH_SOURCE[0]}")
@@ -107,32 +102,41 @@ folder_reload_cmd=$(printf '%q --folders' "${BASH_SOURCE[0]}")
 close_workspace_cmd=$(printf '%q --close-workspace {3} {4}' "${BASH_SOURCE[0]}")
 
 case "${1:-}" in
-  --default)
-    { workspace_rows; directory_rows; }
-    exit 0
-    ;;
-  --all)
-    { workspace_rows; directory_rows true; }
-    exit 0
-    ;;
-  --workspaces)
+--default)
+  {
     workspace_rows
-    exit 0
-    ;;
-  --folders)
-    folder_rows
-    exit 0
-    ;;
-  --close-workspace)
-    if [[ "${2:-}" == "workspace" && -n "${3:-}" ]]; then
-      herdr workspace close "$3" >/dev/null
-    fi
-    exit 0
-    ;;
+    directory_rows
+  }
+  exit 0
+  ;;
+--all)
+  {
+    workspace_rows
+    directory_rows true
+  }
+  exit 0
+  ;;
+--workspaces)
+  workspace_rows
+  exit 0
+  ;;
+--folders)
+  folder_rows
+  exit 0
+  ;;
+--close-workspace)
+  if [[ "${2:-}" == "workspace" && -n "${3:-}" ]]; then
+    herdr workspace close "$3" >/dev/null
+  fi
+  exit 0
+  ;;
 esac
 
 selection=$(
-  { workspace_rows; directory_rows; } |
+  {
+    workspace_rows
+    directory_rows
+  } |
     fzf --no-sort --ansi \
       --delimiter '\t' --with-nth '1,2' \
       --border rounded --border-label ' herdr ' \
@@ -151,10 +155,10 @@ type=$(cut -f3 <<<"$selection")
 target=$(cut -f4- <<<"$selection")
 
 case "$type" in
-  workspace)
-    herdr workspace focus "$target" >/dev/null
-    ;;
-  folder)
-    herdr-workspace-at "$target"
-    ;;
+workspace)
+  herdr workspace focus "$target" >/dev/null
+  ;;
+folder)
+  herdr-workspace-at "$target"
+  ;;
 esac

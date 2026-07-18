@@ -3,16 +3,11 @@
 
 list="sesh list --icons"
 
-# Same roots as tmux-sessionizer — surfaces folders zoxide hasn't seen yet.
-SEARCH_PATHS=(
-  ~
-  ~/Documents
-  ~/Downloads
-  ~/Documents/code
-  ~/Documents/code/tries
-  ~/Documents/code/integrations-monorepo/integrations
-  ~/Documents/code/js-lib-monorepo/libraries
-)
+# Shared roots (see ~/.config/search-paths.txt) — surfaces folders zoxide hasn't seen yet.
+SEARCH_PATHS=()
+while IFS= read -r line; do
+  SEARCH_PATHS+=("$line")
+done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
 folder_cmd="{ printf '%s\n' ~/.dotfiles; fd . ${SEARCH_PATHS[*]} -d 1 -t d -E .Trash; } | sed 's:/*$::' | awk 'NF && !seen[\$0]++'"
 
 if [[ "$1" == "all" ]]; then
