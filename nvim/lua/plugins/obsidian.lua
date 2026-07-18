@@ -328,7 +328,7 @@ return {
     opts = {
       attachments = {
         confirm_img_paste = true,
-        folder = "resources/attachments",
+        folder = "99-System/attachments",
       },
       legacy_commands = false,
       workspaces = {
@@ -357,7 +357,7 @@ return {
       new_notes_location = "notes_subdir",
       frontmatter = {
         enabled = function(path)
-          return not vim.startswith(tostring(path), "resources/templates/")
+          return not vim.startswith(tostring(path), "99-System/templates/")
         end,
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
@@ -400,7 +400,7 @@ return {
         end
       end,
       templates = {
-        folder = "resources/templates/nvim",
+        folder = "99-System/templates/nvim",
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         customizations = {
@@ -441,7 +441,7 @@ return {
           end,
           person_aliases = person_aliases,
           body = function(ctx, name)
-            local path = vault_path .. "/resources/templates/bodies/" .. name .. " Body.md"
+            local path = vault_path .. "/99-System/templates/bodies/" .. name .. " Body.md"
             local file = io.open(path, "r")
             if not file then
               return ""
