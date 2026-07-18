@@ -7,8 +7,7 @@ Contains all the dotfiles that I use in my development environment.
 - git - `sudo apt install git`
 - **Shell** (choose one):
   - zsh - `sudo apt install zsh`
-  - fish - `sudo apt install fish` (modern alternative, 4-10x faster startup)
-- carapace - `brew install carapace`
+  - fish - `sudo apt install fish` (modern alternative, ~2x faster startup)
 - bat - `brew install bat`
 - starship - `curl -sS https://starship.rs/install.sh | sh`
 - neovim - [See more](https://github.com/neovim/neovim/blob/master/INSTALL.md)
@@ -17,67 +16,53 @@ Contains all the dotfiles that I use in my development environment.
   - Make sure that `npm` or similar is installed
 - fzf - `sudo apt install fzf`
 - jq - `sudo apt install jq`
-- Atuin - `curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh`
 - ripgrep - `sudo apt install ripgrep`
 - lazygit - `brew install lazygit`
 - tmux - `sudo apt install tmux`
 - tpm - `git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm`
 - stow - `sudo apt install stow`
-- Gitmux - `brew tap arl/arl && brew install gitmux`
 - Asciinema - `brew install asciinema agg`
 - Zoxide - `brew install zoxide`
-- pipx - `brew install pipx` or `sudo apt install pipx`
+- mise - `brew install mise` (runtimes + task runner: `mise tasks`)
+- topgrade - `brew install topgrade` (one-command updater for everything)
 - sesh - `brew install joshmedeski/sesh/sesh`
 - herdr - `brew install herdr`
 
-## SSH, Signing, and 1Password
+## SSH & Commit Signing
 
-This repo defaults to OpenSSH agent + (on macOS) Keychain, with SSH commit signing for both Git and JJ.
+Two modes, switched per machine. The repo default is plain on-disk keys.
 
-- Default agent: system ssh-agent (macOS Keychain, Linux desktop keyring)
-- Optional 1Password agent: set `USE_1PASSWORD_SSH=1` to route via 1Password
+**On-disk keys — default.** `~/.ssh/id_ed25519_GitHub` (auth) and
+`~/.ssh/id_ed25519_GitHubSigning` (signing). Git and JJ sign directly with
+stock `ssh-keygen` — no agent, no wrapper, no prompts. `~/.ssh/config` (stowed from
+dot-ssh/) prefers the key files and disables the agent when they exist.
 
-Files and scripts:
+**1Password-managed keys — per-machine override.** `~/.ssh/config` routes
+connections through the 1Password agent when no key files are present. Signing
+overrides go in gitignored local files:
 
-- dot-ssh/config — stowable SSH config enabling AddKeysToAgent, UseKeychain, and IdentityFile defaults
-- git/config — enables SSH signing in Git with ssh-keygen + allowed_signers
-- jj/config.toml — uses `ssh-sign-wrapper.sh` for signing; defaults to ssh-keygen unless `USE_1PASSWORD_SSH=1`
-- dot-local/bin/ssh-setup-github.sh — create/load key and upload to GitHub via `gh`
-- dot-local/bin/op-ssh-migrate.sh — migrate key(s) from 1Password to ~/.ssh and agent/keychain
+- Git — `~/.gitlocal`:
 
-macOS Keychain setup (recommended)
+  ```ini
+  [user]
+    signingkey = ssh-ed25519 AAAA...   ; pubkey from 1Password
+  [gpg "ssh"]
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+  ```
 
-- ~/.ssh/config (stowed) contains:
-  - AddKeysToAgent yes
-  - UseKeychain yes
-  - IdentityFile ~/.ssh/id_ed25519_GitHub
-  - IdentityFile ~/.ssh/id_ed25519_GitHubSigning
-- Remove any IdentityAgent pointing to 1Password if present in your personal ~/.ssh/config
-- Add keys to Keychain once:
-  - `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_GitHub`
-  - `ssh-add --apple-use-keychain ~/.ssh/id_ed25519_GitHubSigning`
+- JJ — `~/.config/jj/conf.d/z-local.toml`:
 
-Linux agent/keyring
+  ```toml
+  signing.key = "ssh-ed25519 AAAA..."
+  signing.backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+  ```
 
-- Ensure a user ssh-agent is running (desktop sessions do by default). The migration script adds to the agent.
-- For persistence across logins without a desktop keyring, use a systemd user unit or a helper like `keychain`.
+**New machine**: `ssh-setup-github.sh -t "$(hostname)" -e you@example.com` generates a
+key, uploads it to GitHub via `gh`, and updates `~/.ssh/allowed_signers`
+(format: `email ssh-ed25519 AAAA...` — both Git and JJ verify against it).
 
-Signing trust (allowed_signers)
-
-- Git/JJ verify signatures using `~/.ssh/allowed_signers`
-- Format: `email@example.com ssh-ed25519 AAAA...`
-- Populate automatically via migration script (using 1Password item’s email field) or manually append.
-
-Using 1Password optionally
-
-- Set `USE_1PASSWORD_SSH=1` to use 1Password agent and signing.
-- Unset to use system agent/Keychain.
-
-Verification
-
-- SSH: `ssh -T git@github.com`
-- Git: `git commit --allow-empty -m test && git log -1 --show-signature`
-- JJ: `jj git push -c@` (see signature indicators in templates)
+**Verify**: `ssh -T git@github.com` · `git log -1 --show-signature` ·
+`jj log -r @ -T 'signature.status()'` (expect `good`)
 
 ## Other niceties
 
@@ -146,6 +131,16 @@ brew install k9s helm age agg
 
 ## Usage
 
+Day-to-day, mise tasks cover the common operations from anywhere:
+
+```sh
+mise run stow     # deploy all symlinks (config, ~/.local, zsh, ai, ssh)
+mise run skills   # install/update AI skills & plugins (update-skills.sh)
+mise run update   # update everything via topgrade
+```
+
+Manual equivalents:
+
 ````sh
 # Deploy all configs to ~/.config (includes fish, nvim, tmux, wezterm, etc.)
 stow -v2 .
@@ -167,28 +162,22 @@ chsh -s /bin/zsh
 # Fish config already deployed via 'stow -v2 .' above
 # Install fisher plugin manager:
 curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-# Install NVM for fish:
-fisher install jorgebucaran/nvm.fish
+# Install fish plugins (node/go/etc come from mise, not nvm):
+fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent
 # Set as default shell:
 chsh -s $(which fish)
 
 # Finalize setup (either shell)
-stow -v2 -t ~ -S gitmux --dotfiles
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 bat cache --build
 
-# Shared AI instruction files and SuperClaude (either shell)
-pipx ensurepath
-pipx install superclaude
-# open a new shell if pipx just updated PATH
-superclaude install
-
+# Shared AI instruction files (either shell)
 # Remove previously stowed AI links before restowing
 stow -D -t ~/.claude ai || true
 stow -D -t ~/.codex ai || true
 stow -D -t ~/.config/opencode ai || true
 
-# Back up SuperClaude-created Claude entrypoints before restowing
+# Back up conflicting Claude entrypoints before restowing
 mv ~/.claude/AGENTS.md ~/.claude/AGENTS.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
 mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
 
@@ -196,17 +185,9 @@ stow -v2 -t ~/.claude ai
 stow -v2 -t ~/.codex ai
 stow -v2 -t ~/.config/opencode ai
 
-# Optional MCP servers
-superclaude mcp --list
-superclaude mcp
-
 # Update agent skills/plugins
 update-skills.sh
 # Optional: TEACH_SKILL_SOURCE=owner/repo update-skills.sh
-
-# Verify
-superclaude install --list
-superclaude doctor
 
 ### Default SSH key setup (no 1Password)
 
@@ -216,20 +197,6 @@ Uses `ssh-setup-github.sh` to create or load a key and upload to GitHub (via gh)
 ~/.local/bin/ssh-setup-github.sh -t "$(hostname)-$(date +%Y%m%d)" -e "you@example.com"
 ````
 
-If you already store keys in 1Password and want to migrate them locally and add to the agent/keychain:
-
-```sh
-~/.local/bin/op-ssh-migrate.sh "GitHub" "GitHub Signing"
-```
-
-Temporarily use 1Password agent for this shell session:
-
-```sh
-export USE_1PASSWORD_SSH=1  # zsh/bash
-# or: set -Ux USE_1PASSWORD_SSH 1  # fish
-```
-
-````
 
 ## Note for WSL
 

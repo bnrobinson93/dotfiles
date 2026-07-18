@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workflow — brad's dotfiles</title>
+<style>
+  :root {
+    --base: #1e1e2e; --mantle: #181825; --crust: #11111b;
+    --text: #cdd6f4; --subtext: #a6adc8; --overlay: #6c7086;
+    --mauve: #cba6f7; --blue: #89b4fa; --green: #a6e3a1;
+    --peach: #fab387; --red: #f38ba8; --yellow: #f9e2af;
+    --surface: #313244;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--base); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  h1 { color: var(--mauve); font-size: 2rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--subtext); margin-top: 0; }
+  h2 { color: var(--blue); border-bottom: 1px solid var(--surface); padding-bottom: 0.3rem; margin-top: 2.5rem; }
+  h3 { color: var(--peach); margin-top: 1.5rem; }
+  code {
+    background: var(--mantle); color: var(--green);
+    padding: 0.1em 0.4em; border-radius: 4px;
+    font: 0.9em/1.5 "DankMono Nerd Font", ui-monospace, monospace;
+  }
+  pre {
+    background: var(--crust); padding: 1rem; border-radius: 8px;
+    overflow-x: auto; border: 1px solid var(--surface);
+  }
+  pre code { background: none; padding: 0; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .flow {
+    background: var(--mantle); border: 1px solid var(--surface);
+    border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0;
+  }
+  .flow b { color: var(--yellow); }
+  .idea { border-left: 3px solid var(--green); padding-left: 1rem; margin: 1.25rem 0; }
+  .idea b { color: var(--green); }
+  .kbd {
+    background: var(--surface); border-radius: 4px; padding: 0.05em 0.45em;
+    font: 0.85em ui-monospace, monospace; color: var(--yellow);
+    border: 1px solid var(--overlay);
+  }
+  a { color: var(--blue); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>The workflow, as the repo tells it</h1>
+<p class="subtitle">Reverse-engineered from ~/.dotfiles, July 2026. If any of this reads wrong, the config disagrees with your memory, and the config is probably right.</p>
+
+<h2>The shape of a day</h2>
+<div class="flow">
+  <p><b>Desktop:</b> Arch + Omarchy (Hyprland, waybar, walker). <span class="kbd">Super+Enter</span> opens a terminal via <code>xdg-terminal-exec</code>; <span class="kbd">Super+Alt+Enter</span> drops straight into tmux. Waybar carries a TickTick task count, privacy indicators, battery. Webapps get first-class launchers (<code>launch-or-focus-webapp</code>).</p>
+  <p><b>Terminal:</b> fish (zsh kept as a fallback), starship prompt, zoxide for jumping, mise for runtimes (node, go, rust, ruby, bun), fzf everywhere via fzf.fish.</p>
+  <p><b>Sessions:</b> sesh + tmux, <span class="kbd">Ctrl+A</span> prefix. <code>sesh-select</code> is the picker: live sessions first, <span class="kbd">^f</span> to reach cold project folders. Sessions blacklist agent workspaces (<code>-ai</code>, <code>-exp</code>, <code>-orch</code>) so pickers show human work only.</p>
+  <p><b>Editor:</b> Neovim on LazyVim. Obsidian vault at <code>~/Documents/Vault</code> for notes, hunk.nvim for diffs, Copilot + Copilot Chat in-editor.</p>
+</div>
+
+<h2>Version control: jj-first, git-shaped at the edges</h2>
+<p>Everything meaningful happens in Jujutsu on colocated repos. Git exists for the outside world: GitHub, CI, coworkers.</p>
+<ul>
+  <li>~55 jj aliases: <code>jj tug</code> to move bookmarks, revset aliases like <code>ghbranch</code>, a deliberate split between bare <code>jj</code> (clean log) and <code>jj log</code> (broad leaves view)</li>
+  <li>hunk as pager and interactive diff review; agents drive it through <code>hunk session</code> commands against the live daemon</li>
+  <li>lazyjj (local build) for stacked-PR management; <code>ghpr</code>/<code>ghprs</code> fish functions push bookmarks into PRs</li>
+  <li>SSH commit signing with stock <code>ssh-keygen</code> against on-disk keys; 1Password machines override via gitignored <code>~/.gitlocal</code> / jj <code>conf.d/z-local.toml</code></li>
+  <li><code>sesh</code> startup commands run <code>jj pull</code> on session attach, so projects stay fresh without thinking about it</li>
+</ul>
+
+<h2>AI agents: three clients, one brain</h2>
+<p>Claude Code, Codex, and OpenCode all stow the same <code>ai/</code> package: AGENTS.md as the shared entry point, VCS.md for jj discipline, WritingVoice.md for prose, CodeQuality.md for code. Caveman mode keeps chat terse; ponytail keeps solutions small.</p>
+<ul>
+  <li>herdr owns agent workspaces: jj-workspace plugin, tab titles, hunk autodiff. Agents work in <code>-ai</code>/<code>-orch</code> suffixed workspaces, invisible to sesh</li>
+  <li>Shared memory lives under <code>~/.claude/projects/.../memory/</code>, readable by all three clients</li>
+  <li>Skills install via <code>update-skills.sh</code>: ponytail, hunk-review, teach, fabric, across all three agents in one pass</li>
+</ul>
+
+<h2>Provisioning</h2>
+<p>GNU Stow with a <code>.stowrc</code> that targets <code>~/.config</code> by default; <code>dot-local</code> to <code>~/.local</code>, <code>zsh</code> to <code>~</code>, <code>ai</code> to each agent's config root, <code>dot-ssh</code> to <code>~/.ssh</code>. Day to day, <code>mise run stow / skills / update</code> covers deployment and updates (topgrade behind the last one); <code>install.sh</code> bootstraps a fresh machine: pacman/apt basics, brew, mise, fisher, TPM, herdr, SSH keys, GitHub auth.</p>
+
+<h2>Ideas worth stealing from yourself</h2>
+
+<p>Shipped from earlier revisions of this list: shared sessionizer roots
+(<code>~/.config/search-paths.txt</code> feeds all four pickers), atuin deleted instead of
+half-wired, <a href="https://github.com/topgrade-rs/topgrade">topgrade</a> as the one
+updater, <code>mise run stow/skills/update</code> absorbing install.sh, and shell startup
+de-spawned (fish ~35ms: cached tool init, lazy completions, mise shims).</p>
+
+<div class="idea">
+  <p><b>A weekly <code>jj op log</code> habit.</b> You already lean on jj's safety. <code>jj op log</code> + <code>jj undo</code> recovers from anything an agent does in a workspace, which makes agent autonomy cheaper to grant. Worth a fish abbreviation.</p>
+</div>
+
+<p>The through-line: every tool here reduces ceremony between "I want to work on X" and working on X. The leftovers worth cleaning are mostly the previous generation of that same instinct.</p>
+
+</main>
+</body>
+</html>
