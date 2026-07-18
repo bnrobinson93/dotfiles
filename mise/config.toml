@@ -13,3 +13,29 @@ node = "latest"
 rust = "latest"
 ruby = "latest"
 usage = "latest"
+
+# Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
+# install.sh should shrink into these over time.
+
+[tasks.stow]
+description = "Deploy dotfiles symlinks (config, local bin, home, ai, ssh)"
+dir = "~/.dotfiles"
+run = [
+  "stow -v2 .",
+  "stow -v2 starship",
+  "stow -v2 -t ~/.local -S dot-local --dotfiles",
+  "stow -v2 -t ~ -S zsh --dotfiles",
+  "stow -v2 --ignore=dot-codex --ignore='^skills/(teach|hunk-review)$' -t ~/.claude ai",
+  "stow -v2 --ignore=dot-codex --ignore='^skills/(teach|hunk-review)$' -t ~/.codex ai",
+  "stow -v2 --ignore=dot-codex --ignore='^skills/(teach|hunk-review)$' -t ~/.config/opencode ai",
+  "stow -v2 -t ~/.ssh -S dot-ssh --dotfiles",
+]
+
+[tasks.skills]
+description = "Install/update AI skills and plugins (ponytail, hunk, teach, fabric)"
+dir = "~/.dotfiles"
+run = "./update-skills.sh"
+
+[tasks.update]
+description = "Update everything (system, brew, mise, plugins) via topgrade"
+run = "topgrade"
