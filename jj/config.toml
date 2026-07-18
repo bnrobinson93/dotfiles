@@ -51,7 +51,7 @@ l = [
   "-r",
   "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(trunk() | main, 3) | @::, 30)",
 ]
-s = ["status"]
+s = ["diff", '--no-pager', '-s', '-r', 'main..@']
 retrunk = ["rebase", "-d", "trunk()"]
 lr = ["log", "-r", "recent()"]
 e = ["edit"]
@@ -163,17 +163,17 @@ committer = "#94e2d5"
 "node working_copy" = "bright green"
 "elided" = { fg = "#f2cdcd", italic = true }
 
+# Per-machine override: conf.d/z-local.toml (see README, SSH section)
 [signing]
 behavior = "own"
-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
+key = "~/.ssh/id_ed25519_GitHubSigning"
 backend = "ssh"
 
 [core]
 excludesfile = "~/.gitignore"
 
 [signing.backends.ssh]
-program = "ssh-sign-wrapper.sh"
-allowed_signers = "~/.ssh/allowed_signers"
+allowed-signers = "~/.ssh/allowed_signers"
 
 [git]
 sign-on-push = true
