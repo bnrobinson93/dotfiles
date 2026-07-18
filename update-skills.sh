@@ -26,25 +26,6 @@ try_quiet() {
   "$@" >/dev/null 2>&1
 }
 
-install_superclaude() {
-  if have pipx; then
-    if pipx list --short 2>/dev/null | awk '{print $1}' | grep -qx superclaude; then
-      try pipx upgrade superclaude || true
-    else
-      try pipx install superclaude || true
-    fi
-  fi
-
-  if have superclaude; then
-    try superclaude install || true
-    try superclaude install --list || true
-    try superclaude doctor || true
-  else
-    failures=$((failures + 1))
-    printf 'warn: superclaude not found; install pipx or add ~/.local/bin to PATH\n' >&2
-  fi
-}
-
 install_ponytail() {
   local marketplace="${PONYTAIL_MARKETPLACE:-DietrichGebert/ponytail}"
 
@@ -95,10 +76,19 @@ install_teach() {
   fi
 }
 
-install_superclaude
+install_fabric() {
+  if have fabric; then
+    return 0
+  fi
+
+  try bash -c "curl -fsSL https://raw.githubusercontent.com/danielmiessler/fabric/main/scripts/installer/install.sh | bash" || return
+  printf 'note: run `fabric --setup` once to configure providers\n'
+}
+
 install_ponytail
 install_hunk
 install_teach
+install_fabric
 
 if [[ "$failures" -gt 0 ]]; then
   printf '\nDone with %s warning(s). Restart agents to pick up skill/plugin changes.\n' "$failures" >&2
