@@ -1,0 +1,120 @@
+name: Smoke test
+description: >
+  Behavioral checks that stowed configs actually work. Assumes configs are
+  already stowed and fish/zsh/tmux/stow/starship/jj/nvim are on PATH.
+  Shared by ci.yml (slim per-PR) and bootstrap.yml (full install.sh).
+
+runs:
+  using: composite
+  steps:
+    - name: Core symlinks exist
+      shell: bash
+      run: |
+        for f in \
+          ~/.config/nvim/init.lua \
+          ~/.config/fish/config.fish \
+          ~/.config/tmux/tmux.conf \
+          ~/.config/git/config \
+          ~/.config/jj/config.toml \
+          ~/.config/starship.toml \
+          ~/.zshrc \
+          ~/.ssh/config \
+          ~/.local/bin/tmux-sessionizer
+        do
+          test -e "$f" || { echo "MISSING: $f"; exit 1; }
+          echo "ok: $f"
+        done
+
+    - name: SSH config parses
+      shell: bash
+      # -G evaluates the full config incl. Match exec lines; a parse error
+      # (e.g. bad quoting) exits non-zero. Caught a real one on first run.
+      run: ssh -G github.com >/dev/null
+
+    - name: Starship config parses
+      shell: bash
+      run: |
+        starship --version
+        starship print-config >/dev/null
+        starship prompt >/dev/null
+
+    - name: Fish loads full config
+      shell: bash
+      run: |
+        out=$(fish -c 'echo FISH_OK' 2>&1)
+        echo "$out"
+        grep -q FISH_OK <<<"$out"
+
+    - name: Tmux config parses
+      shell: bash
+      # Session runs default shell (stays alive, unlike `true` which raced the
+      # kill). Config errors don't affect exit code, so fail on any output.
+      run: |
+        out=$(tmux -L smoke -f ~/.config/tmux/tmux.conf new-session -d -s smoke 2>&1)
+        tmux -L smoke kill-server
+        if [ -n "$out" ]; then
+          echo "$out"
+          exit 1
+        fi
+
+    - name: Herdr config loads and API responds
+      shell: bash
+      # Herdr silently falls back to defaults on a broken config.toml — only
+      # the server log reveals a parse failure, so grep for it explicitly.
+      run: |
+        herdr --version
+        herdr server >/tmp/herdr-server.out 2>&1 &
+        for _ in $(seq 1 20); do
+          herdr status server >/dev/null 2>&1 && break
+          sleep 0.5
+        done
+        herdr status server
+        herdr workspace list
+        herdr server stop
+        if grep -i "config parse error" ~/.config/herdr/herdr-server.log; then
+          echo "herdr config.toml failed to parse"; exit 1
+        fi
+
+    - name: Nvim plugins install and config boots clean
+      shell: bash
+      # GIT_CONFIG_GLOBAL=/dev/null: stowed git config rewrites https->ssh,
+      # which would break lazy.nvim's https plugin clones in CI.
+      run: |
+        export GIT_CONFIG_GLOBAL=/dev/null
+        nvim --version | head -1
+        timeout 15m nvim --headless "+Lazy! sync" +qa
+        out=$(nvim --headless +qa 2>&1 || true)
+        echo "$out"
+        if grep -q "Error detected" <<<"$out"; then
+          echo "nvim startup produced errors"; exit 1
+        fi
+
+    - name: JJ + git commit signing in colocated repo
+      shell: bash
+      run: |
+        ssh-keygen -t ed25519 -N "" -C ci-signing -f ~/.ssh/id_ed25519_GitHubSigning
+        email="31802085+bnrobinson93@users.noreply.github.com"
+        printf '%s %s\n' "$email" "$(cut -d' ' -f1-2 ~/.ssh/id_ed25519_GitHubSigning.pub)" > ~/.ssh/allowed_signers
+
+        jj --version
+        mkdir /tmp/signing-test && cd /tmp/signing-test
+        jj git init --colocate
+
+        echo hello > file.txt
+        jj commit -m "jj signed commit"
+
+        # Exercises revset aliases + log templates from jj/config.toml
+        jj
+        jj log -r 'stale' --no-graph
+
+        status=$(jj log --no-graph -r @- -T 'if(signature, signature.status(), "missing")')
+        echo "jj signature status: $status"
+        test "$status" = good
+
+        git log --show-signature -1 | grep 'Good "git" signature'
+
+        echo more >> file.txt
+        git add file.txt
+        git commit -m "git signed commit"
+        git log --show-signature -1 | grep 'Good "git" signature'
+        jj log -r 'all()' --no-graph -T 'description.first_line() ++ "\n"'

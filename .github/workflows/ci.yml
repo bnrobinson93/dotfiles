@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck bash scripts
+        # Shebang-sniff so non-bash files in dot-local/bin (python, etc.) are skipped.
+        # Severity=error only: keep signal high, avoid style-nit coupling to every script edit.
+        run: |
+          mapfile -t files < <(awk 'FNR==1 && /^#!.*(bash|\/sh)/ { print FILENAME }' ./*.sh dot-local/bin/* 2>/dev/null | sort -u)
+          printf 'checking: %s\n' "${files[@]}"
+          shellcheck -S error "${files[@]}"
+
+      - name: Fish syntax check
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q fish
+          find fish -name '*.fish' -print0 | xargs -0 -n1 fish --no-execute
+
+      - name: Zsh syntax check
+        run: |
+          sudo apt-get install -y -q zsh
+          zsh -n zsh/dot-zshrc
+          zsh -n zsh/dot-zshenv
+
+  smoke:
+    name: Stow + smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools (slim — no install.sh)
+        # Just what the smoke tests exercise: apt where current enough, prebuilt
+        # binaries where not. Full install.sh is covered weekly by bootstrap.yml.
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q fish zsh tmux stow jq
+
+          curl -sS https://starship.rs/install.sh | sh -s -- --yes
+
+          # apt neovim too old for LazyVim; use official release build
+          curl -sL https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz | sudo tar xz -C /opt
+          echo "/opt/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+
+          mkdir -p "$HOME/.local/bin"
+          url=$(curl -s https://api.github.com/repos/jj-vcs/jj/releases/latest |
+            jq -r '.assets[] | select(.name | endswith("x86_64-unknown-linux-musl.tar.gz")) | .browser_download_url')
+          curl -sL "$url" | tar xz -C "$HOME/.local/bin" ./jj
+
+          curl -fsSL https://herdr.dev/install.sh | sh
+
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Stow configs
+        # Mirrors install.sh's stow block (minus ai/ agent configs, unused here)
+        run: |
+          for path in fish ghostty git kitty nvim mise tmux starship.toml; do
+            rm -rf "$HOME/.config/$path"
+          done
+          mkdir -p ~/.local ~/.ssh
+          stow -v2 .
+          stow -v2 starship
+          stow -v2 -t ~/.local -S dot-local --dotfiles
+          stow -v2 -t ~ -S zsh --dotfiles
+          stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
+
+          # tpm after stow so it lands inside the stowed tmux dir.
+          # GIT_CONFIG_GLOBAL=/dev/null: stowed https->ssh rewrite would break the clone.
+          GIT_CONFIG_GLOBAL=/dev/null git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+
+      - uses: ./.github/actions/config-smoke-test
