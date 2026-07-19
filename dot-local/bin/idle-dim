@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Fade screen brightness for hypridle. `idle-dim` fades down to 10%,
+# `idle-dim restore` snaps back — killing an in-flight fade first, so the
+# restore can't be overwritten by remaining fade steps (the bug this fixes).
+
+PIDFILE=/tmp/idle-dim.pid
+
+case "${1:-fade}" in
+  fade)
+    echo $$ >"$PIDFILE"
+    cur=$(brightnessctl -m | cut -d, -f4 | tr -d %)
+    brightnessctl -s set "$cur%" # save for restore
+    for b in $(seq $((cur - 1)) -1 10); do
+      sleep 0.03
+      brightnessctl set "$b%"
+    done
+    rm -f "$PIDFILE"
+    ;;
+  restore)
+    if [[ -f "$PIDFILE" ]]; then
+      kill "$(cat "$PIDFILE")" 2>/dev/null
+      rm -f "$PIDFILE"
+      sleep 0.05 # let an already-spawned brightnessctl step land first
+    fi
+    brightnessctl -r
+    ;;
+esac
