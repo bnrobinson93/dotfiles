@@ -40,13 +40,16 @@ description = "last workspace"
 [[keys.command]]
 key = "prefix+ctrl+d"
 type = "shell"
+description = "jump to dot files"
 command = "herdr-workspace-at ~/.dotfiles"
 [[keys.command]]
 key = "prefix+ctrl+c"
+description = "jump to code"
 type = "shell"
 command = "herdr-workspace-at ~/Documents/code"
 [[keys.command]]
 key = "prefix+ctrl+v"
+description = "jump to Obsidian vault"
 type = "shell"
 command = "herdr-workspace-at ~/Documents/Vault"
 
