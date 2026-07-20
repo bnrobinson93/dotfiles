@@ -125,7 +125,7 @@ if command -v herdr >/dev/null 2>&1; then
   herdr plugin install rjyo/herdr-window-title-sync --yes
   herdr plugin install third774/herdr-last-workspace --yes
   herdr plugin install Newt6611/herdr-tab-title --yes
-  herdr plugin install scott306lr/herdr-plugin-hunk-autodiff --yes
+  herdr plugin install yuucu/herdr-hunk --yes
 fi
 
 if uname -a | grep -q "WSL"; then
@@ -150,4 +150,3 @@ if [[ -x "$HOME/.local/bin/ssh-setup-github.sh" ]]; then
 else
   echo "Hint: Use ~/.local/bin/ssh-setup-github.sh to create/upload keys to GitHub."
 fi
-
