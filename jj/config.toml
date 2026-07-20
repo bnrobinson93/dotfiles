@@ -172,11 +172,15 @@ backend = "ssh"
 [core]
 excludesfile = "~/.gitignore"
 
+[snapshot]
+auto-update-stale = true
+
 [signing.backends.ssh]
 allowed-signers = "~/.ssh/allowed_signers"
 
 [git]
 sign-on-push = true
+abandon-unreachable-commits = false
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]

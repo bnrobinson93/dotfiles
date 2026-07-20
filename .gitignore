@@ -44,3 +44,4 @@ tmux/plugins/
 zed/conversations/
 zed/prompts/
 hunk/state.json
+jj/tests
