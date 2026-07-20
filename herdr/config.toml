@@ -40,13 +40,16 @@ description = "last workspace"
 [[keys.command]]
 key = "prefix+ctrl+d"
 type = "shell"
+description = "jump to dot files"
 command = "herdr-workspace-at ~/.dotfiles"
 [[keys.command]]
 key = "prefix+ctrl+c"
+description = "jump to code"
 type = "shell"
 command = "herdr-workspace-at ~/Documents/code"
 [[keys.command]]
 key = "prefix+ctrl+v"
+description = "jump to Obsidian vault"
 type = "shell"
 command = "herdr-workspace-at ~/Documents/Vault"
 
@@ -66,6 +69,13 @@ key = "prefix+d"
 type = "plugin_action"
 command = "nathanflurry.jj-workspace.remove"
 description = "remove jj workspace"
+
+# Check Hunk
+[[keys.command]]
+key = "prefix+h"
+type = "plugin_action"
+command = "yuucu.hunk.open-review"
+description = "Hunk review"
 
 [experimental]
 # Experimental local Kitty graphics rendering for attached clients.
