@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Toggle swaync do-not-disturb instantly, with a top-right confirmation toast both ways.
+#
+# Silencing is the tricky case: only CRITICAL urgency bypasses swaync's DND, but critical
+# never auto-expires (timeout-critical: 0). So send the confirmation as critical, capture
+# its id with `notify-send -p`, and close that specific id after a short delay via dbus.
+# Replaces omarchy's mako-based omarchy-toggle-notification-silencing.
+
+if [ "$(swaync-client -d -sw)" = "true" ]; then
+  id=$(notify-send -p -u critical "󰂛    Notifications silenced")
+  setsid -f sh -c "sleep 2.5; gdbus call --session \
+    --dest org.freedesktop.Notifications \
+    --object-path /org/freedesktop/Notifications \
+    --method org.freedesktop.Notifications.CloseNotification $id" >/dev/null 2>&1
+else
+  notify-send -u low "󰂚    Notifications enabled"
+fi

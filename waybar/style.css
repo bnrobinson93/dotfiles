@@ -89,9 +89,21 @@ tooltip {
 #custom-notification-silencing-indicator,
 #custom-privacy-indicator,
 #custom-orientation,
+#custom-swaync,
 #custom-voxtype {
   min-width: 12px;
   margin: 0 7.5px;
+}
+
+#custom-swaync.dnd-none,
+#custom-swaync.dnd-notification,
+#custom-swaync.dnd-inhibited-none,
+#custom-swaync.dnd-inhibited-notification,
+#custom-notification-silencing-indicator.dnd-none,
+#custom-notification-silencing-indicator.dnd-notification,
+#custom-notification-silencing-indicator.dnd-inhibited-none,
+#custom-notification-silencing-indicator.dnd-inhibited-notification {
+  color: #a55555;
 }
 
 #custom-screenrecording-indicator.active,
