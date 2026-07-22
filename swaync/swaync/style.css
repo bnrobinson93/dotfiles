@@ -1,0 +1,169 @@
+@import "colors.css";
+
+* {
+  font-family: "Dank Mono Nerd Font Propo", sans-serif;
+  font-size: 13px;
+}
+
+/* Control center panel */
+.control-center {
+  background: @bg;
+  border: 1px solid alpha(@accent, 0.35);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 0;
+  color: @fg;
+}
+
+.control-center-list {
+  background: transparent;
+}
+
+/* Title row (Notifications + Clear All) */
+.widget-title {
+  color: @fg;
+  font-size: 15px;
+  margin: 4px 4px 10px 4px;
+}
+
+.widget-title > button {
+  background: alpha(@fg, 0.08);
+  color: @fg;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 12px;
+}
+
+.widget-title > button:hover {
+  background: alpha(@accent, 0.35);
+}
+
+/* Do Not Disturb toggle */
+.widget-dnd {
+  color: @fg;
+  margin: 4px;
+}
+
+.widget-dnd > switch {
+  border-radius: 12px;
+  background: alpha(@fg, 0.12);
+}
+
+.widget-dnd > switch:checked {
+  background: @accent;
+}
+
+/* Notification cards */
+.notification-row {
+  background: transparent;
+  margin: 4px 0;
+}
+
+/* Match swaync's default 3-level specificity. shade() lightens @bg while staying
+   fully OPAQUE, so toasts floating over light windows stay readable. */
+.notification-row .notification-background .notification {
+  background: mix(@bg, @accent, 0.12);
+  border: 1px solid alpha(@accent, 0.3);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.notification-row .notification-background .notification:hover {
+  background: mix(@bg, @accent, 0.2);
+}
+
+.notification-row .notification-background .notification.critical {
+  border: 1px solid alpha(@accent, 0.65);
+}
+
+/* Grouped/collapsed notifications: default css sets a solid gray at higher
+   specificity, so override the stacked cards to the same themed surface. */
+.notification-group.collapsed .notification-row .notification {
+  background-color: mix(@bg, @accent, 0.12);
+}
+
+.notification-group.collapsed:hover .notification-row:not(:only-child) .notification {
+  background-color: mix(@bg, @accent, 0.2);
+}
+
+.notification-group:focus {
+  background: transparent;
+}
+
+.notification-content {
+  padding: 8px;
+  color: @fg;
+}
+
+.summary {
+  color: @fg;
+  font-weight: bold;
+}
+
+.body {
+  color: alpha(@fg, 0.75);
+}
+
+.notification-default-action,
+.notification-action {
+  background: transparent;
+  border: none;
+  color: @fg;
+}
+
+.notification-action {
+  border: 1px solid alpha(@fg, 0.12);
+  border-radius: 8px;
+  margin: 6px 4px 0 4px;
+}
+
+.notification-action:hover {
+  background: alpha(@accent, 0.3);
+}
+
+.close-button {
+  background: transparent;
+  color: alpha(@fg, 0.6);
+  border-radius: 8px;
+  margin: 4px;
+  padding: 2px;
+}
+
+.close-button:hover {
+  background: alpha(@accent, 0.35);
+  color: @fg;
+}
+
+/* MPRIS music widget */
+.widget-mpris {
+  background: mix(@bg, @accent, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  margin: 4px;
+}
+
+.widget-mpris-player {
+  padding: 4px;
+  color: @fg;
+}
+
+.widget-mpris-title {
+  color: @fg;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.widget-mpris-subtitle {
+  color: alpha(@fg, 0.7);
+}
+
+.widget-mpris button {
+  background: transparent;
+  border: none;
+  color: @fg;
+}
+
+.widget-mpris button:hover {
+  background: alpha(@accent, 0.35);
+  border-radius: 8px;
+}
