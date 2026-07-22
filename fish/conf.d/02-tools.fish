@@ -1,35 +1,45 @@
-# Tool Integrations
-# Sets up modern CLI tools and their configurations
 # Tool Integrations - Optimized for Fast Startup
 # Only load in interactive shells
 if not status is-interactive
     exit
 end
 
-# Starship prompt (fish handles this efficiently with psub)
-if type -q starship
-    starship init fish | source
+# Regenerate a cached script only when the tool's binary is newer than the
+# cache (i.e. after an upgrade). Avoids re-spawning every tool each shell
+# start — `X init | source` for starship/mise/zoxide/jj cost ~125ms combined.
+function __cache_gen
+    # __cache_gen <cache-file> <tool-or-path> <command to generate it...>
+    set -l cache $argv[1]
+    set -l bin (command -v $argv[2]); or return 1
+    if not test -f $cache; or test $bin -nt $cache
+        mkdir -p (dirname $cache)
+        $argv[3..] >$cache 2>/dev/null
+    end
 end
 
-# Mise - for managing versions
-if type -q mise
-    mise activate fish | source
-end
+set -l cache_dir $HOME/.cache/fish
+
+# Starship prompt
+__cache_gen $cache_dir/starship.fish starship starship init fish
+and source $cache_dir/starship.fish
+
+# Mise - shims instead of `activate`: activate runs `mise hook-env` at startup
+# AND every prompt (~17ms spawn each time); shims resolve tools at exec time
+# with zero shell overhead. We use no mise [env] blocks, so nothing is lost.
+# Revert if needed: mise activate fish | source
+fish_add_path $HOME/.local/share/mise/shims
 
 # Zoxide - smart directory jumping (replaces cd)
-if type -q zoxide
-    zoxide init fish | source
-end
+__cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
+and source $cache_dir/zoxide.fish
 
-# JJ (Jujutsu) completion
-if type -q jj
-    jj util completion fish | source
-end
-
-# Mise completions (requires usage CLI)
-if type -q mise
-    mise completion fish | source
-end
+# Completions (jj, mise): generated into a dir on fish_complete_path so fish
+# autoloads them on first tab-complete instead of parsing them at startup.
+set -g fish_complete_path $cache_dir/completions $fish_complete_path
+# jj: the dynamic shim (not `jj util completion`) — completes aliases,
+# revsets, and bookmarks by invoking jj at tab time.
+__cache_gen $cache_dir/completions/jj.fish jj env COMPLETE=fish jj
+__cache_gen $cache_dir/completions/mise.fish mise mise completion fish
 
 # 1Password SSH signing setup
 if set -q USE_1PASSWORD_SSH
@@ -38,12 +48,14 @@ if set -q USE_1PASSWORD_SSH
     end
 end
 
-# Homebrew - load immediately (only ~15ms overhead, worth having available)
+# Homebrew - shellenv output is static, cache it like the rest
 # Supports macOS Apple Silicon and Linux
 if test -d /opt/homebrew
-    eval (/opt/homebrew/bin/brew shellenv)
+    __cache_gen $cache_dir/brew.fish /opt/homebrew/bin/brew /opt/homebrew/bin/brew shellenv
+    and source $cache_dir/brew.fish
 else if test -d /home/linuxbrew/.linuxbrew
-    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+    __cache_gen $cache_dir/brew.fish /home/linuxbrew/.linuxbrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew shellenv
+    and source $cache_dir/brew.fish
 end
 
 # Wezterm shell integration (fast, load immediately)
@@ -61,7 +73,7 @@ end
 
 # fzf - Catppuccin Mocha colors with layout matching fzf.fish plugin defaults
 set -gx fzf_preview_dir_cmd eza --all --color=always
-set -Ux FZF_DEFAULT_OPTS "\
+set -gx FZF_DEFAULT_OPTS "\
 --height=50% \
 --tmux bottom,40% \
 --layout=reverse \

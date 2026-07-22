@@ -26,7 +26,8 @@ fi
 export ZETTELKASTEN=$HOME/Documents/Vault
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
-ASSORTED_BIN_DIRS=$(find "$HOME" -maxdepth 2 -type d -name "bin" 2>/dev/null | paste -sd ':') # .local, .bun, .cargo, etc
+# Static list instead of `find $HOME -maxdepth 2` — that scan ran every shell start
+ASSORTED_BIN_DIRS="$HOME/.local/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.docker/bin:$HOME/.yarn/bin"
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
@@ -42,13 +43,12 @@ export LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
 # Essential aliases
 alias vi=$EDITOR
-grep="grep --color=always"
 if type coreutils >/dev/null 2>&1; then
   # Exclude printf for atuin
   coveredCommands=($(coreutils --list | rg -v 'printf'))
   foreach util in $coveredCommands; do
     if type $util >/dev/null 2>&1; then
-      alias $util="coreutils $util $@"
+      alias $util="coreutils $util"
     fi
   done
 fi
@@ -469,17 +469,17 @@ function get_completions() {
     }
   fi
 
-  # JJ
+  # JJ — cache completions, regenerate only when the jj binary changes
   if type jj >/dev/null 2>&1; then
-    source <(jj util completion zsh)
+    local jjc="$HOME/.cache/zsh/jj_completion.zsh"
+    if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
+      jj util completion zsh > "$jjc" 2>/dev/null
+    fi
+    source "$jjc"
   fi
 }
 
-if type carapace >/dev/null 2>&1; then
-  source <(carapace _carapace zsh)
-else
-  get_completions
-fi
+get_completions
 
 if type jj >/dev/null 2>&1; then
   bookmark() {
