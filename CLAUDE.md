@@ -11,14 +11,20 @@ This is a dotfiles repository managing a complete Linux development environment 
 ### Deployment & Installation
 
 ```bash
+# Preferred: mise tasks work from anywhere
+mise run stow     # deploy all symlinks (config, ~/.local, zsh, ai, ssh)
+mise run skills   # install/update AI skills & plugins
+mise run update   # update everything via topgrade
+
+# Manual equivalents:
 # Deploy configs to ~/.config
 stow -v2 .
 
 # Deploy local scripts to ~/.local
 stow -v2 -t ~/.local -S dot-local --dotfiles
 
-# Deploy home directory configs (zsh or fish, gitmux)
-stow -v2 -t ~ -S zsh gitmux --dotfiles  # For zsh
+# Deploy home directory configs (zsh)
+stow -v2 -t ~ -S zsh --dotfiles  # For zsh
 # OR for fish (config goes to ~/.config/fish automatically with default stow target)
 stow -v2 .  # fish included in default deployment
 
@@ -80,9 +86,9 @@ agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/P
 
 Each top-level directory (except special cases) is a **stow package** that gets symlinked:
 
-- **Target: `~/.config/`** (default via `.stowrc`): alacritty, atuin, bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
+- **Target: `~/.config/`** (default via `.stowrc`): bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
 - **Target: `~/.local/`**: dot-local package (contains bin/ with custom scripts)
-- **Target: `~/`**: zsh, gitmux (use `--dotfiles` flag to convert `dot-*` to `.*)
+- **Target: `~/`**: zsh (use `--dotfiles` flag to convert `dot-*` to `.*)
 
 The `.stowrc` file defines:
 - Default target: `~/.config`
@@ -136,7 +142,7 @@ Modular Lua config split into 4 files:
   - kubectl (Kubernetes CLI)
   - go (Go toolchain)
 - `dot-zshenv` - Environment variables
-- Integrations: Atuin (history), carapace (completions), Starship (prompt), zap (plugin manager)
+- Integrations: Starship (prompt), zap (plugin manager)
 
 #### Fish (Modern Alternative)
 
@@ -145,13 +151,13 @@ Modular Lua config split into 4 files:
 - `conf.d/` - Auto-loaded configuration modules:
   - `00-env.fish` - Environment variables
   - `01-paths.fish` - PATH configuration (uses fish_add_path)
-  - `02-tools.fish` - Tool integrations (starship, atuin, zoxide, etc.)
+  - `02-tools.fish` - Tool integrations (starship, zoxide, mise, etc.)
   - `03-abbreviations.fish` - Abbreviations (better than aliases)
 - `functions/` - Auto-loaded functions (la, ll, rec, ignore, bookmark, etc.)
 - Persistent fish functions must live in repo path `fish/functions/`; do not create one-off files only in `~/.config/fish/functions`, because `install.sh` removes `~/.config/fish` before restowing.
-- **Setup**: Install fisher plugin manager, then `fisher install jorgebucaran/nvm.fish`
-- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Atuin, Starship
-- **Performance**: 4-10x faster startup than zsh (~30-50ms vs ~200-500ms)
+- **Setup**: Install fisher plugin manager, then `fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent` (runtimes come from mise, not nvm)
+- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Starship
+- **Performance**: ~35ms startup vs ~70ms for zsh (measured 2026-07-19). Kept fast by never running `tool init | source` directly: generated init scripts are cached via `__cache_gen` in `02-tools.fish` (keyed on binary mtime), completions lazy-load from `fish_complete_path`, and mise uses shims instead of `activate`. New tool integrations must follow the same pattern.
 
 ### Version Control Dual Setup
 
@@ -160,9 +166,9 @@ Modular Lua config split into 4 files:
 - Auto-redirect HTTPS → SSH for git URLs
 - Aliases: `l` (log), `s` (status), `c` (commit), `ac` (add+commit), `acp` (add+commit+push)
 
-**Jujutsu** (secondary):
-- Modern VCS alternative with advanced revset queries
-- SSH signing via custom wrapper (`ssh-sign-wrapper.sh`)
+**Jujutsu** (primary in practice):
+- Modern VCS with advanced revset queries
+- SSH signing with stock ssh-keygen against `~/.ssh/id_ed25519_GitHubSigning`; per-machine override via `conf.d/z-local.toml` (e.g. op-ssh-sign)
 - Complex bookmark and push logic in config/config.toml
 
 ### Tmux Integration
@@ -185,15 +191,14 @@ When modifying or adding scripts:
 - After changes, restow: `stow -v2 -R -t ~/.local dot-local --dotfiles`
 
 Key scripts:
-- `tmux-sessionizer` - Project picker with fzf (integrated into Wezterm & Tmux)
-- `ssh-sign-wrapper.sh` - SSH signing for git/jj commits
-- `fix-jj-signing.sh` - Jujutsu signing key management
+- `herdr-select` / `sesh-select` / `tmux-sessionizer` - Project pickers with fzf (roots shared via `~/.config/search-paths.txt`)
+- `ssh-setup-github.sh` - Generate SSH key, upload to GitHub, update allowed_signers
 - `battery_check.sh` - Battery monitoring
 
 ## Theme Consistency
 
 **Primary Theme**: Catppuccin Mocha
-- Applied across: Neovim, Starship, Tmux, K9s, Lazygit, Alacritty, Wezterm
+- Applied across: Neovim, Starship, Tmux, K9s, Lazygit, Wezterm, Ghostty, Kitty
 - Secondary: Tokyo Night (available in Neovim, experimental)
 
 When adding new tools, prefer Catppuccin Mocha theme for consistency.
@@ -216,10 +221,9 @@ sudo update-locale LANG=en_US.UTF8
 
 ## Security & Signing
 
-- **Git commits**: GPG-signed by default
-- **Jujutsu commits**: SSH-signed via `ssh-sign-wrapper.sh`
-- **1Password integration**: SSH agent socket at `~/.1password/agent.sock`
-- **GitHub signing**: Configured in git config
+- **Git + Jujutsu commits**: SSH-signed with stock ssh-keygen using `~/.ssh/id_ed25519_GitHubSigning` (repo default, personal Linux)
+- **1Password mode (per-machine)**: override signing in `~/.gitlocal` / `~/.config/jj/conf.d/z-local.toml` pointing at `op-ssh-sign`; connections via 1Password agent per `~/.ssh/config`
+- **Verification**: both VCSs check `~/.ssh/allowed_signers`
 
 ## File Editing Conventions
 
