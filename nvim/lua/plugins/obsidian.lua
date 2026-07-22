@@ -311,6 +311,89 @@ local function insert_footnote()
   vim.cmd("startinsert")
 end
 
+-- For hover preview doc
+local function resolve_embed()
+  local util = require("obsidian.util")
+  local search = require("obsidian.search")
+
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local embed, pos = nil, 1
+  while pos <= #line do
+    local s, e = line:find("!%[%[.-%]%]", pos)
+    if not s then
+      break
+    end
+    if col >= s and col <= e then
+      embed = line:sub(s + 1, e)
+      break
+    end
+    pos = e + 1
+  end
+  if not embed then
+    return nil
+  end
+
+  local location = util.parse_link(embed)
+  if not location then
+    return nil
+  end
+  location = vim.uri_decode(location)
+
+  local bare, anchor = util.strip_anchor_links(location)
+
+  local notes = search.resolve_note(bare, {
+    notes = { collect_anchor_links = true, load_contents = true },
+  })
+  if vim.tbl_isempty(notes) then
+    return nil
+  end
+  local note = notes[1]
+
+  local lines = note.contents
+  local section = {}
+  if anchor then
+    local anchor_obj = note:resolve_anchor_link(anchor)
+    if anchor_obj then
+      local header_level = anchor_obj.level
+      for i = anchor_obj.line + 1, #lines do
+        local parsed = util.parse_header(lines[i])
+        if parsed and parsed.level <= header_level then
+          break
+        end
+        section[#section + 1] = lines[i]
+      end
+    end
+  else
+    for i = 2, #lines do
+      section[#section + 1] = lines[i]
+    end
+  end
+
+  while #section > 0 and section[#section]:match("^%s*$") do
+    section[#section] = nil
+  end
+  if #section == 0 then
+    return nil
+  end
+
+  return section, " " .. bare .. (anchor or "") .. " "
+end
+
+local embed_hover_win = nil
+local embed_hover_buf = nil
+
+local function close_embed_hover()
+  if embed_hover_win and vim.api.nvim_win_is_valid(embed_hover_win) then
+    vim.api.nvim_win_close(embed_hover_win, true)
+  end
+  if embed_hover_buf and vim.api.nvim_buf_is_valid(embed_hover_buf) then
+    vim.api.nvim_buf_delete(embed_hover_buf, { force = true })
+  end
+  embed_hover_win = nil
+  embed_hover_buf = nil
+end
+
 return {
   {
     "obsidian-nvim/obsidian.nvim",
@@ -323,6 +406,41 @@ return {
         callback = function(args)
           jump_to_template_cursor(args.buf)
         end,
+      })
+
+      vim.api.nvim_create_autocmd("CursorHold", {
+        pattern = vault_path .. "/**/*.md",
+        callback = function()
+          close_embed_hover()
+          local section, title = resolve_embed()
+          if not section then
+            return
+          end
+
+          embed_hover_buf = vim.api.nvim_create_buf(false, true)
+          vim.api.nvim_buf_set_lines(embed_hover_buf, 0, -1, false, section)
+          vim.bo[embed_hover_buf].filetype = "markdown"
+          vim.treesitter.start(embed_hover_buf, "markdown")
+
+          local width = math.min(80, vim.o.columns - 4)
+          local height = math.min(#section, 20)
+          embed_hover_win = vim.api.nvim_open_win(embed_hover_buf, false, {
+            relative = "cursor",
+            row = 1,
+            col = 0,
+            width = width,
+            height = height,
+            style = "minimal",
+            border = "rounded",
+            title = title,
+            focusable = false,
+          })
+        end,
+      })
+
+      vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
+        pattern = vault_path .. "/**/*.md",
+        callback = close_embed_hover,
       })
     end,
     opts = {
@@ -460,9 +578,7 @@ return {
         substitutions = {
           alias_title = function(ctx)
             -- strip leading (Meeting style) or trailing (Sermon/Highlands style) date
-            return template_title(ctx)
-              :gsub("^%d%d%d%d%-%d%d%-%d%d%s+", "")
-              :gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")
+            return template_title(ctx):gsub("^%d%d%d%d%-%d%d%-%d%d%s+", ""):gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")
           end,
           person_aliases = person_aliases,
           body = function(ctx, name)
@@ -475,6 +591,7 @@ return {
             file:close()
             body = body:gsub("{{cursor}}", "__CURSOR__")
             body = body:gsub("{{month}}", os.date("%Y-%m", week_ts(ctx, 0)))
+            body = body:gsub("{{week}}", os.date("%G-W%V", day_ts(ctx, 0)))
             body = body:gsub("{{year}}", os.date("%Y", year_ts(ctx, 0)))
             if ctx and ctx.location then
               local bufnr = ctx.location[1]
