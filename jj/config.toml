@@ -5,9 +5,12 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
-log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges) | bases"
+# Used by explicit `jj log` — broad cleanup-audit view: shows ALL my mutable leaf
+# tips (my_leaves), incl loose/unbookmarked, so I can spot + clean up strays.
+# Bare `jj` uses the tighter `clean_log` instead (see aliases.my_log).
+log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_leaves | (bases & my_bookmark_ranges) | bases"
 # 1. Current bookmark: full context near @
-# 2. Other bookmarks I own: only their tips + my leaves on them
+# 2. Other bookmarks I own: their tips + ALL my mutable leaf tips (incl loose)
 # 3. Keep bases that are relevant to my work, but *only* where my stuff lives
 
 [revset-aliases]
@@ -23,6 +26,15 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'my_other_bookmark_heads' = 'heads(my_other_bookmarks::)'
 'my_leaves' = 'heads(mine() & mutable())'
 'my_other_leaves' = 'my_leaves & my_other_bookmarks::'
+# clean_log: the tight daily view for bare `jj` (default-command). Same accordion
+# as revsets.log but folds far field to on-bookmark leaves only (my_other_leaves),
+# hiding loose strays. Use explicit `jj log` (revsets.log) to see + clean those.
+'clean_log' = 'latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges) | bases'
+# stale: periodic-cleanup candidates. Old orphan work (no bookmark downstream,
+# not @ or its stack, 3wk+) + any of my empty mutable commits. Excludes @,
+# bookmarks, live stacks by construction. Preview: `jj log -r stale`.
+# Nuke (reversible via `jj undo`): `jj abandon -r stale`. Bookmark keepers first.
+'stale' = '(mine() & mutable() & ~@ & ~(@::) & ~(::bookmarks()) & committer_date(before:"3 weeks ago")) | (empty() & mine() & mutable() & ~@ & ~bookmarks())'
 'my_bookmark_ranges' = 'mybranches::'
 'recent()' = 'mine() & committer_date(after:"1 week ago") & ~empty()'
 'feature_branches()' = "bookmarks() ~ (trunk() | main)"
@@ -33,7 +45,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 
 [aliases]
 base = ["log", "-r", "base(@)", "-T", "bookmarks", "--no-graph", "--limit", "1"]
-my_log = ["log", "-T", "my_default_log"]
+my_log = ["log", "-r", "clean_log", "-T", "my_default_log"]
 l = [
   "log",
   "-r",

@@ -1,0 +1,191 @@
+# LazyJJ Stack Workflow
+# https://lazyjj.dev
+#
+# Commands for working with stacks of commits.
+# A "stack" is the set of commits from where you branched off trunk to your current position.
+#
+# Stack Workflow Overview:
+#   1. jj stack-start         - Begin fresh work from trunk
+#   2. Make changes, jj new-commit, repeat
+#   3. jj create <name> - Create a bookmark for the PR
+#   4. jj stack-submit            - Push your stack to remote
+#   5. jj stack-sync          - Fetch updates and rebase your stack
+
+[aliases]
+
+# =============================================================================
+# VIEW STACKS
+# =============================================================================
+
+# stack-view - View your current stack of commits
+# What: Shows all commits in your stack along with trunk for context.
+# When: Use frequently to visualize your work and its relationship to trunk.
+# Usage: jj stack-view
+stack-view = ["log", "-r", "stack | trunk() | present(@)"]
+
+# stack-files - View stack with file changes listed
+# What: Shows stack commits with a summary of changed files per commit.
+# When: Use to see which files each commit in your stack touches.
+# Usage: jj stack-files
+stack-files = ["log", "-r", "trunk::stack", "-s"]
+
+# stacks-all - View all your work-in-progress stacks
+# What: Shows all mutable commits you've authored across all branches.
+# When: Use to see all your unfinished work, not just current stack.
+# Usage: jj stacks-all
+stacks-all = ["log", "-r", "stacks"]
+
+# stacks-all-files - View all stacks with file changes
+# What: Shows all your stacks with file change summaries.
+# When: Use to audit all your in-progress work with file details.
+# Usage: jj stacks-all-files
+stacks-all-files = ["log", "-r", "stacks", "-s"]
+
+# =============================================================================
+# NAVIGATE STACK
+# =============================================================================
+
+# stack-top - Jump to the top of your stack
+# What: Edits the head commit of your stack.
+# When: Use to return to the top after editing commits lower in the stack.
+# Usage: jj stack-top
+stack-top = ["new", "heads(stack)"]
+
+# =============================================================================
+# STACK MAINTENANCE
+# =============================================================================
+
+# stack-gc - Garbage collect empty commits in stack
+# What: Abandons empty commits in your stack.
+# When: Use after squashing or when empty commits accumulate.
+# Usage: jj stack-gc
+stack-gc = ["abandon", "empty() & stack"]
+
+# restack - Rebase your stack onto trunk
+# What: Rebases the entire current stack onto the latest trunk.
+# When: Use after fetching to integrate upstream changes.
+# Usage: jj restack
+restack = ["rebase", "-s", "stack_base", "-d", "trunk"]
+
+# restack-all - Rebase all stacks onto trunk
+# What: Rebases all mutable stacks you've authored onto the latest trunk.
+# When: Use to update all your in-progress work with upstream changes.
+# Usage: jj restack-all
+restack-all = [
+  "rebase",
+  "-b",
+  "roots(stacks)",
+  "-d",
+  "trunk()",
+  "--skip-emptied",
+]
+
+# =============================================================================
+# BOOKMARK MANAGEMENT
+# =============================================================================
+
+# bookmark-tug: intentionally omitted — config.toml `tug`/`tug-` (closest_pushable)
+# supersedes lazyjj's simpler @- version. See jj/config.toml.
+
+# bookmark-create - Create a new bookmark at @-
+# What: Creates a named bookmark pointing at your previous commit (@-).
+# When: Use to create a PR branch name for your work.
+# Usage: jj create my-feature
+#        jj create fix/bug-123
+create = ["bookmark", "create", "--to", "@-"]
+
+# =============================================================================
+# PUSH TO REMOTE
+# =============================================================================
+
+# stack-submit - Smart Stack push
+# What: Pushes all commits in your stack to remote, allowing new branches.
+# When: Use to push your stack for code review.
+# Usage: jj stack-submit
+stack-submit = ["git", "push", "-r", "stack"]
+
+# =============================================================================
+# SYNC WORKFLOWS
+# =============================================================================
+
+# stack-sync - Fetch from remote and rebase your stack (squash-merge aware)
+# What: Fetch, then bring your stack up to date with trunk — the way the old
+#       `fetch && rebase -s stack_base -d trunk` did, PLUS handling for a parent
+#       PR that was squash-merged upstream. GitHub squashes a merged PR into one
+#       new commit on main and deletes its branch; on fetch, jj deletes the now-
+#       orphaned local bookmark. The old sync would then REPLAY your original
+#       (pre-squash) commits onto the new trunk that already contains them ->
+#       duplicate-commit conflicts (the "resolve everything as ours" ritual).
+# How: any local bookmark that vanished across the fetch was merged+deleted
+#      upstream. Rebase its surviving children onto trunk and ABANDON the merged
+#      originals (never replay them) -> zero conflicts. Then a normal retrunk for
+#      the plain "trunk just advanced" case. If nothing merged, identical to old.
+# When: Use regularly, and after a stacked parent PR merges.
+# Note: rebased children get new commit ids -> `jj git push` (force-with-lease).
+#       With squash-merge that push is unavoidable and, on repos with dismiss-
+#       stale-reviews, will require re-approval — that's policy, not this command.
+# Validated in a throwaway repo against a real squash-merge + branch-delete.
+# Usage: jj stack-sync   (or the `sync` shortcut)
+stack-sync = [
+  "util",
+  "exec",
+  "--",
+  "bash",
+  "-c",
+  '''
+set -euo pipefail
+# All inner jj use --ignore-working-copy: this runs inside `jj util exec`, which
+# already holds the working copy. Letting inner commands check it out too races
+# the outer process -> "Concurrent checkout". Ignoring it here lets the outer
+# reconcile the working copy once, cleanly, when the script returns.
+J="jj --ignore-working-copy"
+# snapshot local bookmarks -> change_id BEFORE fetch (merged ones vanish on fetch)
+before=$($J bookmark list -T 'name ++ "\t" ++ normal_target.change_id() ++ "\n"' --no-pager)
+$J git fetch
+after=$($J bookmark list -T 'name ++ "\n"' --no-pager)
+landed=0
+while IFS=$'\t' read -r name tip; do
+  [ -n "$name" ] || continue
+  printf '%s\n' "$after" | grep -qxF "$name" && continue   # still here -> not merged
+  # vanished => squash-merged + branch-deleted upstream.
+  if [ -n "$($J log -r "${tip}+::" -T '"x"' --no-graph --no-pager 2>/dev/null)" ]; then
+    $J rebase -s "roots(${tip}+::)" -d 'trunk()' >/dev/null   # children onto fresh trunk
+  fi
+  $J abandon -r "::${tip} & ~::(trunk()) & mutable()" >/dev/null 2>&1 || true  # drop merged originals
+  echo "  landed '$name' -- dropped merged duplicates, rebased children onto trunk"
+  landed=1
+done < <(printf '%s\n' "$before")
+$J rebase -s stack_base -d 'trunk()' >/dev/null 2>&1 || true   # plain retrunk (no-op if already there)
+[ "$landed" -eq 1 ] && echo "  note: rewritten bookmarks need 'jj git push' (force-with-lease)"
+exit 0
+''',
+  "",
+]
+
+# stack-start - Begin fresh work from trunk
+# What: Fetches latest changes and creates a new commit on trunk.
+# When: Use to start a new feature or bug fix from a clean slate.
+# Usage: jj stack-start
+stack-start = ["util", "exec", "--", "sh", "-c", "jj git fetch && jj new trunk"]
+
+# =============================================================================
+# STACK DIFF ALIASES
+# =============================================================================
+
+# stack-diff - Show diff from the beginning of the stack
+# What: Displays the full diff from where the stack branched off.
+# When: Use to see all changes in your entire stack.
+# Usage: jj stack-diff
+stack-diff = ["diff", "-f", "branch_off"]
+
+# stack-diff-summary - Show diff summary from the beginning of the stack
+# What: Shows a compact one-line-per-file summary for entire stack.
+# When: Use for a quick overview of all stack changes.
+# Usage: jj stack-diff-summary
+stack-diff-summary = ["diff-summary", "-f", "branch_off"]
+
+# stack-diff-files - List changed files from the beginning of the stack
+# What: Lists only filenames that changed in entire stack.
+# When: Use to see which files changed across your whole stack.
+# Usage: jj stack-diff-files
+stack-diff-files = ["diff-files", "-f", "branch_off"]
