@@ -126,40 +126,62 @@ stack-sync = [
 set -euo pipefail
 J=(jj --ignore-working-copy)
 old_trunk=$("${J[@]}" log -r 'trunk()' -T 'commit_id ++ "\n"' --no-graph --no-pager)
-before=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin", name ++ "\t" ++ normal_target.change_id() ++ "\n", "")' --no-pager)
+local_before=$("${J[@]}" bookmark list -T 'if(!remote && normal_target, name ++ "\t" ++ normal_target.commit_id() ++ "\n", "")' --no-pager)
+remote_before=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin" && normal_target, name ++ "\t" ++ normal_target.commit_id() ++ "\n", "")' --no-pager)
 
 "${J[@]}" git fetch
 
-after=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin", name ++ "\n", "")' --no-pager)
+local_after=$("${J[@]}" bookmark list -T 'if(!remote, name ++ "\n", "")' --no-pager)
+remote_after=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin" && normal_target, name ++ "\t" ++ normal_target.commit_id() ++ "\n", "")' --no-pager)
 new_trunk=$("${J[@]}" log -r 'trunk()' -T 'commit_id ++ "\n"' --no-graph --no-pager)
 new_trunk_commits=$("${J[@]}" log -r "${old_trunk}..${new_trunk}" -T 'commit_id ++ "\n"' --no-graph --no-pager)
 best_tip=
 best_name=
+landed_names=()
 
-while IFS=$'\t' read -r name tip; do
+while IFS=$'\t' read -r name remote_tip; do
   [ -n "$name" ] || continue
-  printf '%s\n' "$after" | grep -qxF "$name" && continue
-  [ -n "$("${J[@]}" log -r "${tip}::@" -T '"x"' --no-graph --no-pager 2>/dev/null)" ] || continue
+  local_tip=$(awk -F '\t' -v name="$name" '$1 == name { print $2; exit }' <<< "$local_before")
+  [ -n "$local_tip" ] || continue
+  current_remote_tip=$(awk -F '\t' -v name="$name" '$1 == name { print $2; exit }' <<< "$remote_after")
+
+  if [ -n "$current_remote_tip" ]; then
+    conflicted=$("${J[@]}" bookmark list "$name" -T 'if(!remote && conflict, "x", "")' --no-pager)
+    if [ -n "$conflicted" ] && [ -z "$("${J[@]}" diff --from "$local_tip" --to "$current_remote_tip" --summary)" ]; then
+      "${J[@]}" bookmark set "$name" -r "$local_tip"
+      echo "aligned '$name': remote merge has identical tree"
+    fi
+    continue
+  fi
+
+  [ -n "$("${J[@]}" log -r "${local_tip}::@" -T '"x"' --no-graph --no-pager 2>/dev/null)" ] || continue
 
   landed=
   while IFS= read -r commit; do
     [ -n "$commit" ] || continue
-    [ -z "$("${J[@]}" diff --from "$tip" --to "$commit" --summary)" ] || continue
+    [ -z "$("${J[@]}" diff --from "$remote_tip" --to "$commit" --summary)" ] || continue
+    [ -z "$("${J[@]}" diff --from "$local_tip" --to "$commit" --summary)" ] || continue
     landed=$commit
     break
   done <<< "$new_trunk_commits"
   [ -n "$landed" ] || continue
+  landed_names+=("$name")
 
-  if [ -z "$best_tip" ] || [ -n "$("${J[@]}" log -r "${best_tip}::${tip} & ${tip}" -T '"x"' --no-graph --no-pager)" ]; then
-    best_tip=$tip
+  if [ -z "$best_tip" ] || [ -n "$("${J[@]}" log -r "${best_tip}::${local_tip} & ${local_tip}" -T '"x"' --no-graph --no-pager)" ]; then
+    best_tip=$local_tip
     best_name=$name
-  elif [ -z "$("${J[@]}" log -r "${tip}::${best_tip} & ${best_tip}" -T '"x"' --no-graph --no-pager)" ]; then
+  elif [ -z "$("${J[@]}" log -r "${local_tip}::${best_tip} & ${best_tip}" -T '"x"' --no-graph --no-pager)" ]; then
     echo "error: multiple unrelated squash-merged tips affect this workspace" >&2
     exit 1
   fi
-done <<< "$before"
+done <<< "$remote_before"
 
 if [ -n "$best_tip" ]; then
+  for name in "${landed_names[@]}"; do
+    if grep -qxF "$name" <<< "$local_after"; then
+      "${J[@]}" bookmark delete "$name"
+    fi
+  done
   descendants="roots(${best_tip}+::)"
   if [ -n "$("${J[@]}" log -r "$descendants" -T '"x"' --no-graph --no-pager)" ]; then
     "${J[@]}" rebase -s "$descendants" -o 'trunk()'
