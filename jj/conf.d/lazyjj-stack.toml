@@ -108,23 +108,13 @@ stack-submit = ["git", "push", "-r", "stack"]
 # SYNC WORKFLOWS
 # =============================================================================
 
-# stack-sync - Fetch from remote and rebase your stack (squash-merge aware)
-# What: Fetch, then bring your stack up to date with trunk — the way the old
-#       `fetch && rebase -s stack_base -d trunk` did, PLUS handling for a parent
-#       PR that was squash-merged upstream. GitHub squashes a merged PR into one
-#       new commit on main and deletes its branch; on fetch, jj deletes the now-
-#       orphaned local bookmark. The old sync would then REPLAY your original
-#       (pre-squash) commits onto the new trunk that already contains them ->
-#       duplicate-commit conflicts (the "resolve everything as ours" ritual).
-# How: any local bookmark that vanished across the fetch was merged+deleted
-#      upstream. Rebase its surviving children onto trunk and ABANDON the merged
-#      originals (never replay them) -> zero conflicts. Then a normal retrunk for
-#      the plain "trunk just advanced" case. If nothing merged, identical to old.
+# stack-sync - Fetch from remote and rebase your stack
+# What: Detects squash-merged prefixes by exact tree equality, drops their
+#       original commits, then rebases surviving work onto trunk.
 # When: Use regularly, and after a stacked parent PR merges.
 # Note: rebased children get new commit ids -> `jj git push` (force-with-lease).
 #       With squash-merge that push is unavoidable and, on repos with dismiss-
 #       stale-reviews, will require re-approval — that's policy, not this command.
-# Validated in a throwaway repo against a real squash-merge + branch-delete.
 # Usage: jj stack-sync   (or the `sync` shortcut)
 stack-sync = [
   "util",
@@ -134,30 +124,53 @@ stack-sync = [
   "-c",
   '''
 set -euo pipefail
-# All inner jj use --ignore-working-copy: this runs inside `jj util exec`, which
-# already holds the working copy. Letting inner commands check it out too races
-# the outer process -> "Concurrent checkout". Ignoring it here lets the outer
-# reconcile the working copy once, cleanly, when the script returns.
-J="jj --ignore-working-copy"
-# snapshot local bookmarks -> change_id BEFORE fetch (merged ones vanish on fetch)
-before=$($J bookmark list -T 'name ++ "\t" ++ normal_target.change_id() ++ "\n"' --no-pager)
-$J git fetch
-after=$($J bookmark list -T 'name ++ "\n"' --no-pager)
-landed=0
+J=(jj --ignore-working-copy)
+old_trunk=$("${J[@]}" log -r 'trunk()' -T 'commit_id ++ "\n"' --no-graph --no-pager)
+before=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin", name ++ "\t" ++ normal_target.change_id() ++ "\n", "")' --no-pager)
+
+"${J[@]}" git fetch
+
+after=$("${J[@]}" bookmark list --all-remotes -T 'if(remote == "origin", name ++ "\n", "")' --no-pager)
+new_trunk=$("${J[@]}" log -r 'trunk()' -T 'commit_id ++ "\n"' --no-graph --no-pager)
+new_trunk_commits=$("${J[@]}" log -r "${old_trunk}..${new_trunk}" -T 'commit_id ++ "\n"' --no-graph --no-pager)
+best_tip=
+best_name=
+
 while IFS=$'\t' read -r name tip; do
   [ -n "$name" ] || continue
-  printf '%s\n' "$after" | grep -qxF "$name" && continue   # still here -> not merged
-  # vanished => squash-merged + branch-deleted upstream.
-  if [ -n "$($J log -r "${tip}+::" -T '"x"' --no-graph --no-pager 2>/dev/null)" ]; then
-    $J rebase -s "roots(${tip}+::)" -d 'trunk()' >/dev/null   # children onto fresh trunk
+  printf '%s\n' "$after" | grep -qxF "$name" && continue
+  [ -n "$("${J[@]}" log -r "${tip}::@" -T '"x"' --no-graph --no-pager 2>/dev/null)" ] || continue
+
+  landed=
+  while IFS= read -r commit; do
+    [ -n "$commit" ] || continue
+    [ -z "$("${J[@]}" diff --from "$tip" --to "$commit" --summary)" ] || continue
+    landed=$commit
+    break
+  done <<< "$new_trunk_commits"
+  [ -n "$landed" ] || continue
+
+  if [ -z "$best_tip" ] || [ -n "$("${J[@]}" log -r "${best_tip}::${tip} & ${tip}" -T '"x"' --no-graph --no-pager)" ]; then
+    best_tip=$tip
+    best_name=$name
+  elif [ -z "$("${J[@]}" log -r "${tip}::${best_tip} & ${best_tip}" -T '"x"' --no-graph --no-pager)" ]; then
+    echo "error: multiple unrelated squash-merged tips affect this workspace" >&2
+    exit 1
   fi
-  $J abandon -r "::${tip} & ~::(trunk()) & mutable()" >/dev/null 2>&1 || true  # drop merged originals
-  echo "  landed '$name' -- dropped merged duplicates, rebased children onto trunk"
-  landed=1
-done < <(printf '%s\n' "$before")
-$J rebase -s stack_base -d 'trunk()' >/dev/null 2>&1 || true   # plain retrunk (no-op if already there)
-[ "$landed" -eq 1 ] && echo "  note: rewritten bookmarks need 'jj git push' (force-with-lease)"
-exit 0
+done <<< "$before"
+
+if [ -n "$best_tip" ]; then
+  descendants="roots(${best_tip}+::)"
+  if [ -n "$("${J[@]}" log -r "$descendants" -T '"x"' --no-graph --no-pager)" ]; then
+    "${J[@]}" rebase -s "$descendants" -o 'trunk()'
+  else
+    "${J[@]}" new 'trunk()'
+  fi
+  "${J[@]}" abandon -r "::${best_tip} & ~::trunk() & mutable()"
+  echo "landed '$best_name': dropped squash-merged prefix"
+fi
+
+"${J[@]}" rebase -o 'trunk()' --skip-emptied
 ''',
   "",
 ]
