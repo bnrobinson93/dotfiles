@@ -591,6 +591,7 @@ return {
             file:close()
             body = body:gsub("{{cursor}}", "__CURSOR__")
             body = body:gsub("{{month}}", os.date("%Y-%m", week_ts(ctx, 0)))
+            body = body:gsub("{{week}}", os.date("%G-W%V", day_ts(ctx, 0)))
             body = body:gsub("{{year}}", os.date("%Y", year_ts(ctx, 0)))
             if ctx and ctx.location then
               local bufnr = ctx.location[1]
