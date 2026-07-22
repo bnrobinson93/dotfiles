@@ -9,10 +9,9 @@ Code/User/mcp.json
 Code/User/snippets/
 Code/User/sync/
 Code/User/workspaceStorage/
-atuin/atuin-receipt.json
 dot-local/bin/claude
 dot-local/bin/fabric
-dot-local/bin/webi
+waybar/*.bak*
 fabric/.env
 fish/completions/*
 !fish/completions/fabric.fish
