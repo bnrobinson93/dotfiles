@@ -1,0 +1,10 @@
+# Topgrade — one command to update everything.
+# Auto-detected steps on this machine: pacman, brew, mise, fisher, tpm (tmux),
+# rustup, shell completions, etc. Tune with `topgrade --dry-run`.
+
+[misc]
+# Prompt before each step group instead of blasting through; drop if annoying.
+# assume_yes = true
+
+[commands]
+"AI skills & plugins" = "$HOME/.dotfiles/update-skills.sh"
