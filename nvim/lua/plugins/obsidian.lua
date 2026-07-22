@@ -352,6 +352,7 @@ return {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
         template = "Daily nvim Template.md",
+        default_tags = {}, -- plugin default is { "daily-notes" }; folder already says it
       },
       footer = { enabled = false },
       new_notes_location = "notes_subdir",
@@ -375,11 +376,11 @@ return {
           -- Update the modified time
           out.updated = now
 
-          -- More things I may want
-          if note.tags then
+          -- More things I may want (skip empties: no `tags: []` noise)
+          if note.tags and #note.tags > 0 then
             out.tags = note.tags
           end
-          if note.aliases then
+          if note.aliases and #note.aliases > 0 then
             out.aliases = note.aliases
           end
 
@@ -404,8 +405,29 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         customizations = {
+          ["adr nvim template"] = {
+            notes_subdir = "2-Areas/Virtru",
+          },
           ["bible insight nvim template"] = {
             notes_subdir = "2-Areas/Bible/Topics",
+          },
+          ["book nvim template"] = {
+            notes_subdir = "3-Resources",
+          },
+          ["just processing nvim template"] = {
+            notes_subdir = "0-Inbox",
+          },
+          ["place nvim template"] = {
+            notes_subdir = "3-Resources",
+          },
+          ["recipe nvim template"] = {
+            notes_subdir = "3-Resources/Recipes",
+          },
+          ["spike nvim template"] = {
+            notes_subdir = "2-Areas/Virtru",
+          },
+          ["sprint review nvim template"] = {
+            notes_subdir = "2-Areas/Virtru",
           },
           ["bible study note nvim template"] = {
             notes_subdir = "2-Areas/Bible/Topics",
@@ -437,7 +459,10 @@ return {
         },
         substitutions = {
           alias_title = function(ctx)
-            return template_title(ctx):gsub("^%d%d%d%d%-%d%d%-%d%d%s+", "")
+            -- strip leading (Meeting style) or trailing (Sermon/Highlands style) date
+            return template_title(ctx)
+              :gsub("^%d%d%d%d%-%d%d%-%d%d%s+", "")
+              :gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")
           end,
           person_aliases = person_aliases,
           body = function(ctx, name)
