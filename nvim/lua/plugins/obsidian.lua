@@ -720,6 +720,13 @@ return {
         mode = "i",
         buffer = true,
       },
+      {
+        "<leader>xt",
+        "<cmd>Obsidian tags todo<cr>",
+        desc = "Obsidian #todo tags",
+        mode = { "n" },
+        buffer = true,
+      },
     },
   },
 }
