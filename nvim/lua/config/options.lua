@@ -11,6 +11,9 @@ vim.cmd([[let g:pencil#conceallevel = 1]])
 
 opt.spell = true
 vim.cmd([[set spelloptions+=camel]])
+-- Pin where `zg`/`zw` write additions (also harper-ls userDictPath) so it's
+-- deterministic instead of nvim auto-picking a runtimepath spell dir.
+opt.spellfile = vim.fn.stdpath("config") .. "/spell/en.utf-8.add"
 
 opt.guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver35-Cursor,r-cr-o:hor30-Cursor"
 opt.mouse = "nv"
