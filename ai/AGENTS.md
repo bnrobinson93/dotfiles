@@ -51,6 +51,15 @@ skills/<name>/SKILL.md (at root, e.g. ~/.dotfiles/ai/skills) for named or clearl
 
 Codex sandbox note: `hunk session` commands talk to a local daemon on 127.0.0.1, which the sandbox blocks. In Codex, request escalated permissions upfront for `hunk session` commands (with a one-line justification) instead of running sandboxed first, failing, and retrying.
 
+## Engineering skill configuration
+
+For skills requiring per-repo configuration:
+
+- Set `<repo>` from the `origin` remote's repository name, without `.git`; fall back to the workspace-root directory name when no remote exists
+- Read `~/Documents/Vault/2-Areas/Coding/<repo>/Agents/`
+- Save issue and spec drafts under the sibling `Issues/` directory
+- Follow `Issue Tracker.md`, `Triage Labels.md`, and `Domain Docs.md`; run `setup-matt-pocock-skills` with this vault layout when configuration is missing
+
 ## Caveman
 
 caveman.md (at root, e.g. ~/.claude or ~/.codex) for explicit caveman mode usage.
