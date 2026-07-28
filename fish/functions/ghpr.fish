@@ -1,71 +1,53 @@
-# Create GitHub PR with conventional commit format and AI-generated body
-
-function ghpr --description "Create GitHub PR with conventional commit format"
-    # Parse arguments
-    set -l draft_flag ""
-    set -l dry_run false
-    set -l custom_base ""
-    set -l custom_title ""
-    set -l target_bookmark ""
-    set -l target_revision ""
-    set -l labels ""
-
-    argparse d/draft dry-run 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' 'l/label=' -- $argv
+function __ghpr_parse_args --no-scope-shadowing
+    argparse d/draft dry-run desc-only 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' 'l/label=' -- $argv
     or return 1
 
-    if set -q _flag_draft
-        set draft_flag --draft
-    end
-
-    if set -q _flag_dry_run
-        set dry_run true
-    end
-
-    if set -q _flag_base
-        set custom_base $_flag_base
-    end
-
-    if set -q _flag_title
-        set custom_title $_flag_title
-    end
-
-    if set -q _flag_bookmark
-        set target_bookmark $_flag_bookmark
-    end
-
-    if set -q _flag_revision
-        set target_revision $_flag_revision
-    end
-
-    if set -q _flag_label
-        set labels $_flag_label
-    end
+    set -q _flag_draft; and set draft_flag --draft
+    set -q _flag_dry_run; and set dry_run true
+    set -q _flag_desc_only; and set desc_only true
+    set -q _flag_base; and set custom_base $_flag_base
+    set -q _flag_title; and set custom_title $_flag_title
+    set -q _flag_bookmark; and set target_bookmark $_flag_bookmark
+    set -q _flag_revision; and set target_revision $_flag_revision
+    set -q _flag_label; and set labels $_flag_label
 
     if test -n "$target_bookmark" -a -n "$target_revision"
         echo "Error: Use either -b/--bookmark or -r/--revision, not both"
         return 1
     end
 
-    # Check dependencies
-    if not type -q gh
-        echo "Error: gh (GitHub CLI) not installed"
+    return 0
+end
+
+function __ghpr_detect_vcs --no-scope-shadowing
+    if set -q GIT_DIR
+        if type -q git; and git rev-parse --git-dir >/dev/null 2>&1
+            set is_jj false
+            echo "✓ Git repository detected from GIT_DIR"
+            return 0
+        end
+
+        echo "Error: GIT_DIR does not point to a git repository"
         return 1
     end
 
-    # Detect VCS type using proper checks
-    set -l is_jj false
     if type -q jj; and jj workspace root >/dev/null 2>&1
         set is_jj true
         echo "✓ Jujutsu repository detected"
-    else if type -q git; and git rev-parse --git-dir >/dev/null 2>&1
-        echo "✓ Git repository detected"
-    else
-        echo "Error: Not in a git or jj repository"
-        return 1
+        return 0
     end
 
-    # Get current branch/bookmark name
-    set -l current_branch ""
+    if type -q git; and git rev-parse --git-dir >/dev/null 2>&1
+        set is_jj false
+        echo "✓ Git repository detected"
+        return 0
+    end
+
+    echo "Error: Not in a git or jj repository"
+    return 1
+end
+
+function __ghpr_resolve_range --no-scope-shadowing
     if test -n "$target_bookmark"
         set current_branch $target_bookmark
     else if test "$is_jj" = true
@@ -76,13 +58,11 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             end
 
             set -l revision_bookmarks (jj log -r "$target_revision" -T 'local_bookmarks.map(|b| b.name()).join("\n")' --no-graph 2>/dev/null | string split '\n' | string trim | string match -rv '^$')
-
             if test (count $revision_bookmarks) -gt 1
                 echo "Error: Revision '$target_revision' has multiple local bookmarks"
                 echo "  Use -b/--bookmark with one of: "(string join ", " $revision_bookmarks)
                 return 1
             end
-
             if test (count $revision_bookmarks) -eq 0
                 echo "Error: Revision '$target_revision' has no local bookmark"
                 echo "  Pass -b <bookmark> or create one with: jj bookmark create <name> -r '$target_revision'"
@@ -91,7 +71,6 @@ function ghpr --description "Create GitHub PR with conventional commit format"
 
             set current_branch $revision_bookmarks[1]
         else
-            # Strip trailing * (indicates unpushed local changes in JJ output)
             set current_branch (jj log -r 'closest_bookmark(@)' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | awk '{print $1}' | string replace -r '\*$' '')
         end
     else
@@ -99,7 +78,6 @@ function ghpr --description "Create GitHub PR with conventional commit format"
             echo "Error: -r/--revision only works in jj repositories"
             return 1
         end
-
         set current_branch (git branch --show-current 2>/dev/null)
     end
 
@@ -112,140 +90,86 @@ function ghpr --description "Create GitHub PR with conventional commit format"
         return 1
     end
 
-    echo "✓ Current "(test "$is_jj" = true; and echo "bookmark"; or echo "branch")": $current_branch"
-
-    set -l current_repo ""
-    set -l target_repo ""
-    set -l current_repo_owner ""
-    set -l pr_head_selector $current_branch
-    set -l repo_fields (gh repo view --json nameWithOwner,owner,parent --jq '.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login' 2>/dev/null)
-    if test (count $repo_fields) -ge 3
-        set current_repo $repo_fields[1]
-        set target_repo $repo_fields[2]
-        set current_repo_owner $repo_fields[3]
-
-        if test -n "$current_repo_owner" -a "$target_repo" != "$current_repo"
-            set pr_head_selector "$current_repo_owner:$current_branch"
-        end
-    end
-
-    # Ensure changes are pushed before creating a PR
-    if test "$is_jj" = true
-        # A bookmark is pushed only if its block contains "@origin:" without "not created yet"
-        # Unescape hyphens: string escape emits \-, which GNU grep warns on
-        # ("stray \ before -") and BSD grep silently accepts. Hyphen is never
-        # special in a POSIX BRE outside brackets, so bare - satisfies both.
-        set -l escaped_branch (string escape --style=regex -- $current_branch | string replace -a '\-' -)
-        set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 -- "^$escaped_branch:")
-        set -l has_origin (echo $bookmark_block | string match -r '@origin:')
-        set -l not_created (echo $bookmark_block | string match -r 'not created yet')
-        if test -z "$has_origin" -o -n "$not_created"
-            echo "Error: Bookmark '$current_branch' has not been pushed to origin."
-            echo "  Push with: jj git push -b $current_branch"
-            return 1
-        end
-    else
-        set -l upstream (git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
-        if test -z "$upstream"
-            echo "Error: Branch '$current_branch' has no upstream. Push with: git push -u origin $current_branch"
-            return 1
-        end
-        if test (count (git log "@{u}..HEAD" --oneline 2>/dev/null)) -gt 0
-            echo "Error: Branch '$current_branch' has unpushed commits. Run: git push"
-            return 1
-        end
-    end
-
-    # Check for an existing open PR before generating anything with AI
-    set -l existing_pr_number ""
-    set -l existing_pr_title ""
-    set -l existing_pr_url ""
-    set -l forced_dry_run false
-    set -l existing_pr_args pr list --head "$pr_head_selector" --state open --limit 1 \
-        --json number,title,url --jq 'if .[0] then (. [0].number | tostring), (. [0].title // ""), (. [0].url // "") else empty end'
-    if test -n "$target_repo"
-        set existing_pr_args $existing_pr_args --repo $target_repo
-    end
-    set -l existing_pr_fields (gh $existing_pr_args 2>/dev/null)
-    if test (count $existing_pr_fields) -ge 1 -a "$existing_pr_fields[1]" != null
-        set existing_pr_number $existing_pr_fields[1]
-        set existing_pr_title $existing_pr_fields[2]
-        set existing_pr_url $existing_pr_fields[3]
-    end
-
-    if test -n "$existing_pr_number"
-        set dry_run true
-        set forced_dry_run true
-
-        set -l existing_pr_summary "#$existing_pr_number"
-        if test -n "$existing_pr_url"
-            set existing_pr_summary "$existing_pr_summary $existing_pr_url"
-        else if test -n "$existing_pr_title"
-            set existing_pr_summary "$existing_pr_summary $existing_pr_title"
-        end
-
-        echo "✓ Existing PR found: $existing_pr_summary"
-        echo "✓ Switching to --dry-run and skipping AI generation"
-    end
-
-    # Determine base branch
-    set -l base_branch ""
     if test -n "$custom_base"
         set base_branch $custom_base
+        set ancestor_ref $custom_base
     else if test "$is_jj" = true
-        # Extract base from trunk() - results in "main@origin" or "master@origin", extract just the branch name
         set base_branch (jj log -r 'trunk()' -T 'bookmarks.join(" ")' --no-graph 2>/dev/null | string trim | string replace -r '@.*$' '' | head -n1)
-        if test -z "$base_branch"
-            set base_branch main
+        test -n "$base_branch"; or set base_branch main
+
+        set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
+            -T 'bookmarks.join(",")' --no-graph --limit 1 2>/dev/null | \
+            string replace -r '\*' '' | string trim | string split ',' | head -n1)
+        set -l trunk_bookmark (jj log -r 'trunk()' -T 'bookmarks.join(",")' --no-graph 2>/dev/null | string trim)
+
+        if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
+            set base_branch $parent_bookmark
+            set ancestor_ref $parent_bookmark
+            echo "✓ Stacked PR: ancestor '$parent_bookmark'"
+        else
+            set ancestor_ref 'trunk()'
         end
     else
-        # Git: try main, then master
         if git show-ref --verify --quiet refs/heads/main
             set base_branch main
         else if git show-ref --verify --quiet refs/heads/master
             set base_branch master
         else
-            # Use repo default
             set base_branch (git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
-            if test -z "$base_branch"
-                set base_branch main # final fallback
-            end
+            test -n "$base_branch"; or set base_branch main
         end
+        set ancestor_ref $base_branch
     end
 
-    # Detect parent bookmark for stacked PRs (JJ only).
-    # Explicit -B/--base means "normal PR against this base" — skip stacking.
-    set -l comparison_base ""
-    set -l is_stacked_pr false
-    if test "$is_jj" = true -a -n "$custom_base"
-        set comparison_base "$base_branch"
-    else if test "$is_jj" = true
-        # ancestors() excluding the bookmark commit itself gives us the parent layer
-        set -l parent_bookmark (jj log -r "ancestors($current_branch) & bookmarks() & ~$current_branch" \
-            -T 'bookmarks.join(",")' --no-graph --limit 1 2>/dev/null | \
-            string replace -r '\*' '' | string trim | string split ',' | head -n1)
-
-        set -l trunk_bookmark (jj log -r "trunk()" -T 'bookmarks.join(",")' \
-            --no-graph 2>/dev/null | string trim)
-
-        if test -n "$parent_bookmark" -a "$parent_bookmark" != "$trunk_bookmark"
-            set comparison_base "$parent_bookmark"
-            set base_branch "$parent_bookmark"
-            set is_stacked_pr true
-            echo "✓ Stacked PR: base and comparison set to parent bookmark '$parent_bookmark'"
-        else
-            set comparison_base "trunk()"
-        end
+    if test "$is_jj" = true
+        set child_ref $current_branch
     else
-        set comparison_base "$base_branch"
+        set child_ref HEAD
     end
 
-    if test "$is_stacked_pr" = false
-        echo "✓ Base branch: $base_branch"
+    echo "✓ Current "(test "$is_jj" = true; and echo bookmark; or echo branch)": $current_branch"
+    echo "✓ Range: $base_branch → $child_ref"
+    return 0
+end
+
+function __ghpr_find_pr --no-scope-shadowing
+    if not type -q gh
+        echo "Error: gh (GitHub CLI) not installed"
+        return 1
     end
 
-    # Extract raw branch context for AI prompt - type, ticket, and description hint
-    # Title will be generated by AI; this is just context
+    set -l current_repo ""
+    set -l current_repo_owner ""
+    set -l repo_fields (gh repo view --json nameWithOwner,owner,parent --jq '.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login' 2>/dev/null)
+    if test (count $repo_fields) -ge 3
+        set current_repo $repo_fields[1]
+        set target_repo $repo_fields[2]
+        set current_repo_owner $repo_fields[3]
+        if test -n "$current_repo_owner" -a "$target_repo" != "$current_repo"
+            set pr_head_selector "$current_repo_owner:$current_branch"
+        end
+    end
+
+    set -l pr_args pr list --head "$pr_head_selector" --state open --limit 1 --json url --jq '.[0].url // empty'
+    test -n "$target_repo"; and set pr_args $pr_args --repo $target_repo
+    set pr_url (gh $pr_args 2>/dev/null)
+    set -l list_status $status
+    set pr_url (string trim -- "$pr_url")
+    if test $list_status -ne 0
+        echo "Error: Failed to check for an existing PR"
+        return 1
+    end
+
+    if test -z "$pr_url" -o "$desc_only" = true
+        set -l title_args pr list --limit 5 --json title --jq '.[].title'
+        test -n "$target_repo"; and set title_args $title_args --repo $target_repo
+        set recent_titles (gh $title_args 2>/dev/null | string collect)
+    end
+
+    return 0
+end
+
+function __ghpr_generate_description --no-scope-shadowing
     set -l branch_type ""
     set -l branch_ticket ""
     set -l branch_desc ""
@@ -253,69 +177,48 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     if test (count $branch_parts) -eq 2
         set branch_type $branch_parts[1]
         set -l after_slash $branch_parts[2]
-        # Extract ticket number pattern like PEP-1234, JIRA-567, etc.
         set branch_ticket (string match -r '[A-Z]+-[0-9]+' $after_slash)
-        # Extract description: everything after the ticket number (strip leading - or _)
-        if test -n "$branch_ticket"
-            set branch_desc (string replace -r "^$branch_ticket\W?" "" $after_slash | string replace -a "-" " " | string replace -a "_" " ")
-        else
-            set branch_desc (string replace -a "-" " " $after_slash | string replace -a "_" " ")
-        end
+        set branch_desc (string replace -r '^[A-Z]+-[0-9]+\W?' '' $after_slash | string replace -a "-" " " | string replace -a "_" " ")
     end
 
-    # Gather context for PR body
     set -l diff_content ""
     set -l commit_messages ""
     set -l changed_files ""
 
     if test "$is_jj" = true
-        set diff_content (jj diff -r "$comparison_base..$current_branch" 2>/dev/null | string collect)
-        set commit_messages (jj log -r "$comparison_base..$current_branch" -T 'description' --no-graph 2>/dev/null | string collect)
-        set changed_files (jj diff -r "$comparison_base..$current_branch" --summary 2>/dev/null | string replace -r '^[A-Z] +' '')
+        set diff_content (jj diff -r "$ancestor_ref..$child_ref" 2>/dev/null | string collect)
+        set commit_messages (jj log -r "$ancestor_ref..$child_ref" -T 'description' --no-graph 2>/dev/null | string collect)
+        set changed_files (jj diff -r "$ancestor_ref..$child_ref" --summary 2>/dev/null | string replace -r '^[A-Z] +' '')
     else
-        set diff_content (git diff "$base_branch"...HEAD 2>/dev/null | string collect)
-        set commit_messages (git log "$base_branch"..HEAD --pretty=format:"%s%n%b" 2>/dev/null | string collect)
-        set changed_files (git diff "$base_branch"...HEAD --name-only 2>/dev/null)
+        set diff_content (git diff "$ancestor_ref...$child_ref" 2>/dev/null | string collect)
+        set commit_messages (git log "$ancestor_ref..$child_ref" --pretty=format:"%s%n%b" 2>/dev/null | string collect)
+        set changed_files (git diff "$ancestor_ref...$child_ref" --name-only 2>/dev/null)
     end
 
     if test -z "$diff_content"
-        if test "$is_jj" = true
-            echo "⚠ Warning: No changes detected between '$current_branch' and '$comparison_base'"
-        else
-            echo "⚠ Warning: No changes detected between current branch and $base_branch"
-        end
+        echo "⚠ Warning: No changes detected between '$child_ref' and '$ancestor_ref'"
     end
 
-    # Check for PR template
-    set -l template_path ""
     set -l template_content ""
     for path in .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md docs/pull_request_template.md
         if test -f $path
-            set template_path $path
-            set template_content (cat $path | string collect)
+            set template_content (string collect <$path)
             break
         end
     end
 
-    # Generate PR title and body via AI
-    set -l pr_title ""
-    set -l pr_body ""
-    set -l use_fill false
-
-    if test -n "$custom_title"
-        set pr_title $custom_title
+    set -l writing_voice ""
+    if test -f ~/.codex/WritingVoice.md
+        set writing_voice (string collect <~/.codex/WritingVoice.md)
     end
 
-    if test "$forced_dry_run" = true
-        if test -z "$pr_title" -a -n "$existing_pr_title"
-            set pr_title $existing_pr_title
-        end
-        set pr_body "Existing PR: #$existing_pr_number"
-        if test -n "$existing_pr_url"
-            set pr_body "$pr_body
-$existing_pr_url"
-        end
-    else if type -q opencode
+    set pr_title ""
+    set pr_body ""
+    set use_fill false
+
+    set pr_title $custom_title
+
+    if type -q opencode
         set -l oc_model opencode/big-pickle
         if test (uname -s) = Darwin
             set oc_model anthropic/claude-haiku-4-5
@@ -323,88 +226,56 @@ $existing_pr_url"
 
         echo "✓ Generating PR title and body with OpenCode..."
 
+        set -l max_diff_bytes 20000
+        set -l max_commit_bytes 8000
+        set -l truncated_diff $diff_content
+        set -l truncated_commit_messages $commit_messages
+
+        set -l diff_bytes (printf "%s" "$diff_content" | wc -c | string trim)
+        if test "$diff_bytes" -gt "$max_diff_bytes"
+            set truncated_diff (printf "%s" "$diff_content" | head -c $max_diff_bytes | string collect)
+            set truncated_diff "$truncated_diff
+
+[... diff truncated ...]"
+        end
+
+        set -l commit_bytes (printf "%s" "$commit_messages" | wc -c | string trim)
+        if test "$commit_bytes" -gt "$max_commit_bytes"
+            set truncated_commit_messages (printf "%s" "$commit_messages" | head -c $max_commit_bytes | string collect)
+            set truncated_commit_messages "$truncated_commit_messages
+
+[... commit messages truncated ...]"
+        end
+
+        set -l changed_files_str (printf "%s\n" $changed_files | string collect)
         set -l prompt "Generate a GitHub PR title and description for these changes.
 
-Branch name: $current_branch"
+Branch context:
+- Name: $current_branch
+- Conventional commit type: $branch_type
+- Ticket number: $branch_ticket
+- Description hint: $branch_desc
 
-        if test -n "$branch_type"
-            set prompt "$prompt
-Conventional commit type from branch: $branch_type"
-        end
+If the ticket number is non-empty, it must appear in the title.
 
-        if test -n "$branch_ticket"
-            set prompt "$prompt
-Ticket number: $branch_ticket (must appear in the title)"
-        end
+Changed files (use to infer conventional commit scope):
+$changed_files_str
 
-        if test -n "$branch_desc"
-            set prompt "$prompt
-Description hint from branch name: $branch_desc"
-        end
+Recent PR titles (use as scope-convention examples when present):
+$recent_titles
 
-        if set -q changed_files[1]
-            set -l changed_files_str (printf "%s\n" $changed_files | string collect)
-            set prompt "$prompt
+Writing guidance (apply to the PR description when present):
+$writing_voice
 
-Changed files (use to infer the conventional commit scope):
-$changed_files_str"
-        end
-
-        # Recent PR titles show this repo's scope conventions (or lack thereof)
-        set -l recent_titles_args pr list --limit 5 --json title --jq '.[].title'
-        if test -n "$target_repo"
-            set recent_titles_args $recent_titles_args --repo $target_repo
-        end
-        set -l recent_titles (gh $recent_titles_args 2>/dev/null | string collect)
-        if test -n "$recent_titles"
-            set prompt "$prompt
-
-Recent PR titles from this repo (use as a guide for scope conventions):
-$recent_titles"
-        end
-
-        set prompt "$prompt
+Repository PR template (use as a loose body guide when present):
+$template_content
 
 Output format (required - do not deviate):
 TITLE: <conventional commit title>
 BODY:
 <PR description>
 
-Scope rules: scope is optional. Only include a scope if the changes are clearly focused in one area AND recent PR titles in this repo use scopes. Infer the scope from changed file paths. Omit scope entirely if this repo doesn't use them or changes span multiple areas."
-
-        if test -n "$template_content"
-            set prompt "$prompt
-
-Use this as a loose guide for the body structure:
-$template_content"
-        end
-
-        set -l max_diff_bytes 20000
-        set -l max_commit_bytes 8000
-        set -l truncated_diff $diff_content
-        set -l truncated_commit_messages $commit_messages
-
-        if test -n "$diff_content"
-            set -l diff_bytes (printf "%s" "$diff_content" | wc -c | string trim)
-            if test "$diff_bytes" -gt "$max_diff_bytes"
-                set truncated_diff (printf "%s" "$diff_content" | head -c $max_diff_bytes | string collect)
-                set truncated_diff "$truncated_diff
-
-[... diff truncated ...]"
-            end
-        end
-
-        if test -n "$commit_messages"
-            set -l commit_bytes (printf "%s" "$commit_messages" | wc -c | string trim)
-            if test "$commit_bytes" -gt "$max_commit_bytes"
-                set truncated_commit_messages (printf "%s" "$commit_messages" | head -c $max_commit_bytes | string collect)
-                set truncated_commit_messages "$truncated_commit_messages
-
-[... commit messages truncated ...]"
-            end
-        end
-
-        set prompt "$prompt
+Scope rules: scope is optional. Only include a scope if the changes are clearly focused in one area AND recent PR titles in this repo use scopes. Infer the scope from changed file paths. Omit scope entirely if this repo doesn't use them or changes span multiple areas.
 
 ## Changes
 $truncated_diff
@@ -415,49 +286,29 @@ $truncated_commit_messages"
         set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
 
         if test -n "$ai_output"
-            # string match -r with a capture group returns two items: full match, then capture
-            set -l title_match (string match -r 'TITLE: (.+)' $ai_output)
-            set -l ai_title $title_match[2]
-
-            # Write to temp file so awk can extract the body with newlines intact.
-            # Fish splits strings on newlines into lists, which destroys formatting.
-            set -l tmp (mktemp)
-            printf "%s" $ai_output >$tmp
-            set -l ai_body (awk '/^BODY:/{found=1; next} found{print}' $tmp | string collect)
-            rm -f $tmp
+            set -l ai_title (string match -r -g 'TITLE: (.+)' $ai_output)
+            set -l ai_body (printf "%s" "$ai_output" | awk '/^BODY:/{found=1; next} found{print}' | string collect)
 
             if test -n "$ai_title" -a -z "$custom_title"
                 set pr_title (string trim -- $ai_title)
             end
-            if test -n "$ai_body"
-                set pr_body $ai_body
-            end
+            set pr_body "$ai_body"
         end
-
-        if test -z "$pr_body"
-            echo "⚠ OpenCode failed to generate output, will use --fill"
-            set use_fill true
-        end
-    else
-        echo "⚠ opencode not found, will use --fill for body"
-        set use_fill true
     end
 
-    # Fallback title from branch name if AI didn't produce one
     if test -z "$pr_title"
-        if test -n "$branch_type" -a -n "$branch_ticket"
-            if test -n "$branch_desc"
-                set pr_title "$branch_type: $branch_ticket $branch_desc"
-            else
-                set pr_title "$branch_type: $branch_ticket"
-            end
+        if test -n "$branch_ticket"
+            set pr_title (string trim -- "$branch_type: $branch_ticket $branch_desc")
         else
             set pr_title (string replace -a -- "-" " " $current_branch | string replace -a -- "_" " ")
         end
         echo "⚠ Using fallback title: $pr_title"
     end
 
-    # Validation hold - show preview
+    test -n "$pr_body"
+end
+
+function __ghpr_preview --no-scope-shadowing
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📝 Pull Request Preview"
@@ -484,24 +335,50 @@ $truncated_commit_messages"
     end
 
     echo ""
+end
 
-    # Dry run exits here
-    if test "$dry_run" = true
-        if test "$forced_dry_run" = true
-            set -l dry_run_message "Dry run - existing PR already open: #$existing_pr_number"
-            if test -n "$existing_pr_url"
-                set dry_run_message "$dry_run_message $existing_pr_url"
-            else if test -n "$existing_pr_title"
-                set dry_run_message "$dry_run_message $existing_pr_title"
-            end
-            echo $dry_run_message
-        else
-            echo "Dry run - no PR created"
+function __ghpr_ensure_pushed --no-scope-shadowing
+    if test "$is_jj" = true
+        set -l escaped_branch (string escape --style=regex -- $current_branch | string replace -a '\-' -)
+        set -l bookmark_block (jj bookmark list --all-remotes 2>/dev/null | grep -A3 -- "^$escaped_branch:")
+        set -l has_origin (echo $bookmark_block | string match -r '@origin:')
+        set -l not_created (echo $bookmark_block | string match -r 'not created yet')
+        if test -z "$has_origin" -o -n "$not_created"
+            echo "Error: Bookmark '$current_branch' has not been pushed to origin."
+            echo "  Push with: jj git push -b $current_branch"
+            return 1
         end
+    else
+        set -l upstream (git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+        if test -z "$upstream"
+            echo "Error: Branch '$current_branch' has no upstream. Push with: git push -u origin $current_branch"
+            return 1
+        end
+        if test (count (git log "@{u}..HEAD" --oneline 2>/dev/null)) -gt 0
+            echo "Error: Branch '$current_branch' has unpushed commits. Run: git push"
+            return 1
+        end
+    end
+
+    return 0
+end
+
+function __ghpr_create_pr --no-scope-shadowing
+    __ghpr_ensure_pushed
+    or return 1
+
+    if not __ghpr_generate_description
+        echo "⚠ OpenCode failed to generate output, will use --fill"
+        set use_fill true
+    end
+
+    __ghpr_preview
+
+    if test "$dry_run" = true
+        echo "Dry run - no PR created"
         return 0
     end
 
-    # Prompt for confirmation with edit option
     while true
         read -P "Create this PR? [Y/n/e(dit)]: " -l confirm
 
@@ -552,7 +429,6 @@ $truncated_commit_messages"
                     set use_fill true
                 end
 
-                # Show updated preview
                 echo ""
                 echo "Updated Title: $pr_title"
                 if test "$use_fill" = true
@@ -570,7 +446,6 @@ $truncated_commit_messages"
         end
     end
 
-    # Create PR
     echo ""
     echo "✓ Creating PR..."
 
@@ -580,45 +455,87 @@ $truncated_commit_messages"
         printf "%s\n" $pr_body >$body_file
     end
 
-    set -l gh_status 0
-
-    # Build gh args as a list so empty draft_flag doesn't sneak in as a blank argument
     set -l gh_args pr create --base $base_branch --title "$pr_title"
-    if test -n "$target_repo"
-        set gh_args $gh_args --repo $target_repo
-    end
-
-    # JJ doesn't update git HEAD to the current bookmark, so gh can't detect the branch
-    # automatically - we must pass -H explicitly with the closest bookmark name
+    test -n "$target_repo"; and set gh_args $gh_args --repo $target_repo
     if test "$is_jj" = true -o "$pr_head_selector" != "$current_branch"
         set gh_args $gh_args -H $pr_head_selector
     end
-
     if test "$use_fill" = true
         set gh_args $gh_args --fill
     else
         set gh_args $gh_args --body-file $body_file
     end
+    test -n "$draft_flag"; and set gh_args $gh_args --draft
+    test -n "$labels"; and set gh_args $gh_args --label $labels
 
-    if test -n "$draft_flag"
-        set gh_args $gh_args --draft
-    end
+    set -l create_output (gh $gh_args)
+    set -l gh_status $status
+    set pr_url (string trim -- "$create_output")
+    test -n "$body_file"; and rm -f $body_file
 
-    if test -n "$labels"
-        set gh_args $gh_args --label $labels
-    end
-
-    gh $gh_args
-    set gh_status $status
-
-    if test -n "$body_file"
-        rm -f $body_file
-    end
-
-    if test $gh_status -eq 0
-        echo "✓ PR created successfully!"
-    else
+    if test $gh_status -ne 0
         echo "✗ Failed to create PR"
         return 1
     end
+
+    return 0
+end
+
+function __ghpr_print_url --no-scope-shadowing
+    test -n "$pr_url"; and echo "✓ PR: $pr_url"
+    return 0
+end
+
+function ghpr --description "Create GitHub PR with conventional commit format"
+    set -l draft_flag ""
+    set -l dry_run false
+    set -l desc_only false
+    set -l custom_base ""
+    set -l custom_title ""
+    set -l target_bookmark ""
+    set -l target_revision ""
+    set -l labels ""
+    set -l is_jj false
+    set -l current_branch ""
+    set -l base_branch ""
+    set -l ancestor_ref ""
+    set -l child_ref ""
+    set -l target_repo ""
+    set -l pr_head_selector ""
+    set -l recent_titles ""
+    set -l pr_url ""
+    set -l pr_title ""
+    set -l pr_body ""
+    set -l use_fill false
+
+    __ghpr_parse_args $argv
+    or return 1
+
+    __ghpr_detect_vcs
+    or return 1
+
+    __ghpr_resolve_range
+    or return 1
+    set pr_head_selector $current_branch
+
+    __ghpr_find_pr
+    or return 1
+
+    if test "$desc_only" = true
+        if not __ghpr_generate_description
+            __ghpr_print_url
+            echo "Error: opencode is required and must generate a PR description with --desc-only"
+            return 1
+        end
+        __ghpr_preview
+        __ghpr_print_url
+        return 0
+    end
+
+    if test -z "$pr_url"
+        __ghpr_create_pr
+        or return 1
+    end
+
+    __ghpr_print_url
 end
