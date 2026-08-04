@@ -1,3 +1,5 @@
+Include /Users/brad.robinson/.colima/ssh_config
+
 ## Managed by dotfiles (stow). Safe to edit.
 #
 # Connection strategy per machine. Commit signing is separate — git/jj invoke
