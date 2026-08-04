@@ -1,0 +1,4 @@
+interface:
+  display_name: "Load Engineering Context"
+  short_description: "Load repository issue and domain conventions"
+  default_prompt: "Use $load-engineering-context to load this repository’s issue and domain configuration."
