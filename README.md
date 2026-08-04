@@ -134,8 +134,8 @@ brew install k9s helm age agg
 Day-to-day, mise tasks cover the common operations from anywhere:
 
 ```sh
-mise run stow     # deploy all symlinks (config, ~/.local, zsh, ai, ssh)
-mise run skills   # install/update AI skills & plugins (update-skills.sh)
+mise run stow     # deploy non-AI symlinks (config, ~/.local, zsh, ssh)
+mise run skills   # deploy AI config and install/update skills and plugins
 mise run update   # update everything via topgrade
 ```
 
@@ -171,23 +171,9 @@ chsh -s $(which fish)
 tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
 bat cache --build
 
-# Shared AI instruction files (either shell)
-# Remove previously stowed AI links before restowing
-stow -D -t ~/.claude ai || true
-stow -D -t ~/.codex ai || true
-stow -D -t ~/.config/opencode ai || true
-
-# Back up conflicting Claude entrypoints before restowing
-mv ~/.claude/AGENTS.md ~/.claude/AGENTS.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
-mv ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak 2>/dev/null || true
-
-stow -v2 -t ~/.claude ai
-stow -v2 -t ~/.codex ai
-stow -v2 -t ~/.config/opencode ai
-
-# Update agent skills/plugins
+# Deploy AI config and update skills/plugins
 update-skills.sh
-# Optional: TEACH_SKILL_SOURCE=owner/repo update-skills.sh
+# Optional: FIGMA_SKILL_SOURCE=owner/repo TEACH_SKILL_SOURCE=owner/repo update-skills.sh
 
 ### Default SSH key setup (no 1Password)
 

@@ -3,6 +3,7 @@
 
 # Locale
 set -gx LANG en_US.UTF-8
+set -gx TERM xterm-ghostty
 
 # Editor
 if set -q SSH_CONNECTION

@@ -2,6 +2,7 @@
 set -u
 
 failures=0
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -24,6 +25,48 @@ try() {
 
 try_quiet() {
   "$@" >/dev/null 2>&1
+}
+
+backup_conflicting_path() {
+  local target="$1"
+  local source="${2:-}"
+  if [[ ! -e "$target" && ! -L "$target" ]] || [[ -L "$target" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$source" ]] && cmp -s "$target" "$source"; then
+    rm -- "$target"
+    return 0
+  fi
+
+  local backup_target="${target}.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak"
+  printf 'Backing up existing %s to %s\n' "$(basename "$target")" "$backup_target"
+  mv "$target" "$backup_target"
+}
+
+deploy_local_ai() {
+  local shared_stow_args=(
+    --ignore=dot-codex
+    --ignore=dot-claude
+    --ignore=dot-config
+    --ignore='^skills/(teach|hunk-review)$'
+  )
+
+  try mkdir -p "$HOME/.claude" "$HOME/.codex" "$HOME/.config/opencode" "$HOME/.config"
+  backup_conflicting_path "$HOME/.claude/AGENTS.md"
+  backup_conflicting_path "$HOME/.claude/CLAUDE.md"
+  backup_conflicting_path \
+    "$HOME/.config/ponytail/config.json" \
+    "$script_dir/ai/dot-config/ponytail/config.json"
+
+  # Remove legacy Codex stow links; Codex and Herdr own these mutable files now.
+  try_quiet stow -D -d "$script_dir/ai" -t "$HOME/.codex" dot-codex || true
+
+  try stow -S -d "$script_dir" "${shared_stow_args[@]}" -t "$HOME/.claude" ai || true
+  try stow -S -d "$script_dir" "${shared_stow_args[@]}" -t "$HOME/.codex" ai || true
+  try stow -S -d "$script_dir" "${shared_stow_args[@]}" -t "$HOME/.config/opencode" ai || true
+  try stow -S -d "$script_dir/ai" -t "$HOME/.claude" dot-claude || true
+  try stow -S -d "$script_dir/ai" -t "$HOME/.config" dot-config || true
 }
 
 install_ponytail() {
@@ -65,6 +108,17 @@ install_hunk() {
   fi
 }
 
+install_figma() {
+  local source="${FIGMA_SKILL_SOURCE:-openai/skills}"
+
+  if have npx; then
+    try npx -y skills add "$source" --skill figma -g -a codex -y || true
+  else
+    failures=$((failures + 1))
+    printf 'warn: npx not found; cannot install figma skill from %s\n' "$source" >&2
+  fi
+}
+
 install_teach() {
   local source="${TEACH_SKILL_SOURCE:-mattpocock/skills}"
 
@@ -85,8 +139,10 @@ install_fabric() {
   printf 'note: run `fabric --setup` once to configure providers\n'
 }
 
+deploy_local_ai
 install_ponytail
 install_hunk
+install_figma
 install_teach
 install_fabric
 

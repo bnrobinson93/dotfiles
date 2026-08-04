@@ -21,6 +21,7 @@ end
 complete -c ghpr -f
 complete -c ghpr -s d -l draft -d "Create draft PR"
 complete -c ghpr -l dry-run -d "Preview PR without creating it"
+complete -c ghpr -l desc-only -d "Generate title and description without creating a PR"
 complete -c ghpr -s B -l base -d "Override base branch" -r
 complete -c ghpr -s t -l title -d "Override PR title" -r
 complete -c ghpr -s b -l bookmark -x -d "Use JJ bookmark" -a '(__ghpr_completion_bookmark_names)'

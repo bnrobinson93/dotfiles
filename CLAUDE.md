@@ -12,8 +12,8 @@ This is a dotfiles repository managing a complete Linux development environment 
 
 ```bash
 # Preferred: mise tasks work from anywhere
-mise run stow     # deploy all symlinks (config, ~/.local, zsh, ai, ssh)
-mise run skills   # install/update AI skills & plugins
+mise run stow     # deploy non-AI symlinks (config, ~/.local, zsh, ssh)
+mise run skills   # deploy AI config and install/update skills and plugins
 mise run update   # update everything via topgrade
 
 # Manual equivalents:
