@@ -469,7 +469,7 @@ return {
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
-        template = "Daily nvim Template.md",
+        template = "Daily.md",
         default_tags = {}, -- plugin default is { "daily-notes" }; folder already says it
       },
       footer = { enabled = false },
@@ -523,55 +523,55 @@ return {
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         customizations = {
-          ["adr nvim template"] = {
+          ["adr"] = {
             notes_subdir = "2-Areas/Virtru",
           },
-          ["bible insight nvim template"] = {
+          ["bible insight"] = {
             notes_subdir = "2-Areas/Bible/Topics",
           },
-          ["book nvim template"] = {
+          ["book"] = {
             notes_subdir = "3-Resources",
           },
-          ["just processing nvim template"] = {
+          ["just processing"] = {
             notes_subdir = "0-Inbox",
           },
-          ["place nvim template"] = {
+          ["place"] = {
             notes_subdir = "3-Resources",
           },
-          ["recipe nvim template"] = {
+          ["recipe"] = {
             notes_subdir = "3-Resources/Recipes",
           },
-          ["spike nvim template"] = {
+          ["spike"] = {
             notes_subdir = "2-Areas/Virtru",
           },
-          ["sprint review nvim template"] = {
+          ["sprint review"] = {
             notes_subdir = "2-Areas/Virtru",
           },
-          ["bible study note nvim template"] = {
+          ["bible study note"] = {
             notes_subdir = "2-Areas/Bible/Topics",
           },
-          ["bible study nvim template"] = {
+          ["bible study"] = {
             notes_subdir = "2-Areas/Bible/Teaching",
           },
-          ["highlands nvim template"] = {
+          ["highlands"] = {
             notes_subdir = "2-Areas/Bible/Learning",
           },
-          ["meeting nvim template"] = {
+          ["meeting"] = {
             notes_subdir = "0-Inbox",
           },
-          ["monthly nvim template"] = {
+          ["monthly"] = {
             notes_subdir = "Periodic/Monthly",
           },
-          ["person nvim template"] = {
+          ["person"] = {
             notes_subdir = "3-Resources",
           },
-          ["sermon nvim template"] = {
+          ["sermon"] = {
             notes_subdir = "2-Areas/Bible/Learning",
           },
-          ["weekly nvim template"] = {
+          ["weekly"] = {
             notes_subdir = "Periodic/Weekly",
           },
-          ["yearly nvim template"] = {
+          ["yearly"] = {
             notes_subdir = "Periodic",
           },
         },
@@ -664,6 +664,13 @@ return {
       link = { style = "wiki", format = "shortest" },
     },
     keys = {
+      {
+        "<M-S-e>",
+        "<cmd>Obsidian template Evergreen<cr>",
+        desc = "Open Daily Note",
+        mode = { "n" },
+        buffer = true,
+      },
       {
         "<M-S-d>",
         "<cmd>Obsidian today<cr>",
