@@ -340,21 +340,56 @@ local function resolve_embed()
   end
   location = vim.uri_decode(location)
 
-  local bare, anchor = util.strip_anchor_links(location)
+  -- A "#^id" suffix is a block reference, not a header anchor. strip_anchor_links
+  -- would mangle it into a header anchor that never resolves, so peel it first.
+  local bare, anchor, block_id
+  block_id = location:match("#(%^[%w%-]+)$")
+  if block_id then
+    bare = location:sub(1, #location - #block_id - 1)
+  else
+    bare, anchor = util.strip_anchor_links(location)
+  end
 
   local notes = search.resolve_note(bare, {
-    notes = { collect_anchor_links = true, load_contents = true },
+    notes = { collect_anchor_links = true, collect_blocks = true, load_contents = true },
   })
   if vim.tbl_isempty(notes) then
     return nil
   end
-  local note = notes[1]
 
-  local lines = note.contents
-  local section = {}
-  if anchor then
-    local anchor_obj = note:resolve_anchor_link(anchor)
-    if anchor_obj then
+  -- Case-insensitive filesystems (macOS) resolve the linked note via direct
+  -- path lookup, so notes[1] is always the right note. Case-sensitive ones
+  -- (Linux) fall back to fuzzy ripgrep matching when the link case differs
+  -- from the filename, and notes[1] may be the wrong candidate. Try each note
+  -- and keep the first that actually yields a section.
+  local function build_section(note)
+    local lines = note.contents
+    if not lines then
+      return nil
+    end
+    local section = {}
+    if block_id then
+      local block = note:resolve_block(block_id)
+      if not block then
+        return nil
+      end
+      local sec = block.section
+      local from, to
+      if sec and sec.content_range then
+        from = sec.content_range.start_row + 1
+        to = sec.content_range.end_row
+      else
+        from, to = block.line, block.line
+      end
+      for i = from, to do
+        -- Drop the trailing "^id" marker from the block's own lines.
+        section[#section + 1] = (util.strip_block_links(lines[i]))
+      end
+    elseif anchor then
+      local anchor_obj = note:resolve_anchor_link(anchor)
+      if not anchor_obj then
+        return nil
+      end
       local header_level = anchor_obj.level
       for i = anchor_obj.line + 1, #lines do
         local parsed = util.parse_header(lines[i])
@@ -363,21 +398,29 @@ local function resolve_embed()
         end
         section[#section + 1] = lines[i]
       end
+    else
+      for i = 2, #lines do
+        section[#section + 1] = lines[i]
+      end
     end
-  else
-    for i = 2, #lines do
-      section[#section + 1] = lines[i]
+
+    while #section > 0 and section[#section]:match("^%s*$") do
+      section[#section] = nil
+    end
+    if #section == 0 then
+      return nil
+    end
+    return section
+  end
+
+  for _, note in ipairs(notes) do
+    local section = build_section(note)
+    if section then
+      return section, " " .. bare .. (anchor or (block_id and "#" .. block_id) or "") .. " "
     end
   end
 
-  while #section > 0 and section[#section]:match("^%s*$") do
-    section[#section] = nil
-  end
-  if #section == 0 then
-    return nil
-  end
-
-  return section, " " .. bare .. (anchor or "") .. " "
+  return nil
 end
 
 local embed_hover_win = nil
