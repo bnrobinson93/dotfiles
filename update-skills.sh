@@ -69,6 +69,41 @@ deploy_local_ai() {
   try stow -S -d "$script_dir/ai" -t "$HOME/.config" dot-config || true
 }
 
+# settings.json is mutable/plugin-managed (not stowed). Merge in the statusLine
+# key idempotently so it survives across machines without clobbering plugin edits.
+merge_claude_settings() {
+  local settings="$HOME/.claude/settings.json"
+  local statusline_cmd="bash '$HOME/.claude/hooks/caveman-statusline.sh'"
+
+  if ! have jq; then
+    failures=$((failures + 1))
+    printf 'warn: jq not found; skipping settings.json statusLine merge\n' >&2
+    return 1
+  fi
+
+  [[ -f "$settings" ]] || printf '{}\n' >"$settings"
+
+  local desired
+  desired=$(jq -n --arg cmd "$statusline_cmd" '{type: "command", command: $cmd}')
+
+  if [[ "$(jq -c '.statusLine // empty' "$settings" 2>/dev/null)" == "$(jq -c '.' <<<"$desired")" ]]; then
+    step "settings.json statusLine already current"
+    return 0
+  fi
+
+  step "merge statusLine into settings.json"
+  local tmp
+  tmp=$(mktemp)
+  if jq --argjson sl "$desired" '.statusLine = $sl' "$settings" >"$tmp"; then
+    mv "$tmp" "$settings"
+  else
+    rm -f "$tmp"
+    failures=$((failures + 1))
+    printf 'warn: failed to merge statusLine into settings.json\n' >&2
+    return 1
+  fi
+}
+
 install_ponytail() {
   local marketplace="${PONYTAIL_MARKETPLACE:-DietrichGebert/ponytail}"
 
@@ -140,6 +175,7 @@ install_fabric() {
 }
 
 deploy_local_ai
+merge_claude_settings
 install_ponytail
 install_hunk
 install_figma
