@@ -126,7 +126,10 @@ stack-sync = [
 set -euo pipefail
 J=(jj --ignore-working-copy)
 old_trunk=$("${J[@]}" log -r 'trunk()' -T 'commit_id ++ "\n"' --no-graph --no-pager)
-before=$("${J[@]}" bookmark list --revision 'branch_off+::@' --all-remotes -T 'if(remote == "origin", name ++ "\t" ++ normal_target.change_id() ++ "\n", "")' --no-pager)
+# commit_id, not change_id: this is a pre-fetch snapshot, and the fetch below can
+# re-point a change (or make it divergent, which errors out and silently skips the
+# bookmark). Commit ids stay resolvable even once the commit is hidden.
+before=$("${J[@]}" bookmark list --revision 'branch_off+::@' --all-remotes -T 'if(remote == "origin", name ++ "\t" ++ normal_target.commit_id() ++ "\n", "")' --no-pager)
 
 "${J[@]}" git fetch
 
