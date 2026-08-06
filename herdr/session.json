@@ -1,0 +1,311 @@
+{
+  "version": 3,
+  "workspaces": [
+    {
+      "id": "w6",
+      "custom_name": ".dotfiles",
+      "identity_cwd": "/Users/brad.robinson/.dotfiles",
+      "public_pane_numbers": {
+        "1": 32
+      },
+      "next_public_pane_number": 34,
+      "public_tab_numbers": [
+        10
+      ],
+      "next_public_tab_number": 12,
+      "tabs": [
+        {
+          "custom_name": "1. 2",
+          "layout": {
+            "Pane": 1
+          },
+          "panes": {
+            "1": {
+              "cwd": "/Users/brad.robinson/.dotfiles"
+            }
+          },
+          "zoomed": false,
+          "focused": 1,
+          "root_pane": 1
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "wD",
+      "custom_name": "data-harbor",
+      "identity_cwd": "/Users/brad.robinson/Documents/code/data-harbor",
+      "public_pane_numbers": {
+        "4": 135,
+        "2": 1,
+        "3": 118
+      },
+      "next_public_pane_number": 167,
+      "public_tab_numbers": [
+        1,
+        22,
+        16
+      ],
+      "next_public_tab_number": 29,
+      "tabs": [
+        {
+          "custom_name": "1. work",
+          "layout": {
+            "Pane": 2
+          },
+          "panes": {
+            "2": {
+              "cwd": "/Users/brad.robinson/Documents/code/data-harbor"
+            }
+          },
+          "zoomed": false,
+          "focused": 2,
+          "root_pane": 2
+        },
+        {
+          "custom_name": "3. review",
+          "layout": {
+            "Pane": 3
+          },
+          "panes": {
+            "3": {
+              "cwd": "/Users/brad.robinson/Documents/code/data-harbor"
+            }
+          },
+          "zoomed": false,
+          "focused": 3,
+          "root_pane": 3
+        },
+        {
+          "custom_name": "2. vcs",
+          "layout": {
+            "Pane": 4
+          },
+          "panes": {
+            "4": {
+              "cwd": "/Users/brad.robinson/Documents/code/data-harbor"
+            }
+          },
+          "zoomed": false,
+          "focused": 4,
+          "root_pane": 4
+        }
+      ],
+      "active_tab": 1
+    },
+    {
+      "id": "wT",
+      "custom_name": "Vault",
+      "identity_cwd": "/Users/brad.robinson/Documents/Vault",
+      "public_pane_numbers": {
+        "5": 17
+      },
+      "next_public_pane_number": 18,
+      "public_tab_numbers": [
+        4
+      ],
+      "next_public_tab_number": 5,
+      "tabs": [
+        {
+          "custom_name": "1. 2",
+          "layout": {
+            "Pane": 5
+          },
+          "panes": {
+            "5": {
+              "cwd": "/Users/brad.robinson/Documents/Vault"
+            }
+          },
+          "zoomed": false,
+          "focused": 5,
+          "root_pane": 5
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w1H",
+      "custom_name": "virtru-sdk-go",
+      "identity_cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go",
+      "public_pane_numbers": {
+        "7": 77,
+        "8": 42,
+        "9": 66,
+        "10": 79,
+        "6": 15
+      },
+      "next_public_pane_number": 80,
+      "public_tab_numbers": [
+        6,
+        16,
+        21,
+        23
+      ],
+      "next_public_tab_number": 24,
+      "tabs": [
+        {
+          "custom_name": "1. work",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.492,
+              "first": {
+                "Pane": 6
+              },
+              "second": {
+                "Pane": 7
+              }
+            }
+          },
+          "panes": {
+            "6": {
+              "cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go"
+            },
+            "7": {
+              "cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go"
+            }
+          },
+          "zoomed": true,
+          "focused": 6,
+          "root_pane": 6
+        },
+        {
+          "custom_name": "2. review",
+          "layout": {
+            "Pane": 8
+          },
+          "panes": {
+            "8": {
+              "cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go",
+              "agent_session": {
+                "source": "herdr:codex",
+                "agent": "codex",
+                "kind": "id",
+                "value": "019fd91f-2920-7c40-8aee-3a007f08be0f"
+              }
+            }
+          },
+          "zoomed": false,
+          "focused": 8,
+          "root_pane": 8
+        },
+        {
+          "custom_name": "3. 4",
+          "layout": {
+            "Pane": 9
+          },
+          "panes": {
+            "9": {
+              "cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go"
+            }
+          },
+          "zoomed": false,
+          "focused": 9,
+          "root_pane": 9
+        },
+        {
+          "custom_name": "4. 4",
+          "layout": {
+            "Pane": 10
+          },
+          "panes": {
+            "10": {
+              "cwd": "/Users/brad.robinson/Documents/code/virtru-sdk-go"
+            }
+          },
+          "zoomed": false,
+          "focused": 10,
+          "root_pane": 10
+        }
+      ],
+      "active_tab": 3
+    },
+    {
+      "id": "w1T",
+      "custom_name": "devhacks",
+      "identity_cwd": "/Users/brad.robinson/Documents/code/devhacks/brad",
+      "public_pane_numbers": {
+        "12": 3,
+        "11": 1
+      },
+      "next_public_pane_number": 5,
+      "public_tab_numbers": [
+        1,
+        3
+      ],
+      "next_public_tab_number": 4,
+      "tabs": [
+        {
+          "custom_name": "1. 1",
+          "layout": {
+            "Pane": 11
+          },
+          "panes": {
+            "11": {
+              "cwd": "/Users/brad.robinson/Documents/code/devhacks/brad"
+            }
+          },
+          "zoomed": false,
+          "focused": 11,
+          "root_pane": 11
+        },
+        {
+          "custom_name": "2. 3",
+          "layout": {
+            "Pane": 12
+          },
+          "panes": {
+            "12": {
+              "cwd": "/Users/brad.robinson/Documents/code/devhacks/brad/virtru-sdk-go-sidecar"
+            }
+          },
+          "zoomed": false,
+          "focused": 12,
+          "root_pane": 12
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w2R",
+      "custom_name": "upload-download-flow",
+      "identity_cwd": "/Users/brad.robinson/.herdr/workspaces/virtru-sdk-go/upload-download-flow",
+      "public_pane_numbers": {
+        "15": 1
+      },
+      "next_public_pane_number": 2,
+      "public_tab_numbers": [
+        1
+      ],
+      "next_public_tab_number": 2,
+      "tabs": [
+        {
+          "custom_name": "1. 1",
+          "layout": {
+            "Pane": 15
+          },
+          "panes": {
+            "15": {
+              "cwd": "/Users/brad.robinson/.herdr/workspaces/virtru-sdk-go/upload-download-flow",
+              "agent_session": {
+                "source": "herdr:codex",
+                "agent": "codex",
+                "kind": "id",
+                "value": "019fd930-20a1-72d0-b0fb-2cce0d37b58c"
+              }
+            }
+          },
+          "zoomed": false,
+          "focused": 15,
+          "root_pane": 15
+        }
+      ],
+      "active_tab": 0
+    }
+  ],
+  "active": 0,
+  "selected": 0,
+  "sidebar_width": 26,
+  "sidebar_section_split": 0.5,
+  "collapsed_space_keys": []
+}

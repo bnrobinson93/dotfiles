@@ -3,12 +3,37 @@ set -u
 
 # source[@ref][#skill]|ownership(default: managed)|harnesses(default: shared)
 # shared = Claude Code, Codex, and OpenCode. manual entries are inventory-only.
+# caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
+# so it is not duplicated across ~/.agents and the plugin cache.
+# ponytail lives in ai/CodeQuality.md; its review pass is inlined into ryan-review/sara-review.
 SKILLS=(
-  "JuliusBrussee/caveman||shared"
   "vercel-labs/skills#find-skills||shared"
-  "DietrichGebert/ponytail||shared"
   "modem-dev/hunk#hunk-review||shared"
+  "openai/skills#figma||shared"
   "mattpocock/skills||shared"
+)
+
+# Claude Code plugins. Claude-only, so no harness column. Anything installed but
+# absent here (or excluded by profile) is uninstalled, same contract as SKILLS.
+# `claude plugin details <name>` prints a plugin's always-on token cost.
+#
+# name=repo|profile  and  plugin@marketplace|profile
+# profile defaults to "all"; other values install only when that profile is
+# active. Profile comes from $DOTFILES_PROFILE, else ~/.config/dotfiles/profile,
+# else "personal".
+MARKETPLACES=(
+  "caveman=JuliusBrussee/caveman"
+  "claude-plugins-official=anthropics/claude-plugins-official"
+  "datadog-pup=datadog-labs/pup|work"
+)
+PLUGINS=(
+  "caveman@caveman"
+  "gopls-lsp@claude-plugins-official"
+  # ~3.1k always-on (11 skills, 50 agents), so it ships disabled. Reconcile does
+  # not touch enabledPlugins in settings.json, so the toggle survives a re-run:
+  #   claude plugin enable pup    # before Datadog work
+  #   claude plugin disable pup   # after
+  "pup@datadog-pup|work"
 )
 
 failures=0
@@ -19,6 +44,9 @@ xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 opencode_home="$xdg_config_home/opencode"
 managed_skills_state="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/managed-skills.tsv"
 skill_lock="$HOME/.agents/.skill-lock.json"
+known_marketplaces="$claude_home/plugins/known_marketplaces.json"
+installed_plugins="$claude_home/plugins/installed_plugins.json"
+profile_marker="$xdg_config_home/dotfiles/profile"
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -229,7 +257,9 @@ remove_skill() {
   local skill="$1"
   local target="$2"
   step "remove $skill from $target"
-  npx -y skills remove "$skill" -g -a "$target" -y
+  # </dev/null: this runs inside a `while read` over previous_state; without it
+  # npx consumes the remaining lines and every skill after the first is skipped.
+  npx -y skills remove "$skill" -g -a "$target" -y </dev/null
 }
 
 reconcile_skills() {
@@ -316,11 +346,100 @@ reconcile_skills() {
   rm -rf "$runtime_dir"
 }
 
+active_profile() {
+  local profile="${DOTFILES_PROFILE:-}"
+  if [[ -z "$profile" && -f "$profile_marker" ]]; then
+    profile=$(tr -d '[:space:]' <"$profile_marker")
+  fi
+  printf '%s\n' "${profile:-personal}"
+}
+
+# Strip the trailing |profile column and keep entries valid for this machine.
+select_for_profile() {
+  local profile="$1"
+  shift
+  local entry entry_profile
+  selected=()
+  for entry in "$@"; do
+    entry_profile=all
+    if [[ "$entry" == *"|"* ]]; then
+      entry_profile="${entry##*|}"
+      entry="${entry%|*}"
+    fi
+    if [[ "$entry_profile" == all || "$entry_profile" == "$profile" ]]; then
+      selected+=("$entry")
+    fi
+  done
+}
+
+# installed_plugins.json is the state, so no separate state file is needed.
+reconcile_plugins() {
+  if ! have claude; then
+    warn "claude not found; skipping plugin reconcile"
+    return 1
+  fi
+
+  local entry name repo installed desired profile
+  local -a wanted_marketplaces wanted_plugins
+
+  profile=$(active_profile)
+  step "plugin profile: $profile"
+
+  # bash 3.2 errors on "${empty[@]}" under `set -u`, hence the ${x[@]+...} guards.
+  select_for_profile "$profile" ${MARKETPLACES[@]+"${MARKETPLACES[@]}"}
+  wanted_marketplaces=(${selected[@]+"${selected[@]}"})
+  select_for_profile "$profile" ${PLUGINS[@]+"${PLUGINS[@]}"}
+  wanted_plugins=(${selected[@]+"${selected[@]}"})
+
+  for entry in ${wanted_marketplaces[@]+"${wanted_marketplaces[@]}"}; do
+    name="${entry%%=*}"
+    repo="${entry#*=}"
+    if [[ -f "$known_marketplaces" ]] &&
+      jq -e --arg n "$name" 'has($n)' "$known_marketplaces" >/dev/null 2>&1; then
+      continue
+    fi
+    try claude plugin marketplace add "$repo" </dev/null || true
+  done
+
+  installed=""
+  if [[ -f "$installed_plugins" ]]; then
+    installed=$(jq -r '.plugins // {} | keys[]' "$installed_plugins" 2>/dev/null)
+  fi
+
+  for entry in ${wanted_plugins[@]+"${wanted_plugins[@]}"}; do
+    if grep -Fqx -- "$entry" <<<"$installed"; then
+      try claude plugin update "$entry" </dev/null || true
+    else
+      try claude plugin install "$entry" --scope user </dev/null || true
+    fi
+  done
+
+  # Uninstall anything installed that this profile no longer declares.
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    for desired in ${wanted_plugins[@]+"${wanted_plugins[@]}"}; do
+      [[ "$desired" == "$entry" ]] && continue 2
+    done
+    try claude plugin uninstall "$entry" --scope user -y </dev/null || true
+  done <<<"$installed"
+
+  # Drop marketplaces no longer declared, so their caches do not linger.
+  [[ -f "$known_marketplaces" ]] || return 0
+  while IFS= read -r name; do
+    [[ -n "$name" ]] || continue
+    for entry in ${wanted_marketplaces[@]+"${wanted_marketplaces[@]}"}; do
+      [[ "${entry%%=*}" == "$name" ]] && continue 2
+    done
+    try claude plugin marketplace remove "$name" </dev/null || true
+  done < <(jq -r 'keys[]' "$known_marketplaces" 2>/dev/null)
+}
+
 main() {
   verify_prerequisites || return 1
   deploy_local_ai
   merge_claude_settings || true
   reconcile_skills
+  reconcile_plugins || true
 
   if [[ "$failures" -gt 0 ]]; then
     printf '\nDone with %s warning(s). Restart agents after resolving them.\n' "$failures" >&2
