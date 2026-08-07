@@ -13,6 +13,7 @@ node = "latest"
 rust = "latest"
 ruby = "latest"
 usage = "latest"
+"github:agavra/tuicr" = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
