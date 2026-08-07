@@ -14,7 +14,7 @@ Review changes like a senior engineer who wants the repo smaller, safer, and mor
    - Run `hunk skill path`.
    - Read the returned `SKILL.md`.
    - Use `hunk session review --repo . --json` first, then `--include-patch` only for files that need raw diff.
-   - If no Hunk session exists, ask the user to open Hunk or fall back to the VCS diff.
+   - If no Hunk session exists, attempt the tuicr skill. If that doesn't exist either, ask the user to open Hunk or fall back to the VCS diff.
 3. Discover repo context before judging the diff:
    - Read applicable `AGENTS.md` files.
    - Detect JJ vs Git and inspect current diff.
