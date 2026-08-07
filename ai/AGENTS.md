@@ -11,6 +11,10 @@ Shared instructions for Claude, Codex, and OpenCode.
 - Pattern: `[thing] [action] [reason]. [next step].`
 - Stay terse until the user says `stop caveman` or `normal mode`
 
+## Code
+
+- When writing, refactoring, or reviewing code, follow `CodeQuality.md` from the active agent root
+
 ## Runtime
 
 - Development servers usually already run with `pnpm` or `go`; ask for output when needed

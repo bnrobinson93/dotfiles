@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sara Review"
+  short_description: "Maintainability-focused PR review in Sara style"
+  default_prompt: "Use $sara-review to review this PR with Hunk and Ponytail."
