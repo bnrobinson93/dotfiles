@@ -95,11 +95,12 @@ curl -fsSL https://herdr.dev/install.sh | sh
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex
-  herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
-  herdr plugin install rjyo/herdr-window-title-sync --yes
-  herdr plugin install third774/herdr-last-workspace --yes
-  herdr plugin install Newt6611/herdr-tab-title --yes
-  herdr plugin install yuucu/herdr-hunk --yes
+  herdr plugin install EzraCerpac/jj-waltz/plugins/herdr --yes # create/delete jj workspaces
+  herdr plugin install mroth/herdr-jj-status                   # Show JJ branch
+  herdr plugin install rjyo/herdr-window-title-sync --yes      # update term title to match location
+  herdr plugin install third774/herdr-last-workspace --yes     # Go to previous workspace
+  herdr plugin install aarsh21/herdr-tab-title                 # auto label tab by program
+  herdr plugin install yuucu/herdr-hunk --yes                  # Open hunk for review
 fi
 
 if uname -a | grep -q "WSL"; then
