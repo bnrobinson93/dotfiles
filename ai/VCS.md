@@ -21,6 +21,7 @@ In JJ repository:
 - No bookmark create/move/delete/publish unless explicitly asked.
 - No push/publish/PR unless explicitly asked.
 - If task needs history surgery or multiple changes, stop and explain recommended split — don't auto-execute.
+- Take advantage of the flexibility of changes by creating granular change IDs. They can always be squashed or moved around later
 
 ## Default JJ workflow for agents
 
