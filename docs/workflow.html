@@ -68,7 +68,7 @@
 <ul>
   <li>~55 jj aliases: <code>jj tug</code> to move bookmarks, revset aliases like <code>ghbranch</code>, a deliberate split between bare <code>jj</code> (clean log) and <code>jj log</code> (broad leaves view)</li>
   <li>hunk as pager and interactive diff review; agents drive it through <code>hunk session</code> commands against the live daemon</li>
-  <li>lazyjj (local build) for stacked-PR management; <code>ghpr</code>/<code>ghprs</code> fish functions push bookmarks into PRs</li>
+  <li>locally maintained jj aliases for stacked-PR management; <code>ghpr</code>/<code>ghprs</code> fish functions push bookmarks into PRs</li>
   <li>SSH commit signing with stock <code>ssh-keygen</code> against on-disk keys; 1Password machines override via gitignored <code>~/.gitlocal</code> / jj <code>conf.d/z-local.toml</code></li>
   <li><code>sesh</code> startup commands run <code>jj pull</code> on session attach, so projects stay fresh without thinking about it</li>
 </ul>
