@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+apply=false
+scan_root="$HOME/Documents/code"
+root_set=false
+
+usage() {
+  cat <<'EOF'
+Usage: jj-backfill-workspace-paths [--apply] [ROOT]
+
+Find pre-JJ-0.38 repositories whose default workspace has no recorded path.
+Runs as a dry-run unless --apply is provided. ROOT defaults to ~/Documents/code.
+Dry-run does not edit workspace paths; JJ may still perform normal repo migrations.
+
+Each repair backs up the workspace index beside the original, appends the
+default workspace path, and restores the backup if JJ cannot verify the result.
+EOF
+}
+
+while (($# > 0)); do
+  case "$1" in
+  --apply)
+    apply=true
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -* )
+    printf 'Unknown option: %s\n' "$1" >&2
+    usage >&2
+    exit 2
+    ;;
+  *)
+    if [[ "$root_set" == true ]]; then
+      printf 'Only one scan root is supported.\n' >&2
+      exit 2
+    fi
+    scan_root=${1/#\~/$HOME}
+    root_set=true
+    ;;
+  esac
+  shift
+done
+
+if ! command -v jj >/dev/null 2>&1; then
+  printf 'jj is required.\n' >&2
+  exit 1
+fi
+
+if [[ ! -d "$scan_root" ]]; then
+  printf 'Not a directory: %s\n' "$scan_root" >&2
+  exit 1
+fi
+
+scan_root=$(cd "$scan_root" && pwd -P)
+run_id="$(date -u +%Y%m%dT%H%M%SZ).$$"
+error_file=$(mktemp "${TMPDIR:-/tmp}/jj-workspace-paths.XXXXXX")
+repair_temp=
+
+cleanup() {
+  rm -f "$error_file"
+  if [[ -n "$repair_temp" ]]; then
+    rm -f "$repair_temp"
+  fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
+scanned=0
+repairable=0
+repaired=0
+skipped=0
+errors=0
+
+repair_repo() {
+  local jj_dir=$1
+  local repo_root=${jj_dir%/.jj}
+  local store_dir="$jj_dir/repo/workspace_store"
+  local index="$store_dir/index"
+  local current_name root_output root_error backup resolved_root
+  local store_missing=false
+
+  repo_root=$(cd "$repo_root" && pwd -P)
+  scanned=$((scanned + 1))
+
+  : >"$error_file"
+  if ! current_name=$(
+    jj --ignore-working-copy -R "$repo_root" workspace list \
+      --template 'if(target.current_working_copy(), name ++ "\n")' \
+      --color=never 2>"$error_file"
+  ); then
+    printf '[error] %s: %s\n' "$repo_root" "$(<"$error_file")" >&2
+    errors=$((errors + 1))
+    return
+  fi
+
+  if [[ "$current_name" != default ]]; then
+    printf '[skip] %s: primary workspace is %s, not default\n' "$repo_root" "$current_name"
+    skipped=$((skipped + 1))
+    return
+  fi
+
+  if [[ ! -d "$store_dir" ]]; then
+    store_missing=true
+    root_error='Workspace has no recorded path: default'
+  else
+    : >"$error_file"
+    if root_output=$(
+      jj --ignore-working-copy -R "$repo_root" workspace root --name default \
+        2>"$error_file"
+    ); then
+      printf '[ok] %s: %s\n' "$repo_root" "$root_output"
+      return
+    fi
+    root_error=$(<"$error_file")
+  fi
+
+  if [[ "$root_error" != *'Workspace has no recorded path: default'* ]]; then
+    printf '[skip] %s: %s\n' "$repo_root" "$root_error" >&2
+    skipped=$((skipped + 1))
+    return
+  fi
+
+  if [[ "$store_missing" != true && ! -f "$index" ]]; then
+    printf '[error] %s: workspace index is not a regular file\n' "$repo_root" >&2
+    errors=$((errors + 1))
+    return
+  fi
+
+  if [[ -e "$store_dir/index.lock" ]]; then
+    printf '[skip] %s: workspace index is locked\n' "$repo_root" >&2
+    skipped=$((skipped + 1))
+    return
+  fi
+
+  repairable=$((repairable + 1))
+  if [[ "$apply" != true ]]; then
+    printf '[would repair] %s\n' "$repo_root"
+    return
+  fi
+
+  if [[ "$store_missing" == true ]]; then
+    : >"$error_file"
+    if root_output=$(
+      jj --ignore-working-copy -R "$repo_root" workspace root --name default \
+        2>"$error_file"
+    ); then
+      printf '[ok] %s: %s\n' "$repo_root" "$root_output"
+      repairable=$((repairable - 1))
+      return
+    fi
+    root_error=$(<"$error_file")
+    if [[ "$root_error" != *'Workspace has no recorded path: default'* ]]; then
+      printf '[error] %s: %s\n' "$repo_root" "$root_error" >&2
+      errors=$((errors + 1))
+      return
+    fi
+  fi
+
+  if [[ ! -f "$index" ]]; then
+    printf '[error] %s: JJ did not initialize the workspace index\n' "$repo_root" >&2
+    errors=$((errors + 1))
+    return
+  fi
+
+  backup="$index.backup.$run_id"
+  cp -p "$index" "$backup"
+
+  repair_temp=$(mktemp "$store_dir/index.repair.XXXXXX")
+  chmod 600 "$repair_temp"
+  cp "$index" "$repair_temp"
+  printf '\x0a\x10\x0a\x07default\x12\x05../..' >>"$repair_temp"
+  mv "$repair_temp" "$index"
+  repair_temp=
+
+  : >"$error_file"
+  if root_output=$(
+    jj --ignore-working-copy -R "$repo_root" workspace root --name default \
+      2>"$error_file"
+  ); then
+    resolved_root=$(cd "$root_output" && pwd -P)
+    if [[ "$resolved_root" == "$repo_root" ]]; then
+      printf '[repaired] %s (backup: %s)\n' "$repo_root" "$backup"
+      repaired=$((repaired + 1))
+      return
+    fi
+  fi
+
+  cp -p "$backup" "$index"
+  printf '[error] %s: verification failed; backup restored\n' "$repo_root" >&2
+  errors=$((errors + 1))
+}
+
+while IFS= read -r -d '' jj_dir; do
+  [[ -d "$jj_dir/repo" ]] || continue
+  repair_repo "$jj_dir"
+done < <(find "$scan_root" -maxdepth 4 -type d -name .jj -prune -print0)
+
+printf '\nscanned=%d repairable=%d repaired=%d skipped=%d errors=%d\n' \
+  "$scanned" "$repairable" "$repaired" "$skipped" "$errors"
+
+if ((errors > 0)); then
+  exit 1
+fi
