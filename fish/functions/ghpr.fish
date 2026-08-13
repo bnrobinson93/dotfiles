@@ -140,7 +140,17 @@ function __ghpr_find_pr --no-scope-shadowing
 
     set -l current_repo ""
     set -l current_repo_owner ""
-    set -l repo_fields (gh repo view --json nameWithOwner,owner,parent --jq '.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login' 2>/dev/null)
+    set -l repo_view_command gh
+    if test "$is_jj" = true
+        set -l jj_git_dir (jj git root 2>/dev/null)
+        if test -z "$jj_git_dir"
+            echo "Error: Failed to resolve Git repository for JJ workspace"
+            return 1
+        end
+        set repo_view_command env "GIT_DIR=$jj_git_dir" gh
+    end
+
+    set -l repo_fields ($repo_view_command repo view --json nameWithOwner,owner,parent --jq '.nameWithOwner, (.parent.nameWithOwner // .nameWithOwner), .owner.login' 2>/dev/null)
     if test (count $repo_fields) -ge 3
         set current_repo $repo_fields[1]
         set target_repo $repo_fields[2]
@@ -208,8 +218,10 @@ function __ghpr_generate_description --no-scope-shadowing
     end
 
     set -l writing_voice ""
-    if test -f ~/.codex/WritingVoice.md
-        set writing_voice (string collect <~/.codex/WritingVoice.md)
+    set -l voice_skill ~/.config/opencode/skills/writing-voice/SKILL.md
+    if test -f $voice_skill
+        # Inline the skill body, stripping the YAML frontmatter between the first two --- lines.
+        set writing_voice (awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}' $voice_skill | string collect)
     end
 
     set pr_title ""

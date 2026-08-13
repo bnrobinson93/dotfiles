@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learn Preferences"
+  short_description: "Turn feedback into durable review preferences"
+  default_prompt: "Use $learn-preferences to capture this feedback as a durable review preference."

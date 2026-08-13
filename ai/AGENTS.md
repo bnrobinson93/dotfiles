@@ -13,7 +13,7 @@ Shared instructions for Claude, Codex, and OpenCode.
 
 ## Code
 
-- When writing, refactoring, or reviewing code, follow `CodeQuality.md` from the active agent root
+- When writing, refactoring, or reviewing code, apply the `code-quality` skill
 
 ## Runtime
 
@@ -21,7 +21,7 @@ Shared instructions for Claude, Codex, and OpenCode.
 
 ## Version control
 
-- Assume JJ by default; follow `VCS.md` from the active agent root
+- Assume JJ by default; apply the `vcs` skill
 - Before file mutations, use existing evidence or run `jj workspace root`
 - If JJ detection fails, run `git rev-parse --show-toplevel` separately
 - Never combine VCS detection commands; compound commands defeat allowlists

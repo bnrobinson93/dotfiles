@@ -9,7 +9,7 @@ Review changes like a senior engineer who wants the repo smaller, safer, and mor
 
 ## Workflow
 
-1. The diff's best outcome is getting shorter. Hunt over-engineering alongside correctness, security, and repo fit — see the ladder in `CodeQuality.md`.
+1. The diff's best outcome is getting shorter. Hunt over-engineering alongside correctness, security, and repo fit. Review as Ryan — his own instincts below, not another reviewer's or the author's personal bar.
 2. Load Hunk when available:
    - Run `hunk skill path`.
    - Read the returned `SKILL.md`.
@@ -32,15 +32,17 @@ Use these recurring review instincts from `ryanulit` PR feedback:
 
 - Ask why a layer, flag, env var, dependency, interface, interceptor, or workflow exists before accepting it.
 - Prefer stdlib/native/platform code over new dependencies or hand-rolled logic.
+- Build URLs, paths, and queries with structured constructors/parsers (URL join, path join, query builders), not trim-and-concat strings. Ad-hoc string surgery is error-prone.
 - Reuse existing repo helpers; duplicated functions should be called out with the existing location.
 - Keep migrations focused. Avoid schema/user/extension churn unless required. Name DB objects consistently.
 - Hide DB details behind the DB client: SQL, UUID/null conversion, pagination safety, and query naming belong there.
+- Prefer one canonical column as the source of truth over several redundant derived columns that must stay in sync. Parse/derive the rest on demand.
 - Pass `ctx` through request chains; use cancellation-capable APIs such as `AbortController`.
 - Put config defaults and validation at the boundary when that removes scattered checks. Do not duplicate config/version facts in docs, workflows, and code.
 - Keep auth facts from trusted context/token claims, not user-supplied params, unless the product explicitly requires delegation.
 - Check aliases, groups, tenant/org claims, visibility trimming, and entitlement scope. These are common security/correctness edges.
 - Prefer integration tests for DB/service behavior. Avoid test-only production-like duplicates and throwaway `cmd` test tools.
-- Keep generated/proto validation authoritative; do not revalidate the same thing in handlers without a reason.
+- Trust guarantees from authoritative boundaries — generated/proto validation, or data read back from your own DB. Do not revalidate what a trusted internal source already ensures without a reason.
 - Question CI/workflow duplication; call existing make/script entrypoints when possible.
 - Flag hard-coded endpoints only when they lack rationale or a clear operational owner.
 - Treat caches as design changes, not harmless optimizations. Require ownership, staleness, invalidation, and security boundaries.
@@ -55,7 +57,7 @@ Use these recurring review instincts from `ryanulit` PR feedback:
 - `dup:` new function repeats an existing helper, handler pattern, migration helper, query helper, script, or test factory.
 - `yagni:` one-off interface, interceptor, env var, config knob, provider, wrapper, or future feature path.
 - `debt:` docs/workflows/code repeat source-of-truth values such as Go/Node/pnpm versions, defaults, routes, or commands.
-- `db:` migration mixes concerns, cascades data unexpectedly, lacks rollback thought, or fights sqlc/Postgres conventions.
+- `db:` migration mixes concerns, cascades data unexpectedly, lacks rollback thought, fights sqlc/Postgres conventions, or stores redundant derived columns instead of one canonical value.
 - `api:` handler ignores existing proto/protovalidate guarantees or bypasses established service composition.
 - `test:` test does not exercise production behavior, duplicates production logic, or should be integration coverage.
 - `ops:` observability/CI/retry behavior is too aggressive, too hidden, or disconnected from deploy/gitops reality.

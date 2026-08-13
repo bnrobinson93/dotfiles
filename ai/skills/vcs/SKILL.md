@@ -1,12 +1,19 @@
+---
+name: vcs
+description: >
+  Use for any repository inspection or mutation (commits, diffs, status, branches/bookmarks,
+  history). Repo may be Git or Jujutsu (jj); when a .jj directory exists, treat as JJ-first
+  and use jj instead of git. Full JJ workflow and command reference.
+---
+
 # Version Control Systems
 
 Repo may use Git or Jujutsu (`jj`). When `.jj` directory exists in current or parent directory, treat as **JJ-first repository** — use `jj` instead of `git` for all repo inspection and mutation.
 
-If unsure whether inside JJ repo, run:
+Detect first (never combine detection commands — compound commands defeat allowlists):
 
-    jj workspace root
-
-If succeeds, use JJ.
+- Run `jj workspace root`. If it succeeds, this is a JJ-first repo — use `jj`, not `git`.
+- Otherwise fall back to `git rev-parse --show-toplevel`.
 
 ## JJ-first rules
 

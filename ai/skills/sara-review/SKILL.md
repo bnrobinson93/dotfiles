@@ -9,7 +9,7 @@ Review changes like a senior frontend engineer who wants the code smaller, DRY, 
 
 ## Workflow
 
-1. The diff's best outcome is getting shorter. Hunt over-engineering alongside maintainability, separation of concerns, and readability — see the ladder in `CodeQuality.md`.
+1. The diff's best outcome is getting shorter. Hunt over-engineering alongside maintainability, separation of concerns, and readability. Review as Sara — her own instincts below, not another reviewer's or the author's personal bar.
 2. Load Hunk when available:
    - Run `hunk skill path`.
    - Read the returned `SKILL.md`.

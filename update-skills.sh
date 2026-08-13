@@ -5,7 +5,7 @@ set -u
 # shared = Claude Code, Codex, and OpenCode. manual entries are inventory-only.
 # caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
 # so it is not duplicated across ~/.agents and the plugin cache.
-# ponytail lives in ai/CodeQuality.md; its review pass is inlined into ryan-review/sara-review.
+# ponytail lives in the code-quality skill; ryan-review/sara-review carry their own self-contained instincts.
 SKILLS=(
   "vercel-labs/skills#find-skills||shared"
   "modem-dev/hunk#hunk-review||shared"
