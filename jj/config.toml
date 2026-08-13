@@ -20,6 +20,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
 'base(to)' = 'trunk() | ::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
+'parent' = 'trunk() | ::@ & bookmarks() & ~trunk() & ~closest_bookmark(@)'
 'curbranch' = 'latest(mybranches::@- & mybranches)'
 'nextbranch' = 'roots(@:: & branchesandheads)'
 'my_other_bookmarks' = 'mybranches & ~(curbranch::@)'
@@ -36,12 +37,12 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 # Nuke (reversible via `jj undo`): `jj abandon -r stale`. Bookmark keepers first.
 'stale' = '(mine() & mutable() & ~@ & ~(@::) & ~(::bookmarks()) & committer_date(before:"3 weeks ago")) | (empty() & mine() & mutable() & ~@ & ~bookmarks())'
 'my_bookmark_ranges' = 'mybranches::'
-'recent()' = 'mine() & committer_date(after:"1 week ago") & ~empty()'
-'feature_branches()' = "bookmarks() ~ (trunk() | main)"
-'current_feature_branch()' = "feature_branches() & ::@"
-'other_feature_branches()' = "feature_branches() & ~::@"
-'current_branch_history()' = "connected(main.. current_feature_branch()) | connected(main..@)"
-'other_branches_summary()' = "ancestors(other_feature_branches(), 4) | descendants(other_feature_branches())"
+'recent' = 'mine() & committer_date(after:"1 week ago") & ~empty()'
+'feature_branches' = "bookmarks() ~ (trunk() | main)"
+'current_feature_branch' = "feature_branches & ::@"
+'other_feature_branches' = "feature_branches & ~::@"
+'current_branch_history' = "connected(main.. current_feature_branch) | connected(main..@)"
+'other_branches_summary' = "ancestors(other_feature_branches, 4) | descendants(other_feature_branches)"
 
 [aliases]
 base = ["log", "-r", "base(@)", "-T", "bookmarks", "--no-graph", "--limit", "1"]
