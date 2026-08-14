@@ -134,11 +134,9 @@ Modular Lua config split into 4 files:
 
 #### Zsh (Traditional)
 
-**Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup
+**Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup; mise resolves project runtime versions
 - `dot-zshrc` - Main config with lazy-load functions for:
-  - nvm (Node.js version manager)
   - cargo (Rust toolchain)
-  - rbenv (Ruby version manager)
   - kubectl (Kubernetes CLI)
   - go (Go toolchain)
 - `dot-zshenv` - Environment variables

@@ -9,7 +9,6 @@ set -l common_bin_dirs \
     $HOME/.cargo/bin \
     $HOME/.docker/bin \
     $HOME/.rd/bin \
-    $HOME/.rvm/bin \
     $HOME/.yarn/bin
 
 for dir in $common_bin_dirs

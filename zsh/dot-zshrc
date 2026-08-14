@@ -363,47 +363,8 @@ zsh_load_deferred() {
 # Load deferred items immediately for interactive shells
 [[ -o interactive ]] && zsh_load_deferred
 
-# MANUAL NVM SETUP - much faster than the plugin
-export NVM_DIR="$HOME/.nvm"
-nvm() {
-    if [[ -z "$NVM_LOADED" ]]; then
-        unset -f nvm
-        [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-        export NVM_LOADED=1
-        # Now that nvm is loaded, call it directly
-        nvm "$@"
-        return $?
-    fi
-    # If we get here, something went wrong - nvm should have been loaded
-    echo "Error: nvm failed to load properly"
-    return 1
-}
-
-node() {
-  if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
-    nvm use 2>/dev/null || true
-  fi
-  command node "$@"
-}
-
-npm() {
-  if [[ -f .nvmrc && -z "$NVM_LOADED" ]]; then
-    nvm use 2>/dev/null || true
-  fi
-  command npm "$@"
-}
-
-# Auto-use nvm if .nvmrc exists
-if [[ -f .nvmrc && -n "$TMUX" ]]; then
-  nvm use
-fi
-
 # Other lazy loaders
 function get_completions() {
-  if type nvm >/dev/null 2>&1; then
-    [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-  fi
-
   if type kubectl >/dev/null 2>&1; then
     kubectl() {
       if [[ -z $KUBECTL_COMPLETE ]]; then
@@ -457,18 +418,6 @@ function get_completions() {
     }
   fi
 
-  # Ruby lazy loading
-  if [[ -d $HOME/.rbenv ]]; then
-    export PATH="$HOME/.rbenv/bin:$PATH"
-    rbenv() {
-      if [[ -z $RBENV_LOADED ]]; then
-        eval "$(command rbenv init - zsh)"
-        RBENV_LOADED=1
-      fi
-      command rbenv "$@"
-    }
-  fi
-
   # JJ — cache completions, regenerate only when the jj binary changes
   if type jj >/dev/null 2>&1; then
     local jjc="$HOME/.cache/zsh/jj_completion.zsh"
@@ -502,4 +451,3 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
-
