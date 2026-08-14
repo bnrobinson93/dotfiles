@@ -1,3 +1,7 @@
+function __ghpr_read_skill_body --argument-names skill_path
+    awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}' $skill_path
+end
+
 function __ghpr_parse_args --no-scope-shadowing
     argparse d/draft dry-run desc-only 'B/base=' 't/title=' 'b/bookmark=' 'r/revision=' 'l/label=' -- $argv
     or return 1
@@ -217,11 +221,18 @@ function __ghpr_generate_description --no-scope-shadowing
         end
     end
 
+    set -l pr_guidance ""
+    set -l pr_skill ~/.config/opencode/skills/commit-and-pr/SKILL.md
+    if not test -f $pr_skill
+        echo "Error: file-pr skill not found at $pr_skill"
+        return 1
+    end
+    set pr_guidance (__ghpr_read_skill_body $pr_skill | string collect)
+
     set -l writing_voice ""
     set -l voice_skill ~/.config/opencode/skills/writing-voice/SKILL.md
     if test -f $voice_skill
-        # Inline the skill body, stripping the YAML frontmatter between the first two --- lines.
-        set writing_voice (awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}' $voice_skill | string collect)
+        set writing_voice (__ghpr_read_skill_body $voice_skill | string collect)
     end
 
     set pr_title ""
@@ -260,7 +271,7 @@ function __ghpr_generate_description --no-scope-shadowing
         end
 
         set -l changed_files_str (printf "%s\n" $changed_files | string collect)
-        set -l prompt "Generate a GitHub PR title and description for these changes.
+        set -l prompt "Generate a GitHub PR title and description from the source material below. Follow the authoritative guidance after the source material.
 
 Branch context:
 - Name: $current_branch
@@ -268,32 +279,31 @@ Branch context:
 - Ticket number: $branch_ticket
 - Description hint: $branch_desc
 
-If the ticket number is non-empty, it must appear in the title.
-
-Changed files (use to infer conventional commit scope):
+Changed files:
 $changed_files_str
 
-Recent PR titles (use as scope-convention examples when present):
+Recent PR titles:
 $recent_titles
 
-Writing guidance (apply to the PR description when present):
-$writing_voice
-
-Repository PR template (use as a loose body guide when present):
+Repository PR template:
 $template_content
-
-Output format (required - do not deviate):
-TITLE: <conventional commit title>
-BODY:
-<PR description>
-
-Scope rules: scope is optional. Only include a scope if the changes are clearly focused in one area AND recent PR titles in this repo use scopes. Infer the scope from changed file paths. Omit scope entirely if this repo doesn't use them or changes span multiple areas.
 
 ## Changes
 $truncated_diff
 
 ## Commit Messages
-$truncated_commit_messages"
+$truncated_commit_messages
+
+Writing guidance (apply its style to the description):
+$writing_voice
+
+PR guidance (authoritative for the title and description):
+$pr_guidance
+
+Output format (required - do not deviate):
+TITLE: <conventional commit title>
+BODY:
+<PR description>"
 
         set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
 

@@ -28,10 +28,26 @@ EOF
 
 chmod +x "$test_root/bin/gh" "$test_root/bin/jj"
 
+cat >"$test_root/file-pr.md" <<'EOF'
+---
+name: file-pr
+description: test fixture
+---
+
+Problem-first PR guidance.
+EOF
+
 # Fish expands this script.
 # shellcheck disable=SC2016
 PATH="$test_root/bin:/usr/bin:/bin" "$fish_bin" --no-config -c '
 source $argv[1]
+
+function test_read_skill_body --argument-names skill_path
+    set -l body (__ghpr_read_skill_body $skill_path | string collect)
+
+    string match -q "*Problem-first PR guidance.*" -- "$body"
+    and not string match -q "*description: test fixture*" -- "$body"
+end
 
 function test_find_pr --no-scope-shadowing
     set -l is_jj true
@@ -48,7 +64,19 @@ function test_find_pr --no-scope-shadowing
     not set -q GIT_DIR
 end
 
+test_read_skill_body $argv[2]
+or return 1
+
 test_find_pr
-' "$repo_dir/fish/functions/ghpr.fish" || exit 1
+' "$repo_dir/fish/functions/ghpr.fish" "$test_root/file-pr.md" || exit 1
+
+commit_messages_line="$(grep -nF '## Commit Messages' "$repo_dir/fish/functions/ghpr.fish" | cut -d: -f1)"
+pr_guidance_line="$(grep -nF 'PR guidance (authoritative' "$repo_dir/fish/functions/ghpr.fish" | cut -d: -f1)"
+[[ "$pr_guidance_line" -gt "$commit_messages_line" ]] || exit 1
+
+if grep -qF '## Test Evidence' "$repo_dir/ai/skills/commit-and-pr/SKILL.md"; then
+    echo 'Error: file-pr skill cues the unwanted test-evidence section'
+    exit 1
+fi
 
 printf 'PASS: ghpr resolves GitHub repository from JJ git root\n'

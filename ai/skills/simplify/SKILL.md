@@ -14,7 +14,10 @@ before handback.
 - Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should
   read as states, not commands.
 
-- Combine overlapping types, functions, or constants. One concept should have one home.
+- Combine overlapping types, functions, constants, or behavioral instructions. One concept
+  should have one authoritative home; consumers should reuse or inject it rather than copy it.
+  In generated prompts, place authoritative guidance after bulky source material so examples
+  cannot drown it out.
 
 - Compute values from data already in scope instead of passing redundant props or arguments;
   redundant inputs increase coupling.
