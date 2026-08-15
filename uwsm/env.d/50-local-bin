@@ -1,0 +1,12 @@
+# Changes require a restart to take effect.
+
+# Omarchy's env bootstrap appends ~/.local/bin, so system binaries win any name
+# collision. That is the right default, but it means a same-named script in
+# ~/.local/bin cannot override an omarchy-* command inside the graphical session
+# — the Quickshell menu, .desktop launchers, and Hyprland binds all resolve to
+# /usr/bin first. Prepend instead, so the overrides in ~/.local/bin apply
+# everywhere and not just in interactive shells.
+#
+# The only override that relies on this today is omarchy-launch-webapp; keep it
+# that way, because every name in ~/.local/bin now shadows its system twin.
+export PATH="$HOME/.local/bin:$PATH"
