@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "brad.menu-button",
+  "name": "Menu leaf",
+  "version": "1.0.0",
+  "author": "Brad",
+  "description": "Omarchy menu launcher drawn as a leaf",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "MenuButton.qml"
+  },
+  "barWidget": {
+    "displayName": "Menu leaf",
+    "description": "Launches the Omarchy menu, drawn as a leaf",
+    "category": "Compositor",
+    "defaultSection": "left",
+    "allowMultiple": false
+  }
+}

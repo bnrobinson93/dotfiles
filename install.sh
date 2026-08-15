@@ -42,7 +42,11 @@ brew install lazygit asciinema agg jj mise gh jq topgrade dlvhdr/formulae/diffna
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
+# ~/.config/omarchy must exist before stow runs, or stow folds the whole directory
+# into a symlink and Omarchy's generated state (themed/, defaults/, current) lands
+# in the repo. Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created:
+# Omarchy upgrades drop their own files into env.d.
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy/hooks ~/.config/uwsm/env.d
 pushd "$(dirname -- "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
@@ -96,10 +100,10 @@ if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex
   herdr plugin install EzraCerpac/jj-waltz/plugins/herdr --yes # create/delete jj workspaces
-  herdr plugin install mroth/herdr-jj-status                   # Show JJ branch
+  herdr plugin install mroth/herdr-jj-status --yes             # Show JJ branch
   herdr plugin install rjyo/herdr-window-title-sync --yes      # update term title to match location
   herdr plugin install third774/herdr-last-workspace --yes     # Go to previous workspace
-  herdr plugin install aarsh21/herdr-tab-title                 # auto label tab by program
+  herdr plugin install aarsh21/herdr-tab-title --yes           # auto label tab by program
   herdr plugin install yuucu/herdr-hunk --yes                  # Open hunk for review
 fi
 
