@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Launch the default coding agent the way Omarchy does, except with Claude in
+# auto permission mode instead of bypassPermissions.
+#
+# Overrides /usr/share/omarchy/bin/omarchy-agent — see uwsm/env.d/50-local-bin
+# for the PATH prepend that makes this file win inside the graphical session.
+# The stock script is sourced rather than forked so every upstream change
+# (new agents, new flags, the cd-to-Work rule) still applies; only the one
+# hardcoded flag is rewritten on the way in. Claude and grok share that branch,
+# so both move to auto.
+
+upstream=/usr/share/omarchy/bin/omarchy-agent
+
+# A silent no-op here would quietly restore bypassPermissions, so say so.
+grep -q -- '--permission-mode bypassPermissions' "$upstream" ||
+  echo "omarchy-agent: upstream no longer sets bypassPermissions, override is dead" >&2
+
+source <(sed 's/--permission-mode bypassPermissions/--permission-mode auto/' "$upstream")

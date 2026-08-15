@@ -46,4 +46,7 @@ done
 
 tooltip="$count tasks due today"
 [ "$count" -eq 0 ] && tooltip="No tasks due today"
-printf '{"text":"%d 󰄲","tooltip":"%s"}' "$count" "$tooltip"
+# The glyph rides in a rich-text span: WidgetButton renders with Text.AutoText, so
+# the tag shrinks the checkbox alone and the count keeps the bar's own size. The
+# hair space is all the gap the wide nf-md glyph needs.
+printf '{"text":"%d&#8202;<span style='"'"'font-size:9pt'"'"'>󰄲</span>","tooltip":"%s"}' "$count" "$tooltip"

@@ -1,5 +1,10 @@
 #!/bin/bash
-task=$(walker --dmenu --inputonly -e --width 644 --height 60 --placeholder "new task  ·  *friday  ·  !high  ·  ~project  ·  #tag")
-[ -n "$task" ] || exit 0
-ticktask.sh "$task"
-pkill -RTMIN+11 waybar
+
+# Free-text quick capture into TickTick, walker's spotlight replaced by the
+# `brad.quick-add` shell plugin. The first-party equivalent is
+# `omarchy-menu-input`, which works, but its card is centered by a hardcoded
+# `centeredTop` in the menu plugin; the overlay parks the same prompt near the
+# top of the screen instead.
+
+exec omarchy-shell shell summon brad.quick-add \
+  '{"prompt":"New task  ·  *friday  ·  !high  ·  ~project  ·  #tag","exec":"ticktask.sh"}'

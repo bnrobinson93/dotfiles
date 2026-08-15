@@ -33,4 +33,9 @@
   // stock toggles beside it. `checked` marks auto-rotate as on -- the flag names
   // the disabled state, so the check is its absence.
   "trigger.toggle.auto-rotate": {"icon":"󰑵","label":"Auto-rotate","when":"command -v orientation","checked":"! omarchy-toggle-enabled autorotate-off","action":"orientation toggle"},
+
+  // Quick task capture, the walker spotlight's replacement. The row closes the
+  // menu and `ticktick-add-launch` immediately re-summons it in dmenu input
+  // mode, so the launcher stays the one place text gets typed.
+  "task": {"icon":"","label":"Add Task","description":"Quick-add a TickTick task","aliases":["todo","ticktick"],"when":"command -v ticktick-add-launch","action":"ticktick-add-launch"},
 }
