@@ -1,1 +1,0 @@
-../../ai/WritingVoice.md
