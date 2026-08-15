@@ -47,3 +47,20 @@ jj/tests
 herdr/session.json
 herdr/release-notes.json
 herdr/session-history.json
+
+# Codex runtime state. ~/.codex is a symlink into ai/dot-codex, so Codex writes
+# its databases, caches, session logs, and system-installed skills straight into
+# the repo, and it invents new ones on every upgrade. Ignore the directory and
+# allow back only what we put there ourselves; a new config file needs a line
+# here before it can be tracked.
+ai/dot-codex/*
+!ai/dot-codex/AGENTS.md
+!ai/dot-codex/CLAUDE.md
+!ai/dot-codex/caveman.md
+!ai/dot-codex/config.toml
+!ai/dot-codex/herdr-agent-state.sh
+!ai/dot-codex/hooks.json
+!ai/dot-codex/skills/
+
+# Skills we symlink in are ours; .system is Codex's own, reinstalled on upgrade.
+ai/dot-codex/skills/.system/
