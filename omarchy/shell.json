@@ -16,6 +16,14 @@
           "verticalFormat": "HH\n—\nmm"
         },
         {
+          "id": "ticktick",
+          "type": "command",
+          "exec": "waybar-ticktick",
+          "interval": 300,
+          "onClick": "ticktick-add-launch",
+          "onRightClick": "omarchy-launch-or-focus-webapp ticktick https://ticktick.com/webapp#q/today/tasks"
+        },
+        {
           "id": "omarchy.keyboard-layout"
         },
         {
