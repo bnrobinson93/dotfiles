@@ -23,9 +23,7 @@ for dir in \
   "$HOME/.cargo/bin" \
   "$HOME/.docker/bin" \
   "$HOME/.rd/bin" \
-  "$HOME/.rvm/bin" \
   "$HOME/.yarn/bin" \
-  "$HOME/.rbenv/bin" \
   /home/brad/.opencode/bin
 do
   [[ -d "$dir" ]] && zshenv_path_dirs+=("$dir")

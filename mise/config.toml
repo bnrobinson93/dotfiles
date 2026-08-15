@@ -1,19 +1,22 @@
 
 [settings]
-idiomatic_version_file_enable_tools = ["node", "go", "ruby"]
+idiomatic_version_file_enable_tools = ["node", "go", "ruby", "terraform"]
 
 [settings.ruby]
 compile = false
 
 [tools]
 bun = "latest"
+buf = "latest"
 fzf = "0.70"
 go = "latest"
 node = "latest"
 rust = "latest"
 ruby = "latest"
+terraform = "latest"
 usage = "latest"
 "github:agavra/tuicr" = "latest"
+sqlc = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
