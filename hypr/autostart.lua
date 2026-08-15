@@ -1,0 +1,25 @@
+-- Extra autostart processes.
+
+-- Scratchpad web apps. hyprland.lua sends both to special:scratchpad by class.
+-- They go through omarchy-launch-webapp rather than naming a browser, so the
+-- Helium choice lives in one place. The launcher execs its own `setsid
+-- uwsm-app`, hence exec_on_start rather than launch_on_start, which would wrap
+-- it a second time. The Messages URL matches Omarchy's SUPER+SHIFT+CTRL+G bind
+-- so the two agree on one window.
+o.exec_on_start(o.launch_webapp("https://ticktick.com/webapp"))
+o.exec_on_start(o.launch_webapp("https://messages.google.com/web/conversations"))
+
+-- Draw on the screen
+o.launch_on_start("wayscriber --daemon")
+
+-- Night light. hyprsunset.conf carries a full evening ramp, but the profiles
+-- only run once hyprsunset itself is running, and nothing starts it at login:
+-- omarchy.nightlight starts it lazily on the first toggle. Starting it here is
+-- what Omarchy's own hyprsunset.conf recommends for a scheduled setup.
+o.launch_on_start("hyprsunset")
+
+-- Screen auto-rotate. `orientation start` daemonizes itself and exits, so this
+-- is the wrapped form: uwsm-app launches it once, the setsid'd daemon outlives
+-- it. Nothing in Omarchy drives the accelerometer, and iio-hyprland cannot --
+-- it rotates through `hyprctl keyword`, which the Lua config parser rejects.
+o.launch_on_start("orientation start")
