@@ -79,6 +79,10 @@
     "lock": 300,
     "screensaver": 150
   },
-  "plugins": [],
+  "plugins": [
+    {
+      "id": "brad.quick-add"
+    }
+  ],
   "version": 1
 }
