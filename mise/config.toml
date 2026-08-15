@@ -17,6 +17,10 @@ terraform = "latest"
 usage = "latest"
 "github:agavra/tuicr" = "latest"
 sqlc = "latest"
+codex = "latest"
+claude = "latest"
+gh = "latest"
+"aqua:modem-dev/hunk" = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
