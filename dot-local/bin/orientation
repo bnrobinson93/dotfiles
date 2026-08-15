@@ -1,30 +1,36 @@
 #!/usr/bin/env bash
 # Screen auto-rotate control for Hyprland via the accelerometer.
 #
-# iio-hyprland is unusable on current Hyprland: it emits the shorthand
-# `monitor=eDP-1,transform,N`, which this Hyprland silently ignores (parses
-# "transform" as a resolution). So this script is its own daemon — it reads
-# orientation from iio-sensor-proxy (`monitor-sensor`) and applies the FULL
-# monitor string, which works.
+# iio-hyprland is unusable here: it drives rotation through `hyprctl keyword`,
+# which Hyprland's Lua config parser refuses outright ("keyword can't work with
+# non-legacy parsers. Use eval."). So this script is its own daemon — it reads
+# orientation from iio-sensor-proxy (`monitor-sensor`) and applies the rotation
+# by evaluating the same `hl.monitor`/`hl.config` calls the config file uses.
 #
 # Auto-rotate is a backgrounded daemon. "Lock" kills it (freezes orientation);
-# "unlock" restarts it (re-syncs to current physical orientation). Lock state =
-# presence of the flag file.
+# "unlock" restarts it (re-syncs to current physical orientation).
+#
+# Lock state is an Omarchy toggle rather than a flag file of this script's own.
+# `omarchy-toggle` is generic -- it touches ~/.local/state/omarchy/toggles/<name>
+# for any name -- so rotate lock gets the same home, CLI, and Trigger > Toggle
+# menu row as night light and do not disturb, and persists across a reboot. The
+# `-off` suffix is Omarchy's convention: the flag names the disabled state.
 #
 # Subcommands:
 #   start   - launch daemon unless locked or already running
 #   stop    - kill daemon (freeze current orientation)
-#   toggle  - flip locked/auto, then refresh the waybar icon
-#   status  - emit waybar JSON (icon + class + tooltip)
+#   toggle  - flip locked/auto
+#   status  - emit Waybar-style JSON (icon + class + tooltip). Nothing on the
+#             bar reads it any more -- the brad.orientation widget reads the
+#             toggle directly -- but it stays as the CLI's way to report state
 #   _daemon - internal: the sensor loop (do not call directly)
 
 set -euo pipefail
 
 MONITOR="eDP-1"
 RUNDIR="${XDG_RUNTIME_DIR:-/tmp}"
-LOCK_FLAG="$RUNDIR/orientation-lock"
+TOGGLE="autorotate-off"
 PIDFILE="$RUNDIR/orientation-daemon.pid"
-WAYBAR_SIGNAL=12 # RTMIN+12, matches custom/orientation "signal" in waybar config
 
 # Nerd Font (Material Design) glyphs
 ICON_AUTO="󰑵"   # screen-rotation
@@ -32,7 +38,7 @@ ICON_LOCK="󰍁"   # lock
 
 SELF="$(command -v "$0" 2>/dev/null || readlink -f "$0")"
 
-is_locked() { [ -e "$LOCK_FLAG" ]; }
+is_locked() { omarchy-toggle-enabled "$TOGGLE"; }
 running()   { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; }
 
 # Map iio-sensor-proxy orientation -> Hyprland transform.
@@ -52,7 +58,10 @@ apply() {
   local t="$1" scale
   scale=$(hyprctl monitors -j all | jq -r --arg m "$MONITOR" '.[]|select(.name==$m)|.scale')
   case "$scale" in ''|null) scale=1 ;; esac
-  hyprctl --batch "keyword monitor $MONITOR,preferred,auto,$scale,transform,$t ; keyword input:touchdevice:transform $t ; keyword input:tablet:transform $t" >/dev/null 2>&1 || true
+  hyprctl eval "
+    hl.monitor({ output = '$MONITOR', mode = 'preferred', position = 'auto', scale = $scale, transform = $t })
+    hl.config({ input = { touchdevice = { transform = $t }, tablet = { transform = $t } } })
+  " >/dev/null 2>&1 || true
 }
 
 _daemon() {
@@ -82,17 +91,18 @@ stop() {
   rm -f "$PIDFILE"
 }
 
-refresh_waybar() { pkill -RTMIN+"$WAYBAR_SIGNAL" waybar 2>/dev/null || true; }
-
 toggle() {
+  omarchy-toggle "$TOGGLE"
+
+  # Notify the way Omarchy's own toggle commands do, so this reads as one of
+  # them from the menu.
   if is_locked; then
-    rm -f "$LOCK_FLAG"
-    start
-  else
-    : >"$LOCK_FLAG"
     stop
+    omarchy-notification-send -g "$ICON_LOCK" "Auto-rotate disabled"
+  else
+    start
+    omarchy-notification-send -g "$ICON_AUTO" "Auto-rotate enabled"
   fi
-  refresh_waybar
 }
 
 status() {
