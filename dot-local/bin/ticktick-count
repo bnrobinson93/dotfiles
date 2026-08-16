@@ -2,8 +2,10 @@
 
 ACCESS_TOKEN_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/token"
 
+# Print nothing rather than an empty `text`: the Quickshell bar falls back to the raw
+# line whenever parsed text is falsy, so `{"text":""}` shows up as that literal JSON.
+# No output collapses the slot instead.
 if [ ! -f "$ACCESS_TOKEN_FILE" ]; then
-  printf '{"text":"","tooltip":"TickTick: run ticktask.sh first to authenticate"}'
   exit 0
 fi
 
@@ -15,7 +17,6 @@ projects=$(curl -sf \
   https://api.ticktick.com/open/v1/project)
 
 if [ $? -ne 0 ] || [ -z "$projects" ]; then
-  printf '{"text":"","tooltip":"TickTick: API error"}'
   exit 0
 fi
 

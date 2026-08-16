@@ -46,7 +46,7 @@ brew install neovim
 # into a symlink and Omarchy's generated state (themed/, defaults/, current) lands
 # in the repo. Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created:
 # Omarchy upgrades drop their own files into env.d.
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy/hooks ~/.config/uwsm/env.d
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy ~/.config/uwsm/env.d
 pushd "$(dirname -- "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
