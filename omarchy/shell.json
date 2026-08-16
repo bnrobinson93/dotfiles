@@ -7,6 +7,15 @@
           "id": "omarchy.indicators"
         },
         {
+          "id": "camera",
+          "type": "command",
+          "exec": "camera-indicator",
+          "interval": 5,
+          "fontSize": 10,
+          "horizontalMargin": 5,
+          "verticalPadding": 5
+        },
+        {
           "id": "brad.orientation"
         },
         {

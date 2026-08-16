@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Bar module: warns when something has the camera open.
+#
+# Trimmed down from the v3 waybar-privacy-indicator, which also watched the
+# microphone: v4's bar carries a dictation indicator of its own, and the mic is
+# only ever live for dictation on this machine, so the mic half was reporting
+# what the bar already said.
+#
+# Emits waybar JSON, which the Quickshell bar's `type: command` module reads
+# unchanged. Idle prints nothing at all rather than waybar's `{"text": ""}`: the
+# module falls back to the raw line whenever the parsed text is falsy
+# (Bar.qml:1779), so empty JSON paints itself on the bar. No output collapses
+# the slot to zero width, so the glyph is only there while the camera is.
+#
+# fuser rather than lsof: lsof takes 5-10s to answer for a device node.
+
+if fuser -s /dev/video* 2>/dev/null; then
+  echo '{"text": "󰕧", "tooltip": "Camera in use"}'
+fi
