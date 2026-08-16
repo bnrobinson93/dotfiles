@@ -95,6 +95,25 @@ The `.stowrc` file defines:
 - `--dotfiles` mode (dot-prefixed files become hidden)
 - Ignore patterns: `dot-local`, `nvim.lazy`, `resources`, `zsh` (zsh goes to ~ instead)
 
+### Omarchy Desktop (v4)
+
+The desktop is Omarchy 4 on Arch + Hyprland. The bar, menu, notifications, lock screen,
+OSD, polkit agent, and idle daemon all run inside one Quickshell process
+(`omarchy-shell`); waybar, walker, mako, hyprlock, and hypridle are gone.
+
+- **`hypr/`** — Hyprland v4 reads `hyprland.lua`, not `hyprland.conf`. Only `.lua` files
+  are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
+  portal's). The Lua config holds only what differs from the v4 defaults under
+  `/usr/share/omarchy/default/hypr/` — read those before adding an override.
+- **`omarchy/`** — `shell.json` (bar layout, idle timeouts, plugin list),
+  `extensions/omarchy-menu.jsonc`, and `plugins/` (personal Quickshell plugins, prefix
+  `brad.`). Deploy with `stow -v2 .`, never `stow omarchy`, or stow folds the directory
+  and Omarchy's generated state lands in the repo.
+- Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
+  module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
+  over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
+- Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
+
 ### Neovim Plugin Architecture
 
 **Base**: LazyVim framework with modular plugin system

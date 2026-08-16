@@ -11,7 +11,6 @@ Code/User/sync/
 Code/User/workspaceStorage/
 dot-local/bin/claude
 dot-local/bin/fabric
-waybar/*.bak*
 fabric/.env
 fish/completions/*
 !fish/completions/fabric.fish
