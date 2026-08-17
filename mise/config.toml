@@ -21,6 +21,7 @@ codex = "latest"
 claude = "latest"
 gh = "latest"
 "aqua:modem-dev/hunk" = "latest"
+opencode = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
@@ -29,6 +30,7 @@ gh = "latest"
 description = "Deploy non-AI dotfiles symlinks (config, local bin, home, ssh)"
 dir = "~/.dotfiles"
 run = [
+  "mise run omarchy-adopt",
   "stow -v2 .",
   "stow -v2 starship",
   "stow -v2 -t ~/.local -S dot-local --dotfiles",
@@ -44,3 +46,44 @@ run = "./update-skills.sh"
 [tasks.update]
 description = "Update everything (system, brew, mise, plugins) via topgrade"
 run = "topgrade"
+
+# The Quickshell bar owns ~/.config/omarchy/shell.json as much as we do: it persists
+# widget settings, bar reordering and plugin enablement through a FileView with
+# atomicWrites, and an atomic write renames a temp file into place, which replaces the
+# stow symlink with a plain file. Capture whatever it persisted before restowing, so a
+# widget toggled between deploys survives instead of being clobbered.
+[tasks.omarchy-adopt]
+description = "Capture shell.json back into the repo if the shell replaced the symlink"
+dir = "~/.dotfiles"
+run = """
+live="$HOME/.config/omarchy/shell.json"
+if [ -L "$live" ] || [ ! -f "$live" ]; then exit 0; fi
+echo "omarchy-adopt: shell.json is a plain file again; adopting it"
+diff -u omarchy/shell.json "$live" || true
+cp "$live" omarchy/shell.json
+rm "$live"
+"""
+
+# shell.json has no deep-merge: shell.qml:74 takes ours as canonical and ignores the
+# upstream default entirely. So an Omarchy release changing its defaults reaches nothing
+# here, silently. Diff the default against the last-seen baseline and advance it, so each
+# delta is reported exactly once.
+[tasks.omarchy-check]
+description = "Report what changed in Omarchy's default shell.json since the last check"
+dir = "~/.dotfiles"
+run = """
+upstream=/usr/share/omarchy/config/omarchy/shell.json
+baseline=omarchy/shell.default.json
+if [ ! -f "$upstream" ]; then
+  echo "omarchy-check: no upstream default at $upstream; skipping"
+  exit 0
+fi
+if [ ! -f "$baseline" ]; then
+  cp "$upstream" "$baseline"
+  echo "omarchy-check: recorded first baseline"
+  exit 0
+fi
+if diff -u "$baseline" "$upstream"; then exit 0; fi
+cp "$upstream" "$baseline"
+echo "omarchy-check: upstream defaults moved (above). We do not deep-merge, so none of it reached the bar."
+"""
