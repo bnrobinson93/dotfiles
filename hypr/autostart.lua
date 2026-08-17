@@ -18,6 +18,17 @@ o.launch_on_start("wayscriber --daemon")
 -- what Omarchy's own hyprsunset.conf recommends for a scheduled setup.
 o.launch_on_start("hyprsunset")
 
+-- Touchscreen gestures. hyprgrass is a Hyprland plugin, installed through hyprpm
+-- rather than pacman, and nothing loads it at startup on its own. A one-shot CLI
+-- call, so exec rather than launch. Loading the plugin triggers a config reload,
+-- which is what makes the guarded block in hypr/touch.lua register.
+o.exec_on_start("hyprpm reload -n")
+
+-- On-screen keyboard for tablet mode. Starts hidden and costs nothing until
+-- revealed; SIGUSR2 (pkill -34) toggles it, which hypr/touch.lua binds to a
+-- swipe up from the bottom edge.
+o.launch_on_start("wvkbd-mobintl -L 256 --hidden --alpha 204")
+
 -- Screen auto-rotate. `orientation start` daemonizes itself and exits, so this
 -- is the wrapped form: uwsm-app launches it once, the setsid'd daemon outlives
 -- it. Nothing in Omarchy drives the accelerometer, and iio-hyprland cannot --

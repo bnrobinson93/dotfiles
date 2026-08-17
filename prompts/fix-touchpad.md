@@ -15,14 +15,13 @@ These are already managed by stow — no manual creation needed:
 
 **`dot-local/bin/touchpad_monitor.sh`** — monitors trackpad events, cycles the `idma64.1` DMA controller to work around the firmware bug that reports finger-lift every ~100ms.
 
-**`dot-local/bin/toggle-touchpad.sh`** — toggles touchpad via `hyprctl keyword`, state tracked in `/tmp/touchpad-enabled`.
-
 **`dot-local/bin/toggle-camera.sh`** — uses `fuser -sk /dev/video*` (not `lsof` — too slow) to kill camera consumers, then `modprobe -r uvcvideo`.
 
 **`dot-local/bin/setup-zenbook.sh`** — one-shot script that creates all system files below. Run with `! setup-zenbook.sh` (not sudo — yay can't run as root).
 
 **`hypr/bindings.conf`** — function key bindings already included:
-- F6 `XF86TouchpadToggle` → toggle-touchpad.sh
+- F6 `XF86TouchpadToggle` → Omarchy's own `omarchy-toggle-touchpad` (bound upstream in
+  `default/hypr/bindings/media.lua`, nothing to add here)
 - F9 `SUPER+L` → hyprlock
 - F10 `XF86WebCam` → toggle-camera.sh
 - F11 `SUPER+SHIFT+S` → grimblast copy area
