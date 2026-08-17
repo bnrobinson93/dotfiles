@@ -8,3 +8,4 @@
 
 [commands]
 "AI skills & plugins" = "$HOME/.dotfiles/update-skills.sh"
+"Omarchy shell defaults" = "mise run omarchy-check"

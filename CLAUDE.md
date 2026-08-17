@@ -109,6 +109,14 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   `extensions/omarchy-menu.jsonc`, and `plugins/` (personal Quickshell plugins, prefix
   `brad.`). Deploy with `stow -v2 .`, never `stow omarchy`, or stow folds the directory
   and Omarchy's generated state lands in the repo.
+- **`shell.json` is co-owned — always edit it through `~/.config/omarchy/shell.json`,
+  never `omarchy/shell.json` in the repo.** The shell persists widget settings, bar
+  reordering, and plugin enablement through an atomic write, and that rename replaces
+  the stow symlink with a plain file. `mise run stow` adopts that file back into the repo
+  before restowing, so an edit made to the repo copy while the link is broken would be
+  overwritten. There is also no deep-merge with upstream's defaults (`shell.qml:74`) —
+  our file is canonical and upstream's changes reach nothing, which is what
+  `mise run omarchy-check` reports (topgrade runs it).
 - Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
   module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
