@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Apply or drop the tablet-mode Hyprland overrides. Bound to both edges of the
+# hinge switch in hypr/bindings.lua.
+
+set -euo pipefail
+
+SOURCE="$HOME/.config/hypr/toggles/tablet-mode.lua"
+FLAG="$HOME/.local/state/omarchy/toggles/hypr/tablet-mode.lua"
+
+case "${1:-}" in
+  on)
+    mkdir -p "$(dirname "$FLAG")"
+    cp "$SOURCE" "$FLAG"
+    ;;
+  off)
+    rm -f "$FLAG"
+    ;;
+  *)
+    echo "Usage: tablet-mode <on|off>" >&2
+    exit 1
+    ;;
+esac
+
+hyprctl reload >/dev/null
