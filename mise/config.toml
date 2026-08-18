@@ -33,9 +33,9 @@ run = [
   "mise run omarchy-adopt",
   "stow -v2 .",
   "stow -v2 starship",
-  "stow -v2 -t ~/.local -S dot-local --dotfiles",
-  "stow -v2 -t ~ -S zsh --dotfiles",
-  "stow -v2 -t ~/.ssh -S dot-ssh --dotfiles",
+  "stow -v2 -t ~/.local -R dot-local --dotfiles",
+  "stow -v2 -t ~ -R zsh --dotfiles",
+  "stow -v2 -t ~/.ssh -R dot-ssh --dotfiles",
 ]
 
 [tasks.skills]

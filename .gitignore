@@ -46,6 +46,7 @@ jj/tests
 herdr/session.json
 herdr/release-notes.json
 herdr/session-history.json
+herdr/plugins.json
 
 # Codex runtime state. ~/.codex is a symlink into ai/dot-codex, so Codex writes
 # its databases, caches, session logs, and system-installed skills straight into
