@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fade screen brightness ahead of the idle lock, for the brad.idle-fade shell
+# Fade screen brightness ahead of the idle lock, for the brad.idle-ladder shell
 # plugin. `idle-dim fade` walks down to 10%, `idle-dim restore` snaps back —
 # killing an in-flight fade first, so the restore can't be overwritten by
 # remaining fade steps (the bug this fixes).
