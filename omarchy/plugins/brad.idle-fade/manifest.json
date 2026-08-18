@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "brad.idle-fade",
+  "name": "Idle fade",
+  "version": "1.0.0",
+  "author": "Brad",
+  "description": "Fade the backlight down just before the idle lock blanks the screen",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "IdleFade.qml"
+  }
+}

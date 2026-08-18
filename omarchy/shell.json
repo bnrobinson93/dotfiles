@@ -91,6 +91,9 @@
   "plugins": [
     {
       "id": "brad.quick-add"
+    },
+    {
+      "id": "brad.idle-fade"
     }
   ],
   "version": 1
