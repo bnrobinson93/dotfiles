@@ -51,8 +51,11 @@ o.bind("SUPER + ALT + D", "Temporary annotation tools in light mode", "wayscribe
 
 -- Tablet mode. The hinge switch is a real input device -- `hyprctl devices`
 -- lists it under Switches -- so Hyprland can bind it the same way Omarchy binds
--- the lid. A udev rule already rebinds the touchpad and touchscreen when the
--- mode flips (see setup-zenbook.sh); this only says so out loud. `locked` so it
--- still fires with the screen locked, matching the lid binds.
-o.bind("switch:on:Intel HID switches", nil, o.notify("Tablet mode on"), { locked = true })
-o.bind("switch:off:Intel HID switches", nil, o.notify("Tablet mode off"), { locked = true })
+-- the lid, and this is now the only thing on the machine that reacts to the
+-- fold: the old udev rule matched a platform device (`intel-hid`) this kernel
+-- no longer creates. `locked` so it still fires with the screen locked,
+-- matching the lid binds. Spelled out because ~/.local/bin is not on the PATH
+-- Hyprland hands a bind.
+local tablet_mode = (os.getenv("HOME") or "") .. "/.local/bin/tablet-mode"
+o.bind("switch:on:Intel HID switches", nil, tablet_mode .. " on", { locked = true })
+o.bind("switch:off:Intel HID switches", nil, tablet_mode .. " off", { locked = true })
