@@ -1,15 +1,17 @@
 ---
 name: simplify
-description: Review finished code against Brad's learned coding preferences, simplifying and streamlining before handback. Use automatically whenever coding is done and ready for user review.
+description: Review finished code against Brad's cross-project coding style, simplifying and streamlining before handback. Use automatically whenever coding is done and ready for user review. Repository and domain decisions belong in project memory, not this skill.
 ---
 
 # Simplify
 
 Review changes in the current branch or jj bookmark, or in the state the user specifies.
 Only touch code in the staged diff. Apply every preference below and correct violations
-before handback.
+before handback. Keep only rules that remain useful across unrelated repositories. Store SDK,
+service, API, schema, architecture, business, and other repository-specific decisions in
+project memory.
 
-## Learned Preferences
+## Learned cross-project preferences
 
 - Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should
   read as states, not commands.
