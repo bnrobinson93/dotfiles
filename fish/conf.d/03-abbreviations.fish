@@ -32,6 +32,6 @@ abbr -a cler clear
 abbr -a claer clear
 
 # Quick navigation (optional)
-# abbr -a .. 'cd ..'
-# abbr -a ... 'cd ../..'
-# abbr -a .... 'cd ../../..'
+abbr -a .. 'cd ..'
+abbr -a ... 'cd ../..'
+abbr -a .... 'cd ../../..'
