@@ -72,44 +72,55 @@ Favor small, readable suites with explicit setup and minimal magic. A single tes
 
 ## Comments
 
-Comments explain "why" only. No commenting what code does. No over-commenting — only for complicated logic. Don't insult reader's intelligence. Don't use comments to mask poor design. If comment needed for complex logic, consider breaking into more explicit chunks.
+Comments explain "why" only. No commenting what code does. No over-commenting. Comments should only be used for complicated logic. Don't insult reader's intelligence. Don't use comments to mask poor design. Code should be self-documenting if well written. Before adding a comment for complex logic, consider breaking the logic into more explicit chunks so that it becomes self-documenting instead. Comments are a last resort. They are used to compensate for our inability to express ourselves in code.
 
-BAD comments:
+### Explain Yourself in Code
 
-```ts
-// showDashboardAfterNTicks is used to show a dashboard after a user-defined
-// number of increments. This should be used when a user wishes to delay showing
-// the dashboard automatically. If a user is not logged in, the dashboard will not
-// be shown. If the number specified is lower than what the counter is already set to
-// the dashboard will also not be shown.
-// This is tested in tests/showDashboardAfterNTicks.test.tsx
-// Further documentation may be found at docs/showDashboardAfterNTicks.md
-function showDashboardAfterNTicks(n) {
-  // check if the counter is already past the user-specified value
-  if (n > counter) return;
+Prefer using the name of variables and functions to explain the code.
 
-  // Increment the counter
-  counter += 1;
 
-  // Check if they now match
-  if (counter === n)  {
-    // Display if the user is logged in
-    if (user.isLoggedIn()) {
-      // Show the dashboard
-      showDashboard();
-    }
-  }
+❌ Bad
+
+```
+// Check to see if the employee is eligible for full benefits
+if ((employee.flags & HOURLY_FLAG) > 0) && (employee.age > 65) {
+    // ...
 }
 ```
 
-Good one:
+✅ Good
 
-```ts
-// Custom implementation instead of the standard library
-// because stdlib is O(n^2) in our use case.
-// This bespoke sort results in O(n log n).
-// Benchmark: LINK-TO-EVIDENCE
-function customSort(array) {
-  // Implementation details...
+```
+if employee.isEligibleForFullBenefits() {
+    // ...
 }
 ```
+
+
+### Acceptable Comments
+
+- Copyright
+- Informative comments but only if a function can't be renamed or an anonymous, confusing function
+- Explaining regex
+- Explaining intent
+- Warning of consequences and side effects (thread safety, long-running)
+- TODOs (ideally cleaned before check in)
+- NOTE / INFO / WARNING / HACK for amplification of crucial logic
+
+Use canonical tags for TODO, NOTE, INFO, WARN(ING), HACK, PERF, and FIX. Example:
+
+```js
+// WARNING: removing this line will break everything. Do not touch unless you know what you're doing
+```
+
+### Bad Comments
+
+- Mumbling (what does this mean, who loads the defaults, where they previously loaded, author notes/reminders)
+- Redundant (takes longer to read the comment than to read the code)
+- Journal comments / change log
+- Long javadoc on functions and variables (use types instead); a brief, 1-2 line comment on public interfaces is acceptable if the language requests it (Golang)
+- Noise comments such as block quotes containing one line
+- Position markers
+- Closing brace comments - functions should be tight enough that they are not needed
+- Commented out code - VCS tracks this
+- Comments referring to foreign/unrelated code. That is, comments should be used to describe code it appears near
