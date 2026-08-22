@@ -16,7 +16,7 @@
           "verticalPadding": 5
         },
         {
-          "id": "brad.orientation"
+          "id": "orientation"
         },
         {
           "id": "omarchy.clock",
@@ -47,7 +47,7 @@
       ],
       "left": [
         {
-          "id": "brad.menu-button"
+          "id": "menu-button"
         },
         {
           "id": "omarchy.workspaces"
@@ -77,7 +77,7 @@
         },
         {
           "id": "omarchy.power",
-          "showPercentage": false
+          "showPercentage": true
         }
       ]
     },
@@ -90,10 +90,10 @@
   },
   "plugins": [
     {
-      "id": "brad.quick-add"
+      "id": "idle-ladder"
     },
     {
-      "id": "brad.idle-ladder"
+      "id": "quick-add"
     }
   ],
   "version": 1
