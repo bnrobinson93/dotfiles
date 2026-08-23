@@ -28,11 +28,12 @@
   // fields are kept unless overridden.
   // "about": {"icon":"","label":"About","action":"omarchy-launch-or-focus-tui \"zsh -c 'fastfetch; read -k 1'\""},
   // Screen auto-rotate, for the accelerometer in this convertible. Omarchy has
-  // no rotation of its own; ~/.local/bin/orientation owns the sensor daemon and
+  // no rotation of its own; the `orientation` plugin owns the sensor daemon and
   // keeps its state as the `autorotate-off` toggle, so this row behaves like the
-  // stock toggles beside it. `checked` marks auto-rotate as on -- the flag names
-  // the disabled state, so the check is its absence.
-  "trigger.toggle.auto-rotate": {"icon":"󰑵","label":"Auto-rotate","when":"command -v orientation","checked":"! omarchy-toggle-enabled autorotate-off","action":"orientation toggle"},
+  // stock toggles beside it -- and flipping the toggle is the whole action, since
+  // the plugin's service watches it. `checked` marks auto-rotate as on -- the flag
+  // names the disabled state, so the check is its absence.
+  "trigger.toggle.auto-rotate": {"icon":"󰑵","label":"Auto-rotate","when":"test -d ~/.config/omarchy/plugins/orientation","checked":"! omarchy-toggle-enabled autorotate-off","action":"omarchy-toggle autorotate-off"},
 
   // Quick task capture, the walker spotlight's replacement. The row closes the
   // menu and `ticktick-add-launch` immediately re-summons it in dmenu input

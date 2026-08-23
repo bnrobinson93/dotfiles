@@ -28,9 +28,3 @@ o.exec_on_start("hyprpm reload -n")
 -- revealed; SIGUSR2 (pkill -34) toggles it, which hypr/touch.lua binds to a
 -- swipe up from the bottom edge.
 o.launch_on_start("wvkbd-mobintl -L 256 --hidden --alpha 204")
-
--- Screen auto-rotate. `orientation start` daemonizes itself and exits, so this
--- is the wrapped form: uwsm-app launches it once, the setsid'd daemon outlives
--- it. Nothing in Omarchy drives the accelerometer, and iio-hyprland cannot --
--- it rotates through `hyprctl keyword`, which the Lua config parser rejects.
-o.launch_on_start("orientation start")

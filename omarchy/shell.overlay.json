@@ -8,14 +8,10 @@
   "bar": {
     "transparent": true,
     "layout": {
-      "left": [
-        { "id": "menu-button" },
-        { "id": "omarchy.workspaces" }
-      ],
+      "left": [{ "id": "menu-button" }, { "id": "omarchy.workspaces" }],
       "center": [
         { "id": "omarchy.indicators" },
-        { "id": "camera" },
-        { "id": "orientation" },
+        { "id": "orientation", "monitor": "eDP-1" },
         {
           "id": "omarchy.clock",
           "format": "ddd d MMM HH:mm"
@@ -23,6 +19,7 @@
         { "id": "ticktick" },
         { "id": "omarchy.keyboard-layout" },
         { "id": "omarchy.weather" },
+        { "id": "camera" },
         { "id": "omarchy.media" },
         { "id": "omarchy.system-update" }
       ],
@@ -38,8 +35,5 @@
       ]
     }
   },
-  "plugins": [
-    { "id": "idle-ladder" },
-    { "id": "ticktick-quick-add" }
-  ]
+  "plugins": [{ "id": "idle-ladder" }, { "id": "ticktick-quick-add" }]
 }
