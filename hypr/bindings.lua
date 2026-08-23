@@ -16,10 +16,13 @@ o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com/
 hl.unbind("SUPER + SHIFT + E") -- was: Hey Email
 o.bind("SUPER + SHIFT + E", "Email", { webapp = "https://app.shortwave.com" })
 
--- Quick task capture. The launcher prompt walker used to own, now the menu's
--- own input mode -- see ~/.local/bin/ticktick-add-launch. Ctrl+Shift+A is free
--- in the defaults, which reach for SUPER for everything.
-o.bind("CTRL + SHIFT + A", "Add TickTick task", "ticktick-add-launch")
+-- Quick task capture. The launcher prompt walker used to own, now the
+-- `ticktick` plugin's own summon script. Ctrl+Shift+A is free in the defaults,
+-- which reach for SUPER for everything. Spelled out for the same reason as
+-- toggle-camera.sh below, and because the script belongs to the plugin: the
+-- binding is dead exactly when the plugin is not installed, which is right.
+o.bind("CTRL + SHIFT + A", "Add TickTick task",
+  os.getenv("HOME") .. "/.config/omarchy/plugins/ticktick/ticktick-add-launch")
 
 -- ASUS Zenbook function keys. The firmware emits a chord rather than a plain
 -- keysym for each of these, so reaching the use printed on the key means taking

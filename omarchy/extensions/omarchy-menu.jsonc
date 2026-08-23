@@ -36,7 +36,9 @@
   "trigger.toggle.auto-rotate": {"icon":"󰑵","label":"Auto-rotate","when":"test -d ~/.config/omarchy/plugins/orientation","checked":"! omarchy-toggle-enabled autorotate-off","action":"omarchy-toggle autorotate-off"},
 
   // Quick task capture, the walker spotlight's replacement. The row closes the
-  // menu and `ticktick-add-launch` immediately re-summons it in dmenu input
-  // mode, so the launcher stays the one place text gets typed.
-  "task": {"icon":"","label":"Add Task","description":"Quick-add a TickTick task","aliases":["todo","ticktick"],"when":"command -v ticktick-add-launch","action":"ticktick-add-launch"},
+  // menu and the plugin's `ticktick-add-launch` immediately summons its own
+  // overlay, so the prompt stays the one place text gets typed. Named by path,
+  // like the auto-rotate row above: the script ships in the `ticktick` plugin,
+  // so the path is also the availability test.
+  "task": {"icon":"","label":"Add Task","description":"Quick-add a TickTick task","aliases":["todo","ticktick"],"when":"test -x ~/.config/omarchy/plugins/ticktick/ticktick-add-launch","action":"~/.config/omarchy/plugins/ticktick/ticktick-add-launch"},
 }

@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# The prompt, and the TickTick API client behind it, live in the `ticktick`
-# plugin: https://github.com/bnrobinson93/omarchy-ticktick. This wrapper is only
-# what puts them on PATH for the Ctrl+Shift+A binding and the Omarchy menu row,
-# both of which name a command rather than a path.
-
-exec "$HOME/.config/omarchy/plugins/ticktick/ticktick-add-launch" "$@"

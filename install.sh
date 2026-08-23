@@ -64,11 +64,19 @@ if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
 fi
 
 echo Populating config and local scripts...
-stow -v2 .
-stow -v2 starship
-stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh --dotfiles
-stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
+# `mise run stow` is these same stow invocations plus the omarchy shell merge, and
+# install.sh shrinks into the mise tasks over time. mise reads mise/config.toml from this
+# directory, so the tasks are available before anything is stowed.
+#
+# Plugins are installed first: the merge writes a shell.json that names them, and a bar
+# entry pointing at a missing plugin is a broken widget. PATH is extended by hand because
+# omarchy-shell-merge ships in dot-local and a fresh login shell has not picked up
+# ~/.local/bin yet.
+export PATH="$HOME/.local/bin:$PATH"
+if command -v omarchy >/dev/null 2>&1; then
+  mise run omarchy-plugins
+fi
+mise run stow
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
