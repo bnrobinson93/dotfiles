@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# Free-text quick capture into TickTick, walker's spotlight replaced by the
-# `ticktick-quick-add` shell plugin. The first-party equivalent is
-# `omarchy-menu-input`, which works, but its card is centered by a hardcoded
-# `centeredTop` in the menu plugin; the overlay parks the same prompt near the
-# top of the screen instead.
+# The prompt, and the TickTick API client behind it, live in the `ticktick`
+# plugin: https://github.com/bnrobinson93/omarchy-ticktick. This wrapper is only
+# what puts them on PATH for the Ctrl+Shift+A binding and the Omarchy menu row,
+# both of which name a command rather than a path.
 
-exec omarchy-shell shell summon ticktick-quick-add \
-  '{"prompt":"New task  ·  *friday  ·  !high  ·  ~project  ·  #tag","exec":"ticktask.sh"}'
+exec "$HOME/.config/omarchy/plugins/ticktick/ticktick-add-launch" "$@"
