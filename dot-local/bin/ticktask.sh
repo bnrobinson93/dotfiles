@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Derived from UnkwUsr/ticktask (MIT): https://github.com/UnkwUsr/ticktask
+# Local changes: `*date`, `!priority`, `~project` and `#tag` parsing out of the
+# task line, a 24h project-name cache, and failed tasks spooled to disk.
+
 ACCESS_TOKEN_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/token"
 CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/ticktask/config"
 FOLDER_ERROR_TASKS="${XDG_DATA_HOME:-$HOME/.local/share}/ticktask/error_tasks"
