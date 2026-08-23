@@ -126,6 +126,10 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   installs the plugins the overlay names from `github.com/bnrobinson93/omarchy-<id>`;
   personal plugins live in their own repos, not here, and are installed with
   `omarchy plugin add`.
+- `install.sh` bootstraps both: it runs `mise run omarchy-plugins` (skipped off Omarchy)
+  and then `mise run stow`, in that order, so a fresh clone gets the plugins installed
+  before the merge writes a `shell.json` naming them. `mise run stow` deliberately does
+  *not* install plugins — it is a network call, and only a fresh machine needs it.
 - Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
   module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
