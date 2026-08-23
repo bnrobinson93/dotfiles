@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "remove": ["omarchy.menu"],
+  "idle": {
+    "screensaver": 300,
+    "lock": 900
+  },
+  "bar": {
+    "transparent": true,
+    "layout": {
+      "left": [
+        { "id": "menu-button" },
+        { "id": "omarchy.workspaces" }
+      ],
+      "center": [
+        { "id": "omarchy.indicators" },
+        {
+          "id": "camera",
+          "type": "command",
+          "exec": "camera-indicator",
+          "interval": 5,
+          "fontSize": 10,
+          "horizontalMargin": 5,
+          "verticalPadding": 5
+        },
+        { "id": "orientation" },
+        {
+          "id": "omarchy.clock",
+          "format": "ddd d MMM HH:mm"
+        },
+        {
+          "id": "ticktick",
+          "type": "command",
+          "exec": "ticktick-count",
+          "interval": 300,
+          "onClick": "ticktick-add-launch",
+          "onRightClick": "omarchy-launch-or-focus-webapp ticktick https://ticktick.com/webapp#q/today/tasks"
+        },
+        { "id": "omarchy.keyboard-layout" },
+        { "id": "omarchy.weather" },
+        { "id": "omarchy.media" },
+        { "id": "omarchy.system-update" }
+      ],
+      "right": [
+        { "id": "omarchy.tray" },
+        { "id": "omarchy.tailscale" },
+        { "id": "omarchy.agents" },
+        { "id": "omarchy.bluetooth" },
+        { "id": "omarchy.network" },
+        { "id": "omarchy.audio" },
+        { "id": "omarchy.monitor" },
+        { "id": "omarchy.power" }
+      ]
+    }
+  },
+  "plugins": [
+    { "id": "idle-ladder" },
+    { "id": "ticktick-quick-add" }
+  ]
+}
