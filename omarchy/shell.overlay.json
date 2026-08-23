@@ -20,14 +20,7 @@
           "id": "omarchy.clock",
           "format": "ddd d MMM HH:mm"
         },
-        {
-          "id": "ticktick",
-          "type": "command",
-          "exec": "ticktick-count",
-          "interval": 300,
-          "onClick": "ticktick-add-launch",
-          "onRightClick": "omarchy-launch-or-focus-webapp ticktick https://ticktick.com/webapp#q/today/tasks"
-        },
+        { "id": "ticktick" },
         { "id": "omarchy.keyboard-layout" },
         { "id": "omarchy.weather" },
         { "id": "omarchy.media" },
