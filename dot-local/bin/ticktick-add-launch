@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Free-text quick capture into TickTick, walker's spotlight replaced by the
-# `quick-add` shell plugin. The first-party equivalent is
+# `ticktick-quick-add` shell plugin. The first-party equivalent is
 # `omarchy-menu-input`, which works, but its card is centered by a hardcoded
 # `centeredTop` in the menu plugin; the overlay parks the same prompt near the
 # top of the screen instead.
 
-exec omarchy-shell shell summon quick-add \
+exec omarchy-shell shell summon ticktick-quick-add \
   '{"prompt":"New task  ·  *friday  ·  !high  ·  ~project  ·  #tag","exec":"ticktask.sh"}'
