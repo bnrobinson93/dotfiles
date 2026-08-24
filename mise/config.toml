@@ -17,6 +17,11 @@ terraform = "latest"
 usage = "latest"
 "github:agavra/tuicr" = "latest"
 sqlc = "latest"
+codex = "latest"
+claude = "latest"
+gh = "latest"
+"aqua:modem-dev/hunk" = "latest"
+opencode = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
@@ -27,9 +32,10 @@ dir = "~/.dotfiles"
 run = [
   "stow -v2 .",
   "stow -v2 starship",
-  "stow -v2 -t ~/.local -S dot-local --dotfiles",
-  "stow -v2 -t ~ -S zsh --dotfiles",
-  "stow -v2 -t ~/.ssh -S dot-ssh --dotfiles",
+  "stow -v2 -t ~/.local -R dot-local --dotfiles",
+  "stow -v2 -t ~ -R zsh --dotfiles",
+  "stow -v2 -t ~/.ssh -R dot-ssh --dotfiles",
+  "mise run omarchy-merge",
 ]
 
 [tasks.skills]
@@ -40,3 +46,28 @@ run = "./update-skills.sh"
 [tasks.update]
 description = "Update everything (system, brew, mise, plugins) via topgrade"
 run = "topgrade"
+
+# ~/.config/omarchy/shell.json is generated, not stowed: the shell persists widget
+# settings, bar reordering and plugin enablement into it, and shell.qml:74 takes it as
+# canonical instead of deep-merging, so a tracked copy would both collect runtime state
+# and inherit nothing when Omarchy changes its defaults. The repo keeps the overlay; the
+# merge runs last so the scripts and plugins the generated file names are in place first.
+[tasks.omarchy-merge]
+description = "Generate ~/.config/omarchy/shell.json from omarchy/shell.overlay.json"
+run = "omarchy-shell-merge"
+
+# The overlay already names every plugin this machine should have, and the repo name is
+# mechanical from the id, so there is no second list to drift. Installs only: enabling is
+# the generated shell.json's job, and `omarchy plugin add --enable` would write to it.
+[tasks.omarchy-plugins]
+description = "Install the shell plugins named in the overlay from their own repos"
+dir = "~/.dotfiles"
+run = """
+jq -r '[.plugins[]?, .bar.layout[]?[]?]
+  | map(select(.type == null and (.id | contains(".") | not)) | .id)
+  | unique[]' omarchy/shell.overlay.json |
+while read -r id; do
+  if [ -d "$HOME/.config/omarchy/plugins/$id" ]; then continue; fi
+  omarchy plugin add "https://github.com/bnrobinson93/omarchy-$id.git" --yes
+done
+"""

@@ -95,6 +95,46 @@ The `.stowrc` file defines:
 - `--dotfiles` mode (dot-prefixed files become hidden)
 - Ignore patterns: `dot-local`, `nvim.lazy`, `resources`, `zsh` (zsh goes to ~ instead)
 
+### Omarchy Desktop (v4)
+
+The desktop is Omarchy 4 on Arch + Hyprland. The bar, menu, notifications, lock screen,
+OSD, polkit agent, and idle daemon all run inside one Quickshell process
+(`omarchy-shell`); waybar, walker, mako, hyprlock, and hypridle are gone.
+
+- **`hypr/`** — Hyprland v4 reads `hyprland.lua`, not `hyprland.conf`. Only `.lua` files
+  are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
+  portal's). The Lua config holds only what differs from the v4 defaults under
+  `/usr/share/omarchy/default/hypr/` — read those before adding an override.
+- **`omarchy/`** — `shell.overlay.json` (our half of the bar layout, idle timeouts and
+  plugin list), `extensions/omarchy-menu.jsonc`, and `hooks/`. Deploy with `stow -v2 .`,
+  never `stow omarchy`, or stow folds the directory and Omarchy's generated state lands
+  in the repo.
+- **`~/.config/omarchy/shell.json` is generated, and nothing here tracks it.** The shell
+  persists widget settings, bar reordering and plugin enablement into that file on
+  ordinary interaction, and `shell.qml:74` takes it as canonical rather than deep-merging
+  with upstream's defaults — so tracking it meant tracking runtime state *and* inheriting
+  nothing when Omarchy changed its own defaults. `omarchy-shell-merge` (in `dot-local/bin`)
+  merges `omarchy/shell.overlay.json` over `/usr/share/omarchy/config/omarchy/shell.json`
+  and writes the result. Our ordering and per-widget settings win; any upstream entry we
+  neither list nor name in the overlay's `remove` array is appended and logged, so a
+  widget added by an Omarchy release reaches the bar on its own. Live drift is discarded
+  on the next merge — permanent means "in the overlay" — and the merge prints what it
+  dropped. A `version` mismatch between the overlay and upstream hard-fails rather than
+  emitting a hybrid file.
+- The merge runs from `mise run stow` (last step) and from the stowed `post-update` hook,
+  so `omarchy update` refreshes the bar without a second command. `mise run omarchy-plugins`
+  installs the plugins the overlay names from `github.com/bnrobinson93/omarchy-<id>`;
+  personal plugins live in their own repos, not here, and are installed with
+  `omarchy plugin add`.
+- `install.sh` bootstraps both: it runs `mise run omarchy-plugins` (skipped off Omarchy)
+  and then `mise run stow`, in that order, so a fresh clone gets the plugins installed
+  before the merge writes a `shell.json` naming them. `mise run stow` deliberately does
+  *not* install plugins — it is a network call, and only a fresh machine needs it.
+- Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
+  module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
+  over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
+- Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
+
 ### Neovim Plugin Architecture
 
 **Base**: LazyVim framework with modular plugin system

@@ -42,7 +42,11 @@ brew install lazygit asciinema agg jj mise gh jq topgrade dlvhdr/formulae/diffna
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr
+# ~/.config/omarchy must exist before stow runs, or stow folds the whole directory
+# into a symlink and Omarchy's generated state (themed/, defaults/, current) lands
+# in the repo. Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created:
+# Omarchy upgrades drop their own files into env.d.
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy ~/.config/uwsm/env.d
 pushd "$(dirname -- "$0")" || exit
 
 echo Clearing install files to avoid stow conflicts...
@@ -60,11 +64,19 @@ if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
 fi
 
 echo Populating config and local scripts...
-stow -v2 .
-stow -v2 starship
-stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh --dotfiles
-stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
+# `mise run stow` is these same stow invocations plus the omarchy shell merge, and
+# install.sh shrinks into the mise tasks over time. mise reads mise/config.toml from this
+# directory, so the tasks are available before anything is stowed.
+#
+# Plugins are installed first: the merge writes a shell.json that names them, and a bar
+# entry pointing at a missing plugin is a broken widget. PATH is extended by hand because
+# omarchy-shell-merge ships in dot-local and a fresh login shell has not picked up
+# ~/.local/bin yet.
+export PATH="$HOME/.local/bin:$PATH"
+if command -v omarchy >/dev/null 2>&1; then
+  mise run omarchy-plugins
+fi
+mise run stow
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
@@ -103,10 +115,10 @@ if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex
   herdr plugin install EzraCerpac/jj-waltz/plugins/herdr --yes # create/delete jj workspaces
-  herdr plugin install mroth/herdr-jj-status                   # Show JJ branch
+  herdr plugin install mroth/herdr-jj-status --yes             # Show JJ branch
   herdr plugin install rjyo/herdr-window-title-sync --yes      # update term title to match location
   herdr plugin install third774/herdr-last-workspace --yes     # Go to previous workspace
-  herdr plugin install aarsh21/herdr-tab-title                 # auto label tab by program
+  herdr plugin install aarsh21/herdr-tab-title --yes           # auto label tab by program
   herdr plugin install yuucu/herdr-hunk --yes                  # Open hunk for review
 fi
 

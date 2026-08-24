@@ -42,15 +42,21 @@ unsetopt no_match
 export LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
 # Essential aliases
-alias vi=$EDITOR
-if type coreutils >/dev/null 2>&1; then
-  # Exclude printf for atuin
-  coveredCommands=($(coreutils --list | rg -v 'printf'))
-  foreach util in $coveredCommands; do
-    if type $util >/dev/null 2>&1; then
-      alias $util="coreutils $util"
-    fi
+# Guarded on interactive: these shadow standard command names, and agent tool
+# calls source this file explicitly, so they must see real POSIX behavior.
+if [[ -o interactive ]]; then
+  alias vi=$EDITOR
+
+  # uutils replacements, benchmarked against GNU coreutils 9.11 on 2M/26M/129M/296M
+  # text plus a 230M binary: 2-6x faster. uniq/tac/base64 are byte-identical to GNU
+  # on every input tested. cut is 6x faster but its -c counts bytes where GNU counts
+  # characters, so multibyte input truncates differently - accepted deliberately,
+  # since that matches Go's string indexing.
+  # NOT included: sort, 4x slower than GNU and its collation differs under en_US.UTF-8.
+  for _uu in uniq tac base64 cut; do
+    (( $+commands[uu-$_uu] )) && alias $_uu="uu-$_uu"
   done
+  unset _uu
 fi
 
 # for history
@@ -81,14 +87,15 @@ fi
 
 # Essential tool functions
 if type "eza" >/dev/null 2>&1; then
-  alias ls="eza"
+  # eza rejects GNU ls flags, so keep the shadow out of scripts and tool calls.
+  [[ -o interactive ]] && alias ls="eza"
   function la { eza -la -h -smod "$@"; }
   function ll { eza -l -h -smod "$@"; }
   function lt { eza -l -h --color=always -smod "$@" | tail -15; }
   function lss { eza -l -h --color=always -smod "$@" | less -reXF; }
   function l { eza -lah --color=always --icons --git "$@"; }
 else
-  alias ls="ls --color=tty"
+  [[ -o interactive ]] && alias ls="ls --color=tty"
   function la { ls -larth --color=always "$@"; }
   function ll { ls -lrth --color=always "$@"; }
   function lt { ls -larth --color=always "$@"; }

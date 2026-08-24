@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# Apply or drop the tablet-mode Hyprland overrides. Bound to both edges of the
+# hinge switch in hypr/bindings.lua.
+
+set -euo pipefail
+
+SOURCE="$HOME/.config/hypr/toggles/tablet-mode.lua"
+FLAG="$HOME/.local/state/omarchy/toggles/hypr/tablet-mode.lua"
+
+# The hinge switch is not a clean edge: tilting the machine far enough to read
+# the screen sideways trips `on` and then `off` again within a couple of
+# seconds. Each edge ends in `hyprctl reload`, so an unfiltered bounce restyles
+# every window twice -- borders 2 -> 6 -> 2, gaps 10 -> 16 -> 10 -- which reads
+# as a flicker. The latest request wins after it has held for SETTLE seconds:
+# every invocation records what it wants, waits, and applies only if nothing
+# newer arrived meanwhile.
+SETTLE=2
+WANT_FILE="${XDG_RUNTIME_DIR:-/tmp}/tablet-mode.want"
+
+want=${1:-}
+case "$want" in
+  on | off) ;;
+  *)
+    echo "Usage: tablet-mode <on|off>" >&2
+    exit 1
+    ;;
+esac
+
+printf '%s' "$want" >"$WANT_FILE"
+sleep "$SETTLE"
+[[ "$(cat "$WANT_FILE" 2>/dev/null)" == "$want" ]] || exit 0
+
+# A reload is only worth its flicker when the state actually changes, and after
+# the settle the flag may already say what this invocation wants.
+current=off
+[[ -f "$FLAG" ]] && current=on
+[[ "$current" == "$want" ]] && exit 0
+
+if [[ "$want" == on ]]; then
+  mkdir -p "$(dirname "$FLAG")"
+  cp "$SOURCE" "$FLAG"
+else
+  rm -f "$FLAG"
+fi
+
+hyprctl reload >/dev/null
