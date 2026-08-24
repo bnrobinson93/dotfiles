@@ -54,6 +54,15 @@ for path in fish ghostty git kitty nvim mise tmux starship.toml; do
   rm -rf "$HOME/.config/$path"
 done
 
+# Debian-family homes get /etc/skel's ~/.profile, and a real file there makes
+# `stow -t ~ zsh` refuse the whole package. It may hold the user's own PATH
+# lines, so move it aside rather than deleting it.
+if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
+  backup="$HOME/.profile.bak.$(date +%s)"
+  echo "Existing ~/.profile moved to $backup"
+  mv "$HOME/.profile" "$backup"
+fi
+
 echo Populating config and local scripts...
 # `mise run stow` is these same stow invocations plus the omarchy shell merge, and
 # install.sh shrinks into the mise tasks over time. mise reads mise/config.toml from this
@@ -68,8 +77,6 @@ if command -v omarchy >/dev/null 2>&1; then
   mise run omarchy-plugins
 fi
 mise run stow
-
-cp -pR hypr/* ~/.config/hypr/
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"

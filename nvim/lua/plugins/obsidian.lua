@@ -35,24 +35,178 @@ local function template_title(ctx)
   return ""
 end
 
+-- Templates get applied on top of existing notes at least as often as they
+-- create one: 0-Inbox auto-applies Zettel, and imported notes get their real
+-- template later. These helpers let a template skip whatever the note already
+-- has, so a second template never doubles the H1, sections or date footer.
+local drop_marker = "__DROP_LINE__"
+
+-- Frontmatter keys that really are lists. Everything else is a scalar, and a
+-- list value there is merge damage rather than intent.
+local list_metadata_keys = {
+  attendies = true,
+  author = true,
+  categories = true,
+  consulted = true,
+  deciders = true,
+  driver = true,
+  format = true,
+  informed = true,
+  location = true,
+  type = true,
+}
+
+local function normalize_metadata(out)
+  for key, value in pairs(out) do
+    -- Heal a list key that got flattened to a scalar somewhere upstream, so a
+    -- `categories: "[[Journal]]"` note goes back to being a list on next write.
+    if list_metadata_keys[key] and type(value) == "string" and value ~= "" then
+      out[key] = { value }
+      value = out[key]
+    end
+
+    if type(value) == "table" and vim.islist(value) then
+      local seen, deduped = {}, {}
+      for _, item in ipairs(value) do
+        if not seen[item] then
+          seen[item] = true
+          deduped[#deduped + 1] = item
+        end
+      end
+      -- Existing value wins: the note's own value is merged in first.
+      out[key] = list_metadata_keys[key] and deduped or deduped[1]
+    end
+  end
+  return out
+end
+
+local function ctx_buf(ctx)
+  return ctx and ctx.location and ctx.location[1] or nil
+end
+
+-- Buffer lines with the frontmatter block removed.
+local function note_body_lines(bufnr)
+  if not (bufnr and vim.api.nvim_buf_is_valid(bufnr)) then
+    return {}
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  if lines[1] ~= "---" then
+    return lines
+  end
+
+  for i = 2, #lines do
+    if lines[i] == "---" then
+      return vim.list_slice(lines, i + 1)
+    end
+  end
+
+  return lines
+end
+
+-- "## Links:" and "## Links" are the same section; legacy notes use both.
+local function heading_key(text)
+  return (vim.trim(text):gsub("[:%s]+$", ""):lower())
+end
+
+local function existing_headings(bufnr)
+  local seen = {}
+  for _, line in ipairs(note_body_lines(bufnr)) do
+    local heading = line:match("^#+%s+(.+)$")
+    if heading then
+      seen[heading_key(heading)] = true
+    end
+  end
+  return seen
+end
+
+local function buffer_has(bufnr, pattern)
+  for _, line in ipairs(note_body_lines(bufnr)) do
+    if line:match(pattern) then
+      return true
+    end
+  end
+  return false
+end
+
+-- Skip any heading block the note already carries. Only H1/H2 open a new
+-- block, so a "###" inside a kept section rides along with it. A body H1
+-- (Just Processing) is dropped whenever the note already has one, whatever it
+-- says, because MD025 allows exactly one.
+local function drop_known_sections(body, seen, has_h1)
+  local kept, skipping = {}, false
+  for line in (body .. "\n"):gmatch("([^\n]*)\n") do
+    local hashes, heading = line:match("^(#+)%s+(.+)$")
+    if hashes and #hashes <= 2 then
+      local key = heading_key(heading)
+      skipping = seen[key] or (#hashes == 1 and has_h1) or false
+      seen[key] = true
+    end
+    if not skipping then
+      kept[#kept + 1] = line
+    end
+  end
+  return table.concat(kept, "\n")
+end
+
+-- A substitution can only blank a line, not delete it, so it leaves a marker
+-- and this sweeps the marker plus its trailing blank line after the insert.
+local function strip_dropped_lines(bufnr)
+  if not (bufnr and vim.api.nvim_buf_is_valid(bufnr)) then
+    return
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local kept, i, dropped = {}, 1, false
+  while i <= #lines do
+    if vim.trim(lines[i]) == drop_marker then
+      dropped = true
+      if lines[i + 1] and lines[i + 1]:match("^%s*$") then
+        i = i + 1
+      end
+    else
+      kept[#kept + 1] = lines[i]
+    end
+    i = i + 1
+  end
+
+  if dropped then
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, kept)
+  end
+end
+
 local function yaml_string(value)
   return '"' .. tostring(value):gsub("\\", "\\\\"):gsub('"', '\\"') .. '"'
+end
+
+-- Meeting is "YYYY-MM-DD Name", Sermon/Highlands are "Name YYYY-MM-DD"; the
+-- undated title is the alias. Periodic notes are nothing but a date, so fall
+-- back to the full title rather than returning an empty string.
+local function alias_title(ctx)
+  local title = template_title(ctx)
+  local stripped = vim.trim((title:gsub("^%d%d%d%d%-%d%d%-%d%d%s+", ""):gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")))
+  if stripped == "" then
+    return title
+  end
+  return stripped
 end
 
 local function person_aliases(ctx)
   local title = template_title(ctx)
   local first, last = title:match("^(%S+)%s+(%S+)")
+  first = first or title:match("^(%S+)")
 
-  if first and last then
-    return "[" .. yaml_string(first) .. ", " .. yaml_string(first .. " " .. last:sub(1, 1)) .. "]"
+  if not first then
+    return "[]"
   end
 
-  first = title:match("^(%S+)")
-  if first then
-    return "[" .. yaml_string(first) .. "]"
+  -- Possessive form so "[[Christy's]]" style links resolve.
+  local aliases = { first, first .. "'s" }
+  if last then
+    aliases[#aliases + 1] = first .. " " .. last:sub(1, 1)
   end
 
-  return "[]"
+  return "[" .. table.concat(vim.tbl_map(yaml_string, aliases), ", ") .. "]"
 end
 
 local function month_ts(ctx, offset)
@@ -130,6 +284,18 @@ local function jump_to_template_cursor(bufnr)
       return
     end
   end
+end
+
+local function schedule_template_cleanup(ctx)
+  local bufnr = ctx_buf(ctx)
+  if not bufnr then
+    return
+  end
+
+  vim.schedule(function()
+    strip_dropped_lines(bufnr)
+    jump_to_template_cursor(bufnr)
+  end)
 end
 
 local function wrap_selection(before, after)
@@ -516,6 +682,10 @@ return {
         default_tags = {}, -- plugin default is { "daily-notes" }; folder already says it
       },
       footer = { enabled = false },
+      -- Parity with the app, where Templater has a folder template on 0-Inbox:
+      -- every new note starts as a Zettel and the real template gets applied on
+      -- top later. The substitutions below make that second apply idempotent.
+      note = { template = "Zettel.md" },
       new_notes_location = "notes_subdir",
       frontmatter = {
         enabled = function(path)
@@ -545,8 +715,12 @@ return {
             out.aliases = note.aliases
           end
 
-          -- return the final result
-          return out
+          -- Applying a template over an existing note runs obsidian.nvim's
+          -- Note:merge, which list-extends every metadata key present in both.
+          -- That turns scalars into two-item lists (`created: [old, new]`), so
+          -- collapse anything that is not genuinely a list back to the value
+          -- the note already had.
+          return normalize_metadata(out)
         end,
       },
       note_id_func = function(title)
@@ -619,11 +793,30 @@ return {
           },
         },
         substitutions = {
-          alias_title = function(ctx)
-            -- strip leading (Meeting style) or trailing (Sermon/Highlands style) date
-            return template_title(ctx):gsub("^%d%d%d%d%-%d%d%-%d%d%s+", ""):gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")
-          end,
+          alias_title = alias_title,
           person_aliases = person_aliases,
+          -- One H1 per note (MD025) — obsidian.nvim `gd` breaks otherwise.
+          h1 = function(ctx)
+            schedule_template_cleanup(ctx)
+            if buffer_has(ctx_buf(ctx), "^#%s+") then
+              return drop_marker
+            end
+            return "# " .. alias_title(ctx)
+          end,
+          links = function(ctx)
+            schedule_template_cleanup(ctx)
+            if existing_headings(ctx_buf(ctx))["links"] then
+              return drop_marker
+            end
+            return "## Links"
+          end,
+          date_footer = function(ctx)
+            schedule_template_cleanup(ctx)
+            if buffer_has(ctx_buf(ctx), "%[%[%d%d%d%d%-%d%d%-%d%d%]%]") then
+              return drop_marker
+            end
+            return "[[" .. os.date("%Y-%m-%d") .. "]]"
+          end,
           body = function(ctx, name)
             local path = vault_path .. "/99-System/templates/bodies/" .. name .. " Body.md"
             local file = io.open(path, "r")
@@ -636,24 +829,16 @@ return {
             body = body:gsub("{{month}}", os.date("%Y-%m", week_ts(ctx, 0)))
             body = body:gsub("{{week}}", os.date("%G-W%V", day_ts(ctx, 0)))
             body = body:gsub("{{year}}", os.date("%Y", year_ts(ctx, 0)))
-            if ctx and ctx.location then
-              local bufnr = ctx.location[1]
-              vim.schedule(function()
-                jump_to_template_cursor(bufnr)
-              end)
-            end
+            local bufnr = ctx_buf(ctx)
+            body = drop_known_sections(body, existing_headings(bufnr), buffer_has(bufnr, "^#%s+"))
+            schedule_template_cleanup(ctx)
             return body
           end,
           content = function()
             return ""
           end,
           cursor = function(ctx)
-            if ctx and ctx.location then
-              local bufnr = ctx.location[1]
-              vim.schedule(function()
-                jump_to_template_cursor(bufnr)
-              end)
-            end
+            schedule_template_cleanup(ctx)
             return "__CURSOR__"
           end,
           datetime = function()
