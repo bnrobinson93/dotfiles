@@ -74,6 +74,9 @@ jobs:
             rm -rf "$HOME/.config/$path"
           done
           mkdir -p ~/.local ~/.ssh
+          # Runners ship /etc/skel's ~/.profile, which blocks stowing zsh/dot-profile.
+          # install.sh backs the file up instead; here there is nothing worth keeping.
+          rm -f "$HOME/.profile"
           stow -v2 .
           stow -v2 starship
           stow -v2 -t ~/.local -S dot-local --dotfiles

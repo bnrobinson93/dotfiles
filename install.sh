@@ -50,14 +50,21 @@ for path in fish ghostty git kitty nvim mise tmux starship.toml; do
   rm -rf "$HOME/.config/$path"
 done
 
+# Debian-family homes get /etc/skel's ~/.profile, and a real file there makes
+# `stow -t ~ zsh` refuse the whole package. It may hold the user's own PATH
+# lines, so move it aside rather than deleting it.
+if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
+  backup="$HOME/.profile.bak.$(date +%s)"
+  echo "Existing ~/.profile moved to $backup"
+  mv "$HOME/.profile" "$backup"
+fi
+
 echo Populating config and local scripts...
 stow -v2 .
 stow -v2 starship
 stow -v2 -t ~/.local -S dot-local --dotfiles
 stow -v2 -t ~ -S zsh --dotfiles
 stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
-
-cp -pR hypr/* ~/.config/hypr/
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
