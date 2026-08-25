@@ -28,3 +28,8 @@ project memory.
   uses, then pass them in; do not reimplement that logic in hand-written SQL or string
   concatenation. Duplicated derivation silently drifts from production (format, canonicalization),
   so the test passes against the wrong shape.
+
+- Delete comments that restate what the code or a type signature already says; they are clutter
+  that must be kept in sync for no gain. Keep only the non-obvious why (security constraints,
+  ordering rationale, external contracts). When the same why is already documented at its real
+  home (the function it describes, an ADR, a spec), do not duplicate it at the call site.
