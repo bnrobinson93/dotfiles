@@ -17,9 +17,9 @@
           "format": "ddd d MMM HH:mm"
         },
         { "id": "ticktick" },
+        { "id": "camera" },
         { "id": "omarchy.keyboard-layout" },
         { "id": "omarchy.weather" },
-        { "id": "camera" },
         { "id": "omarchy.media" },
         { "id": "omarchy.system-update" }
       ],
