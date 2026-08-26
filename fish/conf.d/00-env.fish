@@ -22,6 +22,7 @@ set -gx BUN_INSTALL $HOME/.bun
 set -gx PNPM_HOME $HOME/.local/share/pnpm
 set -gx ANDROID_SDK $HOME/Android/sdk
 set -gx KUBECONFIG $HOME/.kube/config
+set -gx MISE_LOCKED 0
 
 set -gx TRY_PATH $HOME/Documents/code/tries
 

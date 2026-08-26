@@ -36,3 +36,6 @@ project memory.
 
 - Task wrappers should declare and forward child-command options directly so callers do not need
   a `--` separator between the wrapper and its arguments.
+
+- Keep personal environment and workflow overrides in dotfiles or ignored local config. Do not
+  change a shared repository's tracked behavior to accommodate one developer's machine.
