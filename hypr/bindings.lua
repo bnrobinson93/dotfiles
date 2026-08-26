@@ -21,8 +21,11 @@ o.bind("SUPER + SHIFT + E", "Email", { webapp = "https://app.shortwave.com" })
 -- which reach for SUPER for everything. Spelled out for the same reason as
 -- toggle-camera.sh below, and because the script belongs to the plugin: the
 -- binding is dead exactly when the plugin is not installed, which is right.
-o.bind("CTRL + SHIFT + A", "Add TickTick task",
-  os.getenv("HOME") .. "/.config/omarchy/plugins/ticktick/ticktick-add-launch")
+o.bind(
+	"CTRL + SHIFT + A",
+	"Add TickTick task",
+	os.getenv("HOME") .. "/.config/omarchy/plugins/ticktick/ticktick-add-launch"
+)
 
 -- ASUS Zenbook function keys. The firmware emits a chord rather than a plain
 -- keysym for each of these, so reaching the use printed on the key means taking
@@ -62,3 +65,22 @@ o.bind("SUPER + ALT + D", "Temporary annotation tools in light mode", "wayscribe
 local tablet_mode = (os.getenv("HOME") or "") .. "/.local/bin/tablet-mode"
 o.bind("switch:on:Intel HID switches", nil, tablet_mode .. " on", { locked = true })
 o.bind("switch:off:Intel HID switches", nil, tablet_mode .. " off", { locked = true })
+
+-- Caps Lock as a leader modifier. hypr/input.lua puts Hyper_L on Caps Lock,
+-- which xkb maps to Mod3, so Hyprland sees it as MOD3. These mirror the
+-- SUPER + SHIFT app launchers onto the same letters, one key instead of three.
+-- Additive: the SUPER + SHIFT chords still work. The specs are duplicated
+-- rather than derived because Omarchy's defaults are the source of truth for
+-- them, and a helper here would silently drift when they change.
+o.bind("MOD3 + RETURN", "Terminal", { omarchy = "terminal" })
+o.bind("MOD3 + T", "Terminal", { omarchy = "terminal" })
+o.bind("MOD3 + B", "Browser", { omarchy = "browser" })
+o.bind("MOD3 + F", "File manager", { omarchy = "nautilus" })
+o.bind("MOD3 + N", "Editor", { omarchy = "editor" })
+o.bind("MOD3 + O", "Obsidian", { launch = "obsidian", focus = "^obsidian$" })
+o.bind("MOD3 + SLASH", "Passwords", { omarchy = "1password" })
+
+-- Web apps, matching the overrides above rather than Omarchy's defaults.
+o.bind("MOD3 + A", "Claude", { webapp = "https://claude.ai" })
+o.bind("MOD3 + C", "Calendar", { webapp = "https://calendar.google.com/" })
+o.bind("MOD3 + E", "Email", { webapp = "https://app.shortwave.com" })

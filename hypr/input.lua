@@ -1,9 +1,20 @@
 -- Personal input overrides. Omarchy's defaults already set kb_layout,
--- kb_options, repeat_rate, numlock, clickfinger_behavior, and a 0.4 touchpad
--- scroll factor, so only the genuine differences are listed here.
+-- repeat_rate, numlock, clickfinger_behavior, and a 0.4 touchpad scroll
+-- factor, so only the genuine differences are listed here. kb_options is
+-- replaced outright rather than extended -- Hyprland takes the last value, and
+-- the point is to drop Compose off Caps Lock.
 -- See https://wiki.hypr.land/Configuring/Basics/Variables/#input
 hl.config({
 	input = {
+		-- Caps Lock is a leader modifier, not Compose. Omarchy's default puts
+		-- Compose on Caps Lock, which swallows the following keystrokes until the
+		-- sequence resolves or times out -- indistinguishable from a stuck key.
+		-- caps:hyper emits Hyper_L, which xkb maps to Mod3, so it collides with
+		-- nothing (Super is Mod4) and Hyprland can bind it as MOD3. Compose moves
+		-- to Right Alt, which this layout otherwise wastes. Both Shifts together
+		-- still toggles a real Caps Lock, and a lone Shift cancels a misfire.
+		kb_options = "caps:hyper,compose:ralt,shift:both_capslock_cancel",
+
 		-- Wait longer before a held key starts repeating.
 		repeat_delay = 600,
 
