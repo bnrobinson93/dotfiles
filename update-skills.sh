@@ -13,6 +13,10 @@ SKILLS=(
   "mattpocock/skills||shared"
 )
 
+PI_PACKAGES=(
+  "npm:@mjakl/pi-subagent"
+)
+
 # Claude Code plugins. Claude-only, so no harness column. Anything installed but
 # absent here (or excluded by profile) is uninstalled, same contract as SKILLS.
 # `claude plugin details <name>` prints a plugin's always-on token cost.
@@ -42,6 +46,7 @@ claude_home="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 opencode_home="$xdg_config_home/opencode"
+pi_agent_home="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 managed_skills_state="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/managed-skills.tsv"
 # Mirrors the skills CLI: XDG_STATE_HOME wins, else ~/.agents.
 skill_lock="${XDG_STATE_HOME:+$XDG_STATE_HOME/skills}"
@@ -105,10 +110,12 @@ deploy_local_ai() {
     --ignore=dot-codex
     --ignore=dot-claude
     --ignore=dot-config
+    --ignore=dot-pi
   )
   local root
 
   try mkdir -p "${roots[@]}" || true
+  try mkdir -p "$pi_agent_home" || true
   for root in "${roots[@]}"; do
     backup_conflicting_path "$root/AGENTS.md"
     backup_conflicting_path "$root/CLAUDE.md"
@@ -121,6 +128,19 @@ deploy_local_ai() {
     try stow -R -d "$script_dir" "${shared_stow_args[@]}" -t "$root" ai || true
   done
   try stow -R -d "$script_dir/ai" -t "$claude_home" dot-claude || true
+  try stow -R -d "$script_dir/ai" -t "$pi_agent_home" dot-pi || true
+}
+
+install_pi_packages() {
+  if ! have pi; then
+    warn "pi not found; skipping Pi package install"
+    return 1
+  fi
+
+  local package
+  for package in "${PI_PACKAGES[@]}"; do
+    try pi install "$package" </dev/null || true
+  done
 }
 
 # settings.json is mutable/plugin-managed. Merge one owned key without replacing it.
@@ -441,6 +461,7 @@ main() {
   deploy_local_ai
   merge_claude_settings || true
   reconcile_skills
+  install_pi_packages || true
   reconcile_plugins || true
 
   if [[ "$failures" -gt 0 ]]; then
