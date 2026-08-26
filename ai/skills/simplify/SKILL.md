@@ -33,3 +33,6 @@ project memory.
   that must be kept in sync for no gain. Keep only the non-obvious why (security constraints,
   ordering rationale, external contracts). When the same why is already documented at its real
   home (the function it describes, an ADR, a spec), do not duplicate it at the call site.
+
+- Task wrappers should declare and forward child-command options directly so callers do not need
+  a `--` separator between the wrapper and its arguments.
