@@ -16,15 +16,15 @@ o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com/
 hl.unbind("SUPER + SHIFT + E") -- was: Hey Email
 o.bind("SUPER + SHIFT + E", "Email", { webapp = "https://app.shortwave.com" })
 
--- Quick task capture. The launcher prompt walker used to own, now the
--- `ticktick` plugin's own summon script. Ctrl+Shift+A is free in the defaults,
--- which reach for SUPER for everything. Spelled out for the same reason as
--- toggle-camera.sh below, and because the script belongs to the plugin: the
+-- Quick task capture. The launcher prompt walker used to own, now the TickTick
+-- plugin's panel -- its quick-add field takes focus when the panel opens, so
+-- one chord still lands a task. Ctrl+Shift+A is free in the defaults, which
+-- reach for SUPER for everything. The IPC target belongs to the plugin, so the
 -- binding is dead exactly when the plugin is not installed, which is right.
 o.bind(
 	"CTRL + SHIFT + A",
 	"Add TickTick task",
-	os.getenv("HOME") .. "/.config/omarchy/plugins/ticktick/ticktick-add-launch"
+	"omarchy-shell io.github.sotoaugusto.ticktick toggle"
 )
 
 -- ASUS Zenbook function keys. The firmware emits a chord rather than a plain
@@ -84,3 +84,18 @@ o.bind("MOD3 + SLASH", "Passwords", { omarchy = "1password" })
 o.bind("MOD3 + A", "Claude", { webapp = "https://claude.ai" })
 o.bind("MOD3 + C", "Calendar", { webapp = "https://calendar.google.com/" })
 o.bind("MOD3 + E", "Email", { webapp = "https://app.shortwave.com" })
+
+-- Dictation on SUPER + CTRL + SPACE, for the same muscle memory as the
+-- <mod> + SPACE dictation and launcher chords on macOS. The background
+-- switcher that held the chord is dropped -- it is still one row down in the
+-- Omarchy menu -- and F9 push-to-talk is untouched.
+hl.unbind("SUPER + CTRL + SPACE") -- was: Background switcher
+hl.unbind("SUPER + CTRL + X") -- was: Toggle dictation
+o.bind("SUPER + CTRL + SPACE", "Toggle dictation", "voxtype record toggle")
+
+-- Windows-style ALT+TAB, from the `altswitch` plugin. The plugin owns the keys
+-- as well as the panel -- its Lua half unbinds Omarchy's four cyclenext and
+-- bring_to_top defaults itself -- so this is a load, not a binding. Spelled out
+-- as a path for the same reason as the TickTick capture above: the switcher is
+-- dead exactly when the plugin is not installed.
+dofile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.pablo-merino.altswitch/altswitch.lua")
