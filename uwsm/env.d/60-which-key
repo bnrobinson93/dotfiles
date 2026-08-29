@@ -1,0 +1,17 @@
+# Changes require a restart to take effect.
+
+# The which-key plugin generates a Hyprland `hl.on("input.keyboard.key", ...)`
+# hook from the live XKB keymap and writes it into a config file, which it then
+# owns and rewrites whenever the keyboard layout changes. Its installer refuses
+# to write through a symlink (exit 73), and ~/.config/hypr/bindings.lua is one,
+# pointing back into this repo.
+#
+# Sending it at a file of its own is the better outcome anyway: the block is
+# derived from this machine's keymap and keycodes, so it is generated state and
+# not something to track, exactly like ~/.config/omarchy/shell.json.
+# hypr/bindings.lua loads the file if it exists.
+#
+# The variable has to be in the session environment rather than a one-off on the
+# command line, because the plugin's own Enabled toggle and its status check run
+# from inside omarchy-shell and would otherwise look at the symlink instead.
+export OMARCHY_WHICH_KEY_HYPR_CONFIG="$HOME/.config/hypr/which-key.lua"

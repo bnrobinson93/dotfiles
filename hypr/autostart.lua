@@ -38,3 +38,7 @@ o.exec_on_start("hyprpm reload -n")
 -- revealed; SIGUSR2 (pkill -34) toggles it, which hypr/touch.lua binds to a
 -- swipe up from the bottom edge.
 o.launch_on_start("wvkbd-mobintl -L 256 --hidden --alpha 204")
+
+-- Omarchycast's search daemon. The overlay starts it on demand, so this only
+-- buys a warm index on the first press instead of a cold one.
+o.launch_on_start("omarchycastd")

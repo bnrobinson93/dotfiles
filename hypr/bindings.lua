@@ -21,11 +21,7 @@ o.bind("SUPER + SHIFT + E", "Email", { webapp = "https://app.shortwave.com" })
 -- one chord still lands a task. Ctrl+Shift+A is free in the defaults, which
 -- reach for SUPER for everything. The IPC target belongs to the plugin, so the
 -- binding is dead exactly when the plugin is not installed, which is right.
-o.bind(
-	"CTRL + SHIFT + A",
-	"Add TickTick task",
-	"omarchy-shell io.github.sotoaugusto.ticktick toggle"
-)
+o.bind("CTRL + SHIFT + A", "Add TickTick task", "omarchy-shell io.github.sotoaugusto.ticktick toggle")
 
 -- ASUS Zenbook function keys. The firmware emits a chord rather than a plain
 -- keysym for each of these, so reaching the use printed on the key means taking
@@ -72,6 +68,7 @@ o.bind("switch:off:Intel HID switches", nil, tablet_mode .. " off", { locked = t
 -- Additive: the SUPER + SHIFT chords still work. The specs are duplicated
 -- rather than derived because Omarchy's defaults are the source of truth for
 -- them, and a helper here would silently drift when they change.
+o.bind("MOD3 + SPACE", "Emoji picker", "omarchy-shell shell toggle omarchy.emojis")
 o.bind("MOD3 + RETURN", "Terminal", { omarchy = "terminal" })
 o.bind("MOD3 + T", "Terminal", { omarchy = "terminal" })
 o.bind("MOD3 + B", "Browser", { omarchy = "browser" })
@@ -99,3 +96,40 @@ o.bind("SUPER + CTRL + SPACE", "Toggle dictation", "voxtype record toggle")
 -- as a path for the same reason as the TickTick capture above: the switcher is
 -- dead exactly when the plugin is not installed.
 dofile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.pablo-merino.altswitch/altswitch.lua")
+
+-- Toolroll, which ships no keybinding of its own -- Omarchy plugins cannot
+-- register a shortcut, so the chord has to live here, and it is dead exactly
+-- when the plugin is not installed. Follows the house pattern, SUPER + SHIFT +
+-- <letter>, and has no Caps mirror because MOD3 + T is already the terminal.
+o.bind("SUPER + SHIFT + T", "Toolroll", "omarchy-shell shell toggle io.github.iainfreestone.toolroll")
+
+-- The which-key plugin's keyboard hook. It generates the block from the live
+-- XKB keymap and owns the file outright, rewriting it whenever the layout
+-- changes, so the file is generated state and stays out of this repo --
+-- uwsm/env.d/60-which-key points the plugin's installer at it, because the
+-- installer refuses to write through the symlink this file is. Absent until
+-- the plugin's Enabled toggle is on, hence the guard.
+local which_key = (os.getenv("HOME") or "") .. "/.config/hypr/which-key.lua"
+local which_key_file = io.open(which_key, "r")
+if which_key_file then
+	which_key_file:close()
+	dofile(which_key)
+end
+
+-- Omarchycast takes SUPER + SPACE, the chord the Omarchy menu held: it answers
+-- the same "what now?" reflex and does more with it, indexing the menu's own
+-- entries alongside apps, arithmetic and dates. The menu keeps its place one
+-- modifier out, on SUPER + ALT + SPACE, displacing the Apps menu -- a filtered
+-- view of a list Omarchycast already ranks better. The bar button and the
+-- menu-button widget still summon the menu by id, so both are unaffected.
+--
+-- Bound here rather than with `omarchycastd hotkey`, which writes
+-- ~/.config/hypr/omarchycast.lua and then appends a dofile to hyprland.lua
+-- through an atomic rename. That rename replaces a symlink with a real file,
+-- and hyprland.lua is a symlink into this repo. Same command it would have
+-- written, minus the detached config. For the same reason, do not set the
+-- hotkey from the launcher's own settings pane.
+hl.unbind("SUPER + SPACE") -- was: Omarchy menu
+hl.unbind("SUPER + ALT + SPACE") -- was: Apps menu
+o.bind("SUPER + SPACE", "Omarchycast", "omarchy-shell shell toggle io.github.aditya-raj-tiwari.omarchycast")
+o.bind("SUPER + ALT + SPACE", "Omarchy menu", "omarchy-menu toggle")
