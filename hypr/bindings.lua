@@ -132,3 +132,81 @@ hl.unbind("SUPER + SPACE") -- was: Omarchy menu
 hl.unbind("SUPER + ALT + SPACE") -- was: Apps menu
 o.bind("SUPER + SPACE", "Omarchycast", "omarchy-shell shell toggle io.github.aditya-raj-tiwari.omarchycast")
 o.bind("SUPER + ALT + SPACE", "Omarchy menu", "omarchy-menu toggle")
+
+-- Window sizing on the Caps row of digits. Fullscreen is a toggle and works
+-- from any layout, so it is bound straight through. The two fractional sizes
+-- only mean anything for a floating window -- asking a tiled window to be 50%
+-- of the screen just moves a split -- so they float the window first, then size
+-- and centre it. Coming back to the tiling layout is SUPER + T, as always.
+--
+-- The fullscreen state is cleared before resizing because Hyprland refuses a
+-- resize on a fullscreen window, warning "Window is fullscreen" and otherwise
+-- doing nothing.
+-- Where each window sat before a sizing binding moved it, keyed by address, so
+-- MOD3 + 1 can put it back. Cleared when the window closes, which is the only
+-- thing keeping this from growing for the life of the session.
+local geometry_before_sizing = {}
+
+hl.on("window.close", function(window)
+	if window and window.address then
+		geometry_before_sizing[window.address] = nil
+	end
+end)
+
+local function remember(window)
+	geometry_before_sizing[window.address] = {
+		floating = window.floating,
+		x = window.at.x,
+		y = window.at.y,
+		width = window.size.x,
+		height = window.size.y,
+	}
+end
+
+local function size_window(fraction)
+	return function()
+		local monitor = hl.get_active_monitor()
+		local window = hl.get_active_window()
+		if not monitor or not window then
+			return
+		end
+		remember(window)
+		local scale = monitor.scale or 1
+		hl.dispatch(hl.dsp.window.fullscreen_state({ internal = 0, client = 0 }))
+		hl.dispatch(hl.dsp.window.float({ action = "on" }))
+		hl.dispatch(hl.dsp.window.resize({
+			x = math.floor(monitor.width / scale * fraction),
+			y = math.floor(monitor.height / scale * fraction),
+			exact = true,
+		}))
+		hl.dispatch(hl.dsp.window.center())
+	end
+end
+
+-- Undo for the two sizing bindings. A window that was tiled goes back to the
+-- layout rather than to its old rectangle: the tiled geometry it had is a
+-- product of its neighbours, and forcing those exact numbers back would leave a
+-- floating window that merely looks tiled until anything else moves.
+local function restore_window()
+	local window = hl.get_active_window()
+	if not window then
+		return
+	end
+	local previous = geometry_before_sizing[window.address]
+	if not previous then
+		return
+	end
+	geometry_before_sizing[window.address] = nil
+	hl.dispatch(hl.dsp.window.fullscreen_state({ internal = 0, client = 0 }))
+	if not previous.floating then
+		hl.dispatch(hl.dsp.window.float({ action = "off" }))
+		return
+	end
+	hl.dispatch(hl.dsp.window.resize({ x = previous.width, y = previous.height, exact = true }))
+	hl.dispatch(hl.dsp.window.move({ x = previous.x, y = previous.y, exact = true }))
+end
+
+o.bind("MOD3 + 0", "Full screen", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+o.bind("MOD3 + 1", "Restore window size", restore_window)
+o.bind("MOD3 + 5", "Float window at half screen", size_window(0.5))
+o.bind("MOD3 + 9", "Float window at 85% screen", size_window(0.85))
