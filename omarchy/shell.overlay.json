@@ -32,7 +32,6 @@
         { "id": "omarchy.network" },
         { "id": "omarchy.audio" },
         { "id": "omarchy.monitor" },
-        { "id": "huacnlee.which-key" },
         { "id": "omarchy.power" }
       ]
     }
@@ -44,7 +43,6 @@
     { "id": "io.github.bolens.privacy-devices" },
     { "id": "io.github.guiestrela.omarchy-google-calendar-clock" },
     { "id": "io.github.iainfreestone.toolroll" },
-    { "id": "huacnlee.which-key" },
     { "id": "io.github.aditya-raj-tiwari.omarchycast" }
   ]
 }

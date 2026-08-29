@@ -103,19 +103,6 @@ dofile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.pablo-merino.alt
 -- <letter>, and has no Caps mirror because MOD3 + T is already the terminal.
 o.bind("SUPER + SHIFT + T", "Toolroll", "omarchy-shell shell toggle io.github.iainfreestone.toolroll")
 
--- The which-key plugin's keyboard hook. It generates the block from the live
--- XKB keymap and owns the file outright, rewriting it whenever the layout
--- changes, so the file is generated state and stays out of this repo --
--- uwsm/env.d/60-which-key points the plugin's installer at it, because the
--- installer refuses to write through the symlink this file is. Absent until
--- the plugin's Enabled toggle is on, hence the guard.
-local which_key = (os.getenv("HOME") or "") .. "/.config/hypr/which-key.lua"
-local which_key_file = io.open(which_key, "r")
-if which_key_file then
-	which_key_file:close()
-	dofile(which_key)
-end
-
 -- Omarchycast takes SUPER + SPACE, the chord the Omarchy menu held: it answers
 -- the same "what now?" reflex and does more with it, indexing the menu's own
 -- entries alongside apps, arithmetic and dates. The menu keeps its place one
