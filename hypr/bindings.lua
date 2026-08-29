@@ -31,9 +31,21 @@ o.bind("CTRL + SHIFT + A", "Add TickTick task", "omarchy-shell io.github.sotoaug
 hl.unbind("SUPER + P")
 o.bind("SUPER + P", "Toggle display mirroring", "omarchy-hyprland-monitor-internal-mirror toggle")
 
--- F9 (lock key), was: Toggle workspace layout.
-hl.unbind("F9")
+-- F9 (lock key), was: Toggle workspace layout. The firmware sends SUPER + L
+-- rather than a lock keysym, so the unbind has to name that chord: unbinding a
+-- bare F9 removes nothing, and the stock layout toggle then fires alongside the
+-- lock, quietly flipping the workspace to scrolling on every lock.
+hl.unbind("SUPER + L")
 o.bind("SUPER + L", "Lock system", "omarchy-system-lock")
+
+-- The workspace layout toggle, rehomed after the lock took its chord. It lands
+-- on SUPER + CTRL + L, which Omarchy ships as a second lock binding and which is
+-- therefore redundant here. SUPER + SHIFT is reserved for launching apps.
+-- Worth keeping bound: dwindle and scrolling suit different work, and the toggle
+-- is per workspace, so it is a normal thing to reach for rather than a setting
+-- to leave alone.
+hl.unbind("SUPER + CTRL + L")
+o.bind("SUPER + CTRL + L", "Toggle workspace layout", "omarchy-hyprland-workspace-layout-toggle")
 
 -- F11 (screenshot key), was: Google Maps.
 hl.unbind("SUPER + SHIFT + S")
