@@ -534,6 +534,7 @@ local function resolve_embed()
       return nil
     end
     local section = {}
+    local start_row = 1
     if block_id then
       local block = note:resolve_block(block_id)
       if not block then
@@ -547,6 +548,7 @@ local function resolve_embed()
       else
         from, to = block.line, block.line
       end
+      start_row = from
       for i = from, to do
         -- Drop the trailing "^id" marker from the block's own lines.
         section[#section + 1] = (util.strip_block_links(lines[i]))
@@ -557,6 +559,7 @@ local function resolve_embed()
         return nil
       end
       local header_level = anchor_obj.level
+      start_row = anchor_obj.line + 1
       for i = anchor_obj.line + 1, #lines do
         local parsed = util.parse_header(lines[i])
         if parsed and parsed.level <= header_level then
@@ -565,8 +568,30 @@ local function resolve_embed()
         section[#section + 1] = lines[i]
       end
     else
+      start_row = 2
       for i = 2, #lines do
         section[#section + 1] = lines[i]
+      end
+    end
+
+    -- Peel only while every non-blank line is quoted, so a nested quote keeps
+    -- its own marker.
+    local function all_quoted()
+      local any = false
+      for _, line in ipairs(section) do
+        if not line:match("^%s*$") then
+          if not line:match("^%s*>") then
+            return false
+          end
+          any = true
+        end
+      end
+      return any
+    end
+
+    while all_quoted() do
+      for i, line in ipairs(section) do
+        section[i] = (line:gsub("^%s*>%s?", ""))
       end
     end
 
@@ -576,13 +601,14 @@ local function resolve_embed()
     if #section == 0 then
       return nil
     end
-    return section
+    return section, start_row
   end
 
   for _, note in ipairs(notes) do
-    local section = build_section(note)
+    local section, start_row = build_section(note)
     if section then
-      return section, " " .. bare .. (anchor or (block_id and "#" .. block_id) or "") .. " "
+      local title = " " .. bare .. (anchor or (block_id and "#" .. block_id) or "") .. " "
+      return section, title, tostring(note.path), start_row
     end
   end
 
@@ -591,6 +617,31 @@ end
 
 local embed_hover_win = nil
 local embed_hover_buf = nil
+
+local function hover_config(section, title)
+  local width = math.min(80, vim.o.columns - 4)
+  local height = 0
+  for _, line in ipairs(section) do
+    height = height + math.max(1, math.ceil(vim.fn.strdisplaywidth(line) / width))
+  end
+  return {
+    relative = "cursor",
+    row = 1,
+    col = 0,
+    width = width,
+    height = math.min(math.max(height, 1), 20),
+    style = "minimal",
+    border = "rounded",
+    title = title,
+    focusable = false,
+  }
+end
+
+local function enable_wrapping(win)
+  vim.wo[win].wrap = true
+  vim.wo[win].linebreak = true
+  vim.wo[win].breakindent = true
+end
 
 local function close_embed_hover()
   if embed_hover_win and vim.api.nvim_win_is_valid(embed_hover_win) then
@@ -603,7 +654,55 @@ local function close_embed_hover()
   embed_hover_buf = nil
 end
 
+-- Opens the linked note's own buffer, so `:w` and `:q` behave normally.
+local function edit_embed()
+  local name = vim.api.nvim_buf_get_name(0)
+  local section, title, path, start_row
+  if vim.startswith(name, vault_path) and name:match("%.md$") then
+    section, title, path, start_row = resolve_embed()
+  end
+  if not path then
+    return vim.lsp.buf.hover()
+  end
+
+  local buf = vim.fn.bufadd(path)
+  vim.fn.bufload(buf)
+
+  local win = embed_hover_win
+  if win and vim.api.nvim_win_is_valid(win) then
+    local scratch = embed_hover_buf
+    -- Drop the handles before swapping: close_embed_hover force-deletes
+    -- embed_hover_buf, and that is the note's own buffer from here on.
+    embed_hover_win, embed_hover_buf = nil, nil
+    vim.api.nvim_win_set_buf(win, buf)
+    if scratch and vim.api.nvim_buf_is_valid(scratch) then
+      vim.api.nvim_buf_delete(scratch, { force = true })
+    end
+  else
+    win = vim.api.nvim_open_win(buf, false, hover_config(section, title))
+  end
+
+  enable_wrapping(win)
+  vim.api.nvim_set_current_win(win)
+  vim.api.nvim_win_set_cursor(win, { math.min(start_row, vim.api.nvim_buf_line_count(buf)), 0 })
+  vim.cmd("normal! zt")
+end
+
 return {
+  {
+    -- LazyVim binds K on LSP attach, after any autocmd of ours can, so take
+    -- over its keymap entry rather than racing it.
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        ["*"] = {
+          keys = {
+            { "K", edit_embed, desc = "Hover" },
+          },
+        },
+      },
+    },
+  },
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
@@ -628,22 +727,14 @@ return {
 
           embed_hover_buf = vim.api.nvim_create_buf(false, true)
           vim.api.nvim_buf_set_lines(embed_hover_buf, 0, -1, false, section)
+
+          embed_hover_win = vim.api.nvim_open_win(embed_hover_buf, false, hover_config(section, title))
+          enable_wrapping(embed_hover_win)
+
+          -- Must follow nvim_open_win: render-markdown attaches on FileType and
+          -- only decorates windows already showing the buffer.
           vim.bo[embed_hover_buf].filetype = "markdown"
           vim.treesitter.start(embed_hover_buf, "markdown")
-
-          local width = math.min(80, vim.o.columns - 4)
-          local height = math.min(#section, 20)
-          embed_hover_win = vim.api.nvim_open_win(embed_hover_buf, false, {
-            relative = "cursor",
-            row = 1,
-            col = 0,
-            width = width,
-            height = height,
-            style = "minimal",
-            border = "rounded",
-            title = title,
-            focusable = false,
-          })
         end,
       })
 
