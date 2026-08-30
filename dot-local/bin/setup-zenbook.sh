@@ -8,6 +8,10 @@ set -euo pipefail
 
 echo "==> ZenBook Q528E hardware setup"
 
+# --- Touchpad monitor ---
+echo "==> Building touchpad_monitor"
+gcc -O2 -o "$HOME/.local/bin/touchpad_monitor" "$HOME/.local/src/touchpad_monitor.c"
+
 # --- Systemd service ---
 echo "==> Creating touchpad_monitor.service"
 sudo tee /etc/systemd/system/touchpad_monitor.service > /dev/null << 'EOF'
@@ -16,7 +20,7 @@ Description=Touchpad Monitor Service
 After=systemd-udev-settle.service
 
 [Service]
-ExecStart=/home/brad/.local/bin/touchpad_monitor.sh
+ExecStart=/home/brad/.local/bin/touchpad_monitor
 Restart=always
 RestartSec=3
 
@@ -27,8 +31,6 @@ EOF
 # --- Sudoers ---
 echo "==> Creating /etc/sudoers.d/brad-hardware"
 sudo tee /etc/sudoers.d/brad-hardware > /dev/null << 'EOF'
-brad ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/bus/platform/drivers/idma64/unbind
-brad ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/bus/platform/drivers/idma64/bind
 brad ALL=(ALL) NOPASSWD: /usr/bin/modprobe -r uvcvideo
 brad ALL=(ALL) NOPASSWD: /usr/bin/modprobe uvcvideo
 EOF
@@ -36,7 +38,6 @@ sudo chmod 440 /etc/sudoers.d/brad-hardware
 
 # --- Packages ---
 echo "==> Installing packages"
-sudo pacman -S --needed --noconfirm evtest
 yay -S --needed --noconfirm grimblast-git
 
 # --- Enable service ---
