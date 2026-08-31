@@ -13,6 +13,9 @@ project memory.
 
 ## Learned cross-project preferences
 
+- Delete unused configuration and future-facing APIs until concrete behavior needs them.
+  Placeholder knobs create compatibility debt and invite callers to depend on no-ops.
+
 - Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should
   read as states, not commands.
 
@@ -39,5 +42,9 @@ project memory.
 
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Do not
   change a shared repository's tracked behavior to accommodate one developer's machine.
+
+- Keep feature-specific test fakes and behavior in that feature's test file. If multiple
+  features truly share a helper, move it to a neutral test-helper file instead of making one
+  feature's tests own another feature's setup.
 
 - In general, never write comments. The only exceptions are 1 to 2 (if absolutely necessary) lines for a public interface and true 'gotchas'. "Gotchas" means non-obvious code that will break core functionality if removed or changed
