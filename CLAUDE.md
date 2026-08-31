@@ -105,31 +105,24 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
   portal's). The Lua config holds only what differs from the v4 defaults under
   `/usr/share/omarchy/default/hypr/` — read those before adding an override.
-- **`omarchy/`** — `shell.overlay.json` (our half of the bar layout, idle timeouts and
-  plugin list), `extensions/omarchy-menu.jsonc`, and `hooks/`. Deploy with `stow -v2 .`,
-  never `stow omarchy`, or stow folds the directory and Omarchy's generated state lands
-  in the repo.
-- **`~/.config/omarchy/shell.json` is generated, and nothing here tracks it.** The shell
-  persists widget settings, bar reordering and plugin enablement into that file on
-  ordinary interaction, and `shell.qml:74` takes it as canonical rather than deep-merging
-  with upstream's defaults — so tracking it meant tracking runtime state *and* inheriting
-  nothing when Omarchy changed its own defaults. `omarchy-shell-merge` (in `dot-local/bin`)
-  merges `omarchy/shell.overlay.json` over `/usr/share/omarchy/config/omarchy/shell.json`
-  and writes the result. Our ordering and per-widget settings win; any upstream entry we
-  neither list nor name in the overlay's `remove` array is appended and logged, so a
-  widget added by an Omarchy release reaches the bar on its own. Live drift is discarded
-  on the next merge — permanent means "in the overlay" — and the merge prints what it
-  dropped. A `version` mismatch between the overlay and upstream hard-fails rather than
-  emitting a hybrid file.
-- The merge runs from `mise run stow` (last step) and from the stowed `post-update` hook,
-  so `omarchy update` refreshes the bar without a second command. `mise run omarchy-plugins`
-  installs the plugins the overlay names from `github.com/bnrobinson93/omarchy-<id>`;
-  personal plugins live in their own repos, not here, and are installed with
-  `omarchy plugin add`.
-- `install.sh` bootstraps both: it runs `mise run omarchy-plugins` (skipped off Omarchy)
-  and then `mise run stow`, in that order, so a fresh clone gets the plugins installed
-  before the merge writes a `shell.json` naming them. `mise run stow` deliberately does
-  *not* install plugins — it is a network call, and only a fresh machine needs it.
+- **`omarchy/`** — `extensions/omarchy-menu.jsonc` only. Deploy with `stow -v2 .`, never
+  `stow omarchy`, or stow folds the directory and Omarchy's generated state lands in the
+  repo.
+- **`~/.config/omarchy/shell.json` is the shell's own state, and nothing here tracks it.**
+  The bar layout, per-widget settings, idle timeouts and plugin enablement all live in
+  that one file, and everything writes to it: the shell persists reordering and widget
+  settings on ordinary interaction, `omarchy bar` and `omarchy plugin` edit it, and
+  Omarchy's migrations patch it in place when upstream defaults move (see
+  `/usr/share/omarchy/migrations/` — `1785344985.sh` adds the agents widget to existing
+  bars, `1786099804.sh` renames `model-usage`). Change the bar with the CLI or by
+  right-clicking it; do not reintroduce a tracked copy or a generator, because either one
+  fights the CLI and throws away whatever was set since it last ran.
+- `mise run omarchy-plugins` installs the personal plugins — `idle-ladder`,
+  `menu-button`, `orientation` — from `github.com/bnrobinson93/omarchy-<id>`, since those
+  live in their own repos rather than Omarchy's registry. Third-party plugins are
+  installed by hand with `omarchy plugin add`. `install.sh` runs the task (skipped off
+  Omarchy) before `mise run stow`; `mise run stow` deliberately does *not*, since it is a
+  network call only a fresh machine needs.
 - Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
   module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.

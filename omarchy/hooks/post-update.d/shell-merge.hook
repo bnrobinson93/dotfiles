@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# `omarchy update` is the path where Omarchy's packaged shell.json defaults actually
-# change, and omarchy-update calls `omarchy-hook post-update` at the end of it, so
-# regenerating here is what makes new upstream widgets turn up without a second command.
-
-exec omarchy-shell-merge

@@ -64,14 +64,10 @@ if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
 fi
 
 echo Populating config and local scripts...
-# `mise run stow` is these same stow invocations plus the omarchy shell merge, and
-# install.sh shrinks into the mise tasks over time. mise reads mise/config.toml from this
-# directory, so the tasks are available before anything is stowed.
-#
-# Plugins are installed first: the merge writes a shell.json that names them, and a bar
-# entry pointing at a missing plugin is a broken widget. PATH is extended by hand because
-# omarchy-shell-merge ships in dot-local and a fresh login shell has not picked up
-# ~/.local/bin yet.
+# `mise run stow` is these same stow invocations, and install.sh shrinks into the mise
+# tasks over time. mise reads mise/config.toml from this directory, so the tasks are
+# available before anything is stowed. PATH is extended by hand because the scripts these
+# tasks call ship in dot-local and a fresh login shell has not picked up ~/.local/bin yet.
 export PATH="$HOME/.local/bin:$PATH"
 if command -v omarchy >/dev/null 2>&1; then
   mise run omarchy-plugins
