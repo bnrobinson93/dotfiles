@@ -767,7 +767,7 @@ return {
           ["bible study note"] = {
             notes_subdir = "2-Areas/Bible/Topics",
           },
-          ["bible study"] = {
+          ["bible brad"] = {
             notes_subdir = "2-Areas/Bible/Teaching",
           },
           ["highlands"] = {

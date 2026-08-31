@@ -1,23 +1,21 @@
 {
   "version": 1,
-  "remove": ["omarchy.menu"],
+  "remove": ["omarchy.menu", "omarchy.clock"],
   "idle": {
     "screensaver": 300,
     "lock": 900
   },
   "bar": {
     "transparent": true,
+    "centerAnchor": "io.github.guiestrela.omarchy-google-calendar-clock",
     "layout": {
       "left": [{ "id": "menu-button" }, { "id": "omarchy.workspaces" }],
       "center": [
         { "id": "omarchy.indicators" },
-        { "id": "orientation", "monitor": "eDP-1" },
         {
-          "id": "omarchy.clock",
+          "id": "io.github.guiestrela.omarchy-google-calendar-clock",
           "format": "ddd d MMM HH:mm"
         },
-        { "id": "ticktick" },
-        { "id": "camera" },
         { "id": "omarchy.keyboard-layout" },
         { "id": "omarchy.weather" },
         { "id": "omarchy.media" },
@@ -25,9 +23,12 @@
       ],
       "right": [
         { "id": "omarchy.tray" },
+        { "id": "io.github.sotoaugusto.ticktick", "barLabel": "Count" },
+        { "id": "orientation", "monitor": "eDP-1" },
         { "id": "omarchy.tailscale" },
         { "id": "omarchy.agents" },
         { "id": "omarchy.bluetooth" },
+        { "id": "io.github.bolens.privacy-devices" },
         { "id": "omarchy.network" },
         { "id": "omarchy.audio" },
         { "id": "omarchy.monitor" },
@@ -35,5 +36,13 @@
       ]
     }
   },
-  "plugins": [{ "id": "idle-ladder" }, { "id": "ticktick-quick-add" }]
+  "plugins": [
+    { "id": "idle-ladder" },
+    { "id": "io.github.sotoaugusto.ticktick" },
+    { "id": "io.github.pablo-merino.altswitch" },
+    { "id": "io.github.bolens.privacy-devices" },
+    { "id": "io.github.guiestrela.omarchy-google-calendar-clock" },
+    { "id": "io.github.iainfreestone.toolroll" },
+    { "id": "io.github.aditya-raj-tiwari.omarchycast" }
+  ]
 }
