@@ -28,7 +28,7 @@ make_fake_tools() {
   local bin_dir="$1"
   mkdir -p "$bin_dir"
 
-  for tool in stow claude codex opencode; do
+  for tool in stow claude codex opencode pi; do
     ln -s "$bin_dir/fake-tool" "$bin_dir/$tool"
   done
 
@@ -64,18 +64,19 @@ run_updater() {
     HOME="$case_dir/home" \
     XDG_CONFIG_HOME="$case_dir/home/.config" \
     XDG_STATE_HOME="$case_dir/state" \
-    PATH="$case_dir/bin:/usr/bin:/bin" \
+    PATH="$case_dir/bin:$PATH" \
     "$repo_dir/update-skills.sh" >"$case_dir/output" 2>&1
 }
 
 test_new_machine_installs_without_removing() {
   local case_dir="$test_root/new-machine"
-  mkdir -p "$case_dir/home/.agents"
-  cat >"$case_dir/home/.agents/.skill-lock.json" <<'EOF'
+  mkdir -p "$case_dir/state/skills"
+  cat >"$case_dir/state/skills/.skill-lock.json" <<'EOF'
 {
   "skills": {
     "caveman": {"source": "JuliusBrussee/caveman"},
     "find-skills": {"source": "vercel-labs/skills"},
+    "figma": {"source": "openai/skills"},
     "ponytail": {"source": "DietrichGebert/ponytail"},
     "hunk-review": {"source": "modem-dev/hunk"},
     "teach": {"source": "mattpocock/skills"},
@@ -86,8 +87,11 @@ EOF
 
   run_updater "$case_dir"
 
-  assert_contains "$case_dir/commands" "npx -y skills add JuliusBrussee/caveman"
+  assert_contains "$case_dir/commands" "claude plugin marketplace add JuliusBrussee/caveman"
+  assert_contains "$case_dir/commands" "claude plugin install caveman@caveman --scope user"
   assert_contains "$case_dir/commands" "npx -y skills add mattpocock/skills"
+  assert_contains "$case_dir/commands" "pi install npm:@mjakl/pi-subagent"
+  assert_contains "$case_dir/commands" "stow -R -d $repo_dir/ai -t $case_dir/home/.pi/agent dot-pi"
   assert_not_contains "$case_dir/commands" "skills remove"
   assert_contains "$case_dir/state/dotfiles/managed-skills.tsv" $'mattpocock/skills||shared\tclaude-code,codex,opencode\tgrilling'
   assert_contains "$case_dir/state/dotfiles/managed-skills.tsv" $'mattpocock/skills||shared\tclaude-code,codex,opencode\tteach'
@@ -95,12 +99,13 @@ EOF
 
 test_rerun_removes_only_stale_resolved_skills() {
   local case_dir="$test_root/rerun"
-  mkdir -p "$case_dir/home/.agents" "$case_dir/state/dotfiles"
-  cat >"$case_dir/home/.agents/.skill-lock.json" <<'EOF'
+  mkdir -p "$case_dir/state/skills" "$case_dir/state/dotfiles"
+  cat >"$case_dir/state/skills/.skill-lock.json" <<'EOF'
 {
   "skills": {
     "caveman": {"source": "JuliusBrussee/caveman"},
     "find-skills": {"source": "vercel-labs/skills"},
+    "figma": {"source": "openai/skills"},
     "ponytail": {"source": "DietrichGebert/ponytail"},
     "hunk-review": {"source": "modem-dev/hunk"},
     "teach": {"source": "mattpocock/skills"}
@@ -123,8 +128,8 @@ EOF
 
 test_failed_update_preserves_snapshot_and_skips_removal() {
   local case_dir="$test_root/failed-update"
-  mkdir -p "$case_dir/home/.agents" "$case_dir/state/dotfiles"
-  cat >"$case_dir/home/.agents/.skill-lock.json" <<'EOF'
+  mkdir -p "$case_dir/state/skills" "$case_dir/state/dotfiles"
+  cat >"$case_dir/state/skills/.skill-lock.json" <<'EOF'
 {"skills": {"teach": {"source": "mattpocock/skills"}}}
 EOF
   cat >"$case_dir/state/dotfiles/managed-skills.tsv" <<'EOF'
@@ -181,12 +186,12 @@ EOF
       HOME="$case_dir/home" \
       XDG_CONFIG_HOME="$case_dir/home/.config" \
       PATH="$case_dir/bin:$PATH" \
-      "$repo_dir/ai-cleanup" list-skills >"$case_dir/skills"
+      "$repo_dir/ai-cleanup.sh" list-skills >"$case_dir/skills"
     COMMAND_LOG="$case_dir/commands" \
       HOME="$case_dir/home" \
       XDG_CONFIG_HOME="$case_dir/home/.config" \
       PATH="$case_dir/bin:$PATH" \
-      "$repo_dir/ai-cleanup" list-mcps >"$case_dir/mcps"
+      "$repo_dir/ai-cleanup.sh" list-mcps >"$case_dir/mcps"
   )
 
   assert_contains "$case_dir/skills" "shared-skill"

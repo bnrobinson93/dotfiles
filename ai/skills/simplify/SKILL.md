@@ -36,3 +36,8 @@ project memory.
 
 - Task wrappers should declare and forward child-command options directly so callers do not need
   a `--` separator between the wrapper and its arguments.
+
+- Keep personal environment and workflow overrides in dotfiles or ignored local config. Do not
+  change a shared repository's tracked behavior to accommodate one developer's machine.
+
+- In general, never write comments. The only exceptions are 1 to 2 (if absolutely necessary) lines for a public interface and true 'gotchas'. "Gotchas" means non-obvious code that will break core functionality if removed or changed

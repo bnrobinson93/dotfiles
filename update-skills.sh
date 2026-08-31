@@ -3,6 +3,7 @@ set -u
 
 # source[@ref][#skill]|ownership(default: managed)|harnesses(default: shared)
 # shared = Claude Code, Codex, and OpenCode. manual entries are inventory-only.
+# Pi is not a target: it reads ~/.agents/skills itself, where the CLI already installs.
 # caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
 # so it is not duplicated across ~/.agents and the plugin cache.
 # ponytail lives in the code-quality skill; ryan-review/sara-review carry their own self-contained instincts.
@@ -11,6 +12,10 @@ SKILLS=(
   "modem-dev/hunk#hunk-review||shared"
   "openai/skills#figma||shared"
   "mattpocock/skills||shared"
+)
+
+PI_PACKAGES=(
+  "npm:@mjakl/pi-subagent"
 )
 
 # Claude Code plugins. Claude-only, so no harness column. Anything installed but
@@ -42,6 +47,7 @@ claude_home="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 opencode_home="$xdg_config_home/opencode"
+pi_agent_home="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 managed_skills_state="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/managed-skills.tsv"
 # Mirrors the skills CLI: XDG_STATE_HOME wins, else ~/.agents.
 skill_lock="${XDG_STATE_HOME:+$XDG_STATE_HOME/skills}"
@@ -100,11 +106,14 @@ verify_prerequisites() {
 }
 
 deploy_local_ai() {
-  local roots=("$claude_home" "$codex_home" "$opencode_home")
+  # Pi reads ~/.pi/agent/AGENTS.md and ~/.pi/agent/skills, so it takes the same
+  # shared payload as the others; its agents then need no cross-harness paths.
+  local roots=("$claude_home" "$codex_home" "$opencode_home" "$pi_agent_home")
   local shared_stow_args=(
     --ignore=dot-codex
     --ignore=dot-claude
     --ignore=dot-config
+    --ignore=dot-pi
   )
   local root
 
@@ -121,6 +130,19 @@ deploy_local_ai() {
     try stow -R -d "$script_dir" "${shared_stow_args[@]}" -t "$root" ai || true
   done
   try stow -R -d "$script_dir/ai" -t "$claude_home" dot-claude || true
+  try stow -R -d "$script_dir/ai" -t "$pi_agent_home" dot-pi || true
+}
+
+install_pi_packages() {
+  if ! have pi; then
+    warn "pi not found; skipping Pi package install"
+    return 1
+  fi
+
+  local package
+  for package in "${PI_PACKAGES[@]}"; do
+    try pi install "$package" </dev/null || true
+  done
 }
 
 # settings.json is mutable/plugin-managed. Merge one owned key without replacing it.
@@ -441,6 +463,7 @@ main() {
   deploy_local_ai
   merge_claude_settings || true
   reconcile_skills
+  install_pi_packages || true
   reconcile_plugins || true
 
   if [[ "$failures" -gt 0 ]]; then

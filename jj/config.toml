@@ -16,7 +16,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks() & ~trunk())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
-'bases' = 'trunk() | present(develop)'
+'bases' = 'trunk() | present(develop) | present(main)'
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
 'base(to)' = 'trunk() | ::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
@@ -50,7 +50,7 @@ my_log = ["log", "-r", "clean_log", "-T", "my_default_log"]
 l = [
   "log",
   "-r",
-  "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(trunk() | main, 3) | @::, 30)",
+  "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(bases, 3) | @::, 30)",
 ]
 s = ["diff", '--no-pager', '-s', '-r', 'main..@']
 retrunk = ["rebase", "-d", "trunk()"]

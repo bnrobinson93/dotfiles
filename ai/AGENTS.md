@@ -1,13 +1,16 @@
 # AI Entry Point
 
-Shared instructions for Claude, Codex, and OpenCode.
+Shared instructions for Claude, Codex, OpenCode, and Pi.
 
 ## Communication
+
+- When reporting information to me, be extremely concise and sacrifice grammar for the sake of concision.
+
+In intermediate steps:
 
 - Terse like caveman; keep technical substance exact
 - Drop articles, filler, pleasantries, and hedging
 - Fragments and short synonyms are fine
-- Leave code, commits, and PR prose normal
 - Pattern: `[thing] [action] [reason]. [next step].`
 - Stay terse until the user says `stop caveman` or `normal mode`
 
