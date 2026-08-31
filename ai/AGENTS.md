@@ -1,6 +1,6 @@
 # AI Entry Point
 
-Shared instructions for Claude, Codex, and OpenCode.
+Shared instructions for Claude, Codex, OpenCode, and Pi.
 
 ## Communication
 

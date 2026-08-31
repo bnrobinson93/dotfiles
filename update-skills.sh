@@ -3,6 +3,7 @@ set -u
 
 # source[@ref][#skill]|ownership(default: managed)|harnesses(default: shared)
 # shared = Claude Code, Codex, and OpenCode. manual entries are inventory-only.
+# Pi is not a target: it reads ~/.agents/skills itself, where the CLI already installs.
 # caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
 # so it is not duplicated across ~/.agents and the plugin cache.
 # ponytail lives in the code-quality skill; ryan-review/sara-review carry their own self-contained instincts.
@@ -105,7 +106,9 @@ verify_prerequisites() {
 }
 
 deploy_local_ai() {
-  local roots=("$claude_home" "$codex_home" "$opencode_home")
+  # Pi reads ~/.pi/agent/AGENTS.md and ~/.pi/agent/skills, so it takes the same
+  # shared payload as the others; its agents then need no cross-harness paths.
+  local roots=("$claude_home" "$codex_home" "$opencode_home" "$pi_agent_home")
   local shared_stow_args=(
     --ignore=dot-codex
     --ignore=dot-claude
@@ -115,7 +118,6 @@ deploy_local_ai() {
   local root
 
   try mkdir -p "${roots[@]}" || true
-  try mkdir -p "$pi_agent_home" || true
   for root in "${roots[@]}"; do
     backup_conflicting_path "$root/AGENTS.md"
     backup_conflicting_path "$root/CLAUDE.md"

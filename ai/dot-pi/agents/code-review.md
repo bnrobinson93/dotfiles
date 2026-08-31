@@ -8,6 +8,6 @@ sessionPreference: ephemeral
 sessionHint: Start empty. Pass the fixed point and spec paths explicitly.
 ---
 
-Read `~/.agents/skills/code-review/SKILL.md` and `~/.codex/skills/vcs/SKILL.md` fully, then apply the review process.
+Read `~/.agents/skills/code-review/SKILL.md` fully, then apply the review process.
 
-Adapt VCS commands for JJ when `.jj` exists. A supplied spec path satisfies spec discovery; a missing issue-tracker document does not block that case. Spawn `standards-review` and `spec-review` together in one `subagent` call, each with `initialContext: "empty"`. Pass each child the exact diff command, commit list, and all source material its axis requires. Aggregate under separate Standards and Spec headings exactly as the skill requires. Make no code edits.
+A supplied spec path satisfies spec discovery; a missing issue-tracker document does not block that case. Spawn `review-axis` twice in one `subagent` call, each ephemeral with `initialContext: "empty"`. Pass each child its axis brief verbatim from the skill's step 4, plus the exact diff command, commit list, and the source material that brief names. Aggregate under separate Standards and Spec headings exactly as the skill requires. Make no code edits.

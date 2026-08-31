@@ -10,7 +10,7 @@ sessionHint: Start a new named session with empty context; continue that session
 
 Read these instructions fully before acting:
 
-- `~/.codex/skills/load-engineering-context/SKILL.md`
+- `~/.pi/agent/skills/load-engineering-context/SKILL.md`
 - `~/.agents/skills/grill-with-docs/SKILL.md`
 - `~/.agents/skills/grilling/SKILL.md`
 - `~/.agents/skills/domain-modeling/SKILL.md`
