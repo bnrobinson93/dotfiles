@@ -109,12 +109,6 @@ o.bind("SUPER + CTRL + SPACE", "Toggle dictation", "voxtype record toggle")
 -- dead exactly when the plugin is not installed.
 dofile(os.getenv("HOME") .. "/.config/omarchy/plugins/io.github.pablo-merino.altswitch/altswitch.lua")
 
--- Toolroll, which ships no keybinding of its own -- Omarchy plugins cannot
--- register a shortcut, so the chord has to live here, and it is dead exactly
--- when the plugin is not installed. Follows the house pattern, SUPER + SHIFT +
--- <letter>, and has no Caps mirror because MOD3 + T is already the terminal.
-o.bind("SUPER + SHIFT + T", "Toolroll", "omarchy-shell shell toggle io.github.iainfreestone.toolroll")
-
 -- Omarchycast takes SUPER + SPACE, the chord the Omarchy menu held: it answers
 -- the same "what now?" reflex and does more with it, indexing the menu's own
 -- entries alongside apps, arithmetic and dates. The menu keeps its place one
