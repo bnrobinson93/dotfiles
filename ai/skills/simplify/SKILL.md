@@ -47,4 +47,7 @@ project memory.
   features truly share a helper, move it to a neutral test-helper file instead of making one
   feature's tests own another feature's setup.
 
+- Do not add BDD tests unless the user explicitly requests them. Keep this work with the
+  requested lower-level tests and leave acceptance-suite ownership to QA.
+
 - In general, never write comments. The only exceptions are 1 to 2 (if absolutely necessary) lines for a public interface and true 'gotchas'. "Gotchas" means non-obvious code that will break core functionality if removed or changed
