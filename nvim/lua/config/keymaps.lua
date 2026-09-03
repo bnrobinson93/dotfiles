@@ -70,6 +70,7 @@ if not vim.g.vscode and JJ_exists() then
   local cmd = require("jj.cmd")
   local picker = require("jj.picker")
   local diff = require("jj.diff")
+  local annotate = require("jj.annotate")
 
   local function jj_hunks_quickfix()
     local lines = vim.fn.systemlist({ "jj", "diff", "--git", "--color=never" })
@@ -127,6 +128,7 @@ if not vim.g.vscode and JJ_exists() then
   end, { desc = "JJ tug-" })
 
   map("n", "<leader>jD", diff.open_vdiff, { desc = "JJ diff current buffer" })
+  map("n", "<leader>jb", annotate.line, { desc = "JJ line blame" })
   map("n", "<leader>ja", function()
     cmd.j("absorb")
   end, { desc = "JJ absorb" })
