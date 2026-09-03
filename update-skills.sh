@@ -149,25 +149,46 @@ install_pi_packages() {
 merge_claude_settings() {
   local settings="$claude_home/settings.json"
   local statusline_cmd="bash '$claude_home/hooks/caveman-statusline.sh'"
-  local desired tmp
+  local legacy_tracker_cmd="node \"$claude_home/hooks/caveman-mode-tracker.js\""
+  local tmp
 
   [[ -f "$settings" ]] || printf '{}\n' >"$settings"
-  desired=$(jq -n --arg cmd "$statusline_cmd" '{type: "command", command: $cmd}')
 
-  if [[ "$(jq -c '.statusLine // empty' "$settings" 2>/dev/null)" == "$(jq -c '.' <<<"$desired")" ]]; then
-    step "Claude status line already current"
+  tmp=$(mktemp)
+  if ! jq --arg statusline "$statusline_cmd" --arg legacy_tracker "$legacy_tracker_cmd" '
+    .statusLine = {type: "command", command: $statusline}
+    | .hooks = (.hooks // {})
+    | if .PostToolUse? then
+        .hooks.PostToolUse = ((.hooks.PostToolUse // []) + .PostToolUse)
+        | del(.PostToolUse)
+      else . end
+    | if .hooks.UserPromptSubmit? then
+        .hooks.UserPromptSubmit = [
+          .hooks.UserPromptSubmit[]?
+          | .hooks = [
+              .hooks[]?
+              | select(.command != $legacy_tracker)
+            ]
+          | select((.hooks | length) > 0)
+        ]
+        | if (.hooks.UserPromptSubmit | length) == 0 then
+            del(.hooks.UserPromptSubmit)
+          else . end
+      else . end
+  ' "$settings" >"$tmp"; then
+    rm -f "$tmp"
+    warn "failed to merge Claude settings"
+    return 1
+  fi
+
+  if cmp -s "$settings" "$tmp"; then
+    rm -f "$tmp"
+    step "Claude settings already current"
     return 0
   fi
 
-  step "merge Claude status line"
-  tmp=$(mktemp)
-  if jq --argjson sl "$desired" '.statusLine = $sl' "$settings" >"$tmp"; then
-    mv "$tmp" "$settings"
-  else
-    rm -f "$tmp"
-    warn "failed to merge Claude status line"
-    return 1
-  fi
+  step "merge Claude settings"
+  mv "$tmp" "$settings"
 }
 
 parse_skill_spec() {
