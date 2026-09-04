@@ -38,6 +38,13 @@ jobs:
           zsh -n zsh/dot-zshrc
           zsh -n zsh/dot-zshenv
 
+      - name: AI tooling tests
+        # update-skills.sh reconciliation + its --verify-claude-settings guard.
+        # Fakes every external tool, so it needs only bash + jq.
+        run: |
+          sudo apt-get install -y -q jq
+          tests/test-ai-tools.sh
+
   smoke:
     name: Stow + smoke test
     runs-on: ubuntu-latest

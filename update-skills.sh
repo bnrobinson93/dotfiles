@@ -191,6 +191,59 @@ merge_claude_settings() {
   mv "$tmp" "$settings"
 }
 
+# A hook or statusLine command pointing at a deleted script makes Claude fail on
+# every prompt, so re-check the whole file after any writer touches it. Standalone
+# via `--verify-claude-settings` for CI and the nightly job.
+verify_claude_settings() {
+  local settings="$claude_home/settings.json"
+  [[ -f "$settings" ]] || return 0
+
+  if ! jq -e . "$settings" >/dev/null 2>&1; then
+    warn "Claude settings.json is not valid JSON: $settings"
+    return 1
+  fi
+
+  local stray
+  stray=$(jq -r '
+    [paths | select(length == 1)[0]]
+    | map(select(IN(
+        "PreToolUse", "PostToolUse", "UserPromptSubmit", "SessionStart",
+        "SessionEnd", "Stop", "SubagentStop", "Notification", "PreCompact"
+      )))
+    | join(", ")
+  ' "$settings")
+  if [[ -n "$stray" ]]; then
+    warn "Claude settings.json has hook events at top level, not under .hooks: $stray"
+    return 1
+  fi
+
+  local rc=0 cmd token path
+  while IFS= read -r cmd; do
+    [[ -n "$cmd" ]] || continue
+    while IFS= read -r token; do
+      [[ -n "$token" ]] || continue
+      path="${token%[\"\']}"
+      path="${path#[\"\']}"
+      path="${path//\$\{CLAUDE_CONFIG_DIR\}/$claude_home}"
+      path="${path//\$CLAUDE_CONFIG_DIR/$claude_home}"
+      path="${path//\$\{HOME\}/$HOME}"
+      path="${path//\$HOME/$HOME}"
+      path="${path/#\~/$HOME}"
+      [[ "$path" == /* ]] || continue
+      if [[ ! -e "$path" ]]; then
+        warn "Claude hook/statusLine points at a missing file: $path"
+        rc=1
+      fi
+    done < <(grep -oE "[\"'\$~/][^[:space:]\"']*\.(sh|js|mjs|cjs|py|ts)[\"']?" <<<"$cmd")
+  done < <(jq -r '
+    [ (.statusLine.command // empty),
+      (.hooks // {} | .[]? | .[]? | .hooks[]? | .command // empty) ]
+    | .[]
+  ' "$settings")
+
+  return "$rc"
+}
+
 parse_skill_spec() {
   local spec="$1"
   local extra
@@ -480,9 +533,15 @@ reconcile_plugins() {
 }
 
 main() {
+  if [[ "${1:-}" == "--verify-claude-settings" ]]; then
+    verify_claude_settings
+    return
+  fi
+
   verify_prerequisites || return 1
   deploy_local_ai
   merge_claude_settings || true
+  verify_claude_settings || true
   reconcile_skills
   install_pi_packages || true
   reconcile_plugins || true

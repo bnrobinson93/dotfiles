@@ -207,6 +207,48 @@ EOF
   assert_contains "$case_dir/mcps" "Codex: none"
 }
 
+test_verify_claude_settings_flags_broken_hooks() {
+  local case_dir="$test_root/verify-settings"
+  local settings="$case_dir/home/.claude/settings.json"
+  mkdir -p "$case_dir/home/.claude/hooks"
+  printf '#!/bin/sh\n' >"$case_dir/home/.claude/hooks/live.sh"
+
+  local -a run=(
+    env
+    HOME="$case_dir/home"
+    XDG_CONFIG_HOME="$case_dir/home/.config"
+    "$repo_dir/update-skills.sh" --verify-claude-settings
+  )
+
+  cat >"$settings" <<EOF
+{
+  "statusLine": {"type": "command", "command": "bash '$case_dir/home/.claude/hooks/live.sh'"},
+  "hooks": {"UserPromptSubmit": [{"hooks": [
+    {"type": "command", "command": "bash '$case_dir/home/.claude/hooks/live.sh'"}
+  ]}]}
+}
+EOF
+  "${run[@]}" >"$case_dir/ok-out" 2>&1 || fail "verify rejected settings whose hooks all exist"
+
+  cat >"$settings" <<EOF
+{"hooks": {"UserPromptSubmit": [{"hooks": [
+  {"type": "command", "command": "node \"$case_dir/home/.claude/hooks/gone.js\""}
+]}]}}
+EOF
+  if "${run[@]}" >"$case_dir/missing-out" 2>&1; then
+    fail "verify accepted a hook pointing at a missing file"
+  fi
+  assert_contains "$case_dir/missing-out" "missing file"
+
+  cat >"$settings" <<'EOF'
+{"PostToolUse": [{"hooks": [{"type": "command", "command": "true"}]}]}
+EOF
+  if "${run[@]}" >"$case_dir/stray-out" 2>&1; then
+    fail "verify accepted a hook event at the top level"
+  fi
+  assert_contains "$case_dir/stray-out" "top level"
+}
+
 test_new_machine_installs_without_removing
 printf 'PASS: updater installs desired state on new machine\n'
 test_rerun_removes_only_stale_resolved_skills
@@ -215,3 +257,5 @@ test_failed_update_preserves_snapshot_and_skips_removal
 printf 'PASS: failed update preserves managed snapshot\n'
 test_cleanup_lists_skills_and_mcps
 printf 'PASS: cleanup lists skills and MCPs\n'
+test_verify_claude_settings_flags_broken_hooks
+printf 'PASS: verify-claude-settings flags broken hooks\n'
