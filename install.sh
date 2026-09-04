@@ -81,6 +81,9 @@ fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93
 echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
+  # Shims aren't on a fresh login shell's PATH yet, but later steps here call
+  # mise-managed tools (herdr) by name.
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
 
   git_excludes_file="$(git config --global --get core.excludesfile 2>/dev/null || true)"
   if [[ -n "$git_excludes_file" ]]; then
@@ -104,9 +107,7 @@ brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
 echo "Deploying AI config and updating skills/plugins..."
 "$PWD/update-skills.sh" || true
 
-echo Installing Herdr...
-curl -fsSL https://herdr.dev/install.sh | sh
-
+echo "Configuring Herdr (installed via mise)..."
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex

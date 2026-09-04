@@ -48,6 +48,11 @@ herdr/session.json
 herdr/release-notes.json
 herdr/session-history.json
 herdr/plugins.json
+herdr/.plugins.lock
+herdr/plugins/github/
+
+# herdr rewrites this on every integration update; managed there, not here.
+ai/dot-claude/hooks/herdr-agent-state.sh
 
 # Codex runtime state. ~/.codex is a symlink into ai/dot-codex, so Codex writes
 # its databases, caches, session logs, and system-installed skills straight into
