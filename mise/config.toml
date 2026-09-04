@@ -24,7 +24,6 @@ gh = "latest"
 vivid = "latest"
 pi = "latest"
 opencode = "latest"
-herdr = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.

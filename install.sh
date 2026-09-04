@@ -107,7 +107,8 @@ brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
 echo "Deploying AI config and updating skills/plugins..."
 "$PWD/update-skills.sh" || true
 
-echo "Configuring Herdr (installed via mise)..."
+echo Installing Herdr...
+curl -fsSL https://herdr.dev/install.sh | sh
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex
