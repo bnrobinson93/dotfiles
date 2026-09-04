@@ -210,7 +210,6 @@ patterns = [
   "glob:'**/*.ts'",
   "glob:'**/*.tsx'",
   "glob:'**/*.json'",
-  "glob:'**/*.md'",
   "glob:'**/values.yaml'",
   "glob:'**/values/*.yaml'",
   "glob:'**/*.css'",
