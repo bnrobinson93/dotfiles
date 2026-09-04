@@ -97,3 +97,5 @@ tok=${ctx% *}
 pct=${ctx#* }
 [ -n "$tok" ] && printf '%s%s%s' "$YELLOW" "$tok" "$OFF"
 [ -n "$pct" ] && printf '%s (%s%%)%s' "$OVERLAY" "$pct" "$OFF"
+
+exit 0
