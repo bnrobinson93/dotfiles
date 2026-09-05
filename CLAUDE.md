@@ -225,6 +225,7 @@ Key scripts:
 - `herdr-select` / `sesh-select` / `tmux-sessionizer` - Project pickers with fzf (roots shared via `~/.config/search-paths.txt`)
 - `ssh-setup-github.sh` - Generate SSH key, upload to GitHub, update allowed_signers
 - `battery_check.sh` - Battery monitoring
+- `nightly-dotfiles.sh` - Unattended nightly upkeep, run from cron; see its header comment for what it does
 
 ## Theme Consistency
 
