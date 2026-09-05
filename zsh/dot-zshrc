@@ -3,16 +3,6 @@ autoload -Uz compinit
 [[ ! -d "$HOME/.cache/zsh" ]] && mkdir -p "$HOME/.cache/zsh"
 compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
-# if command -v tmux &> /dev/null && \
-#   [ -n "$PS1" ] && \
-#   [[ ! "$TERM" =~ screen ]] && \
-#   [[ ! "$TERM" =~ tmux ]] && \
-#   [ ! -z "$TMUX" ] &&  \
-#   ! pstree -s $$ | grep -wqE 'code|language-server'
-# then
-#   exec tmux
-# fi
-
 # Essential environment
 export LANG=en_US.UTF-8
 if [[ -n $SSH_CONNECTION ]]; then
@@ -20,7 +10,6 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
    export EDITOR='nvim'
 fi
-
 
 # Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
@@ -57,6 +46,13 @@ if [[ -o interactive ]]; then
     (( $+commands[uu-$_uu] )) && alias $_uu="uu-$_uu"
   done
   unset _uu
+
+  alias clera=clear
+  alias cler=clear
+  alias claer=clear
+  alias ..='cd ..'
+  alias ...='cd ../..'
+  alias ....='cd ../../..'
 fi
 
 # for history
@@ -104,12 +100,16 @@ else
 fi
 
 if type zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
+  zoxide_cache="$HOME/.cache/zsh/zoxide_init.zsh"
+  if [[ ! -f "$zoxide_cache" || "$(command -v zoxide)" -nt "$zoxide_cache" ]]; then
+    zoxide init zsh > "$zoxide_cache" 2>/dev/null
+  fi
+  source "$zoxide_cache"
 fi
 
+# Mise - shims instead of `activate`: activate spawns `mise hook-env` at startup
 if type mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
-  source <(mise completion zsh)
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
 fi
 
 export fzf_preview_dir_cmd="eza --all --color=always"
@@ -432,6 +432,15 @@ function get_completions() {
       jj util completion zsh > "$jjc" 2>/dev/null
     fi
     source "$jjc"
+  fi
+
+  # Mise — cache completions, regenerate only when the mise binary changes
+  if type mise >/dev/null 2>&1; then
+    local misec="$HOME/.cache/zsh/mise_completion.zsh"
+    if [[ ! -f "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
+      mise completion zsh > "$misec" 2>/dev/null
+    fi
+    source "$misec"
   fi
 }
 
