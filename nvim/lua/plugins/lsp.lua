@@ -2,6 +2,17 @@ return {
   "neovim/nvim-lspconfig",
   opts = {
     servers = {
+      -- obsidian.nvim now ships its own in-process LSP
+      marksman = {
+        root_dir = function(bufnr, on_dir)
+          local vault = vim.fs.normalize(os.getenv("ZETTELKASTEN") or os.getenv("HOME") .. "/Documents/Vault")
+          local path = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
+          if path == vault or vim.startswith(path, vault .. "/") then
+            return
+          end
+          on_dir(vim.fs.root(bufnr, { ".marksman.toml", ".git" }))
+        end,
+      },
       bashls = {
         handlers = {
           ["textDocument/publishDiagnostics"] = function(err, res, ...)
