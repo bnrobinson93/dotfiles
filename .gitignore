@@ -16,7 +16,6 @@ fabric/.env
 fish/completions/*
 !fish/completions/fabric.fish
 !fish/completions/ghpr.fish
-!fish/completions/nvm.fish
 fish/conf.d/fish_frozen_key_bindings.fish
 fish/conf.d/fzf.fish
 fish/fish_variables
