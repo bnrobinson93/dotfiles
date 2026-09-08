@@ -139,6 +139,9 @@ if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   }
 fi
 
+function mkcd {
+    mkdir -p -- "$1" && cd -- "$1"
+}
 function ignore-g {
     for dir in "$@"; do
         [ ! -e "$dir" ] && echo "WARN: $dir not a valid path" && continue
@@ -448,8 +451,8 @@ get_completions
 
 if type jj >/dev/null 2>&1; then
   bookmark() {
-    if jj workspace root >/dev/null 2>&1; then 
-      jj log -r 'closest_bookmark(@)' -T 'bookmarks.map(|b| b.name())' -G
+    if jj workspace root >/dev/null 2>&1; then
+      jj ghbranch
     fi
   }
 fi
