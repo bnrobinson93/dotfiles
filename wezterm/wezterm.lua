@@ -44,7 +44,7 @@ local config = {
 	},
 
 	-- Font
-	font = wezterm.font_with_fallback({ "Dank Mono Nerd Font Propo", "Fira Code", "JetBrains Mono" }),
+	font = wezterm.font_with_fallback({ "VictorMono Nerd Font Mono", "Fira Code", "JetBrains Mono" }),
 	font_size = 18,
 
 	-- Tab bar

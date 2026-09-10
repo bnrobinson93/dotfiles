@@ -3,11 +3,11 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "Dank Mono"
-font-style = Regular
+font-family = "VictorMono Nerd Font Mono"
+font-style = Medium
 font-size = 12
-font-thicken = true
-font-thicken-strength = 64
+ font-thicken = true
+ font-thicken-strength = 64
 
 # Window
 confirm-close-surface=false
