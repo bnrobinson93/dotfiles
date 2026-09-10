@@ -8,6 +8,9 @@ return {
       transparent_background = true,
       custom_highlights = function(colors)
         return {
+          Comment = { style = { "italic" } },
+          ["@comment"] = { style = { "italic" } },
+          ["@comment.documentation"] = { style = { "italic" } },
           ["@function"] = { fg = colors.blue, style = { "italic" } },
           ["@function.call"] = { fg = colors.blue, style = { "italic" } },
           ["@lsp.mod.declaration"] = { fg = colors.blue, style = { "italic" } },
@@ -27,6 +30,9 @@ return {
       cache = true,
       transparent = true,
       on_highlights = function(hl, c)
+        hl.Comment = { italic = true }
+        hl["@comment"] = { italic = true }
+        hl["@comment.documentation"] = { italic = true }
         hl["@function"] = { fg = c.blue, italic = true }
         hl["@function.call"] = { fg = c.blue, italic = true }
         hl["@lsp.mod.declaration"] = { fg = c.blue, italic = true }
