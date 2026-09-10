@@ -5,6 +5,9 @@ idiomatic_version_file_enable_tools = ["node", "ruby", "terraform"]
 [settings.ruby]
 compile = false
 
+[settings.upgrade]
+auto_prune = false
+
 [tools]
 bun = "latest"
 buf = "latest"
