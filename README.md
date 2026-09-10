@@ -199,7 +199,7 @@ sudo update-locale LANG=en_US.UTF8
 
 ```sh
 asciinema rec demo.cast
-agg --theme nord --font-size 16 --font-family "Maple Mono NF" demo.cast ~/Pictures/demo.gif && rm demo.cast
+agg --theme nord --font-size 16 --font-family "IosevkaTerm Nerd Font Mono" demo.cast ~/Pictures/demo.gif && rm demo.cast
 ```
 
 ![demo](./resources/record-demo.gif)

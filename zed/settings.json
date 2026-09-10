@@ -33,7 +33,7 @@
   "ui_font_family": ".ZedSans",
   "terminal": {
     "font_size": 16.0,
-    "font_family": "Maple Mono NF"
+    "font_family": "IosevkaTerm Nerd Font Mono"
   },
   "base_keymap": "VSCode",
   "git_panel": {
@@ -43,12 +43,12 @@
     "show": "never"
   },
   "autosave": "on_focus_change",
-  "buffer_font_weight": 450.0,
+  "buffer_font_weight": 400.0,
   "buffer_font_fallbacks": ["Courier New", "monospace"],
   "auto_indent_on_paste": true,
   "wrap_guides": [120],
   "hard_tabs": false,
-  "buffer_font_family": "Maple Mono NF",
+  "buffer_font_family": "IosevkaTerm Nerd Font Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",
   "icon_theme": {

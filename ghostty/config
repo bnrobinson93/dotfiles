@@ -3,11 +3,8 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "Maple Mono NF"
+font-family = "IosevkaTerm Nerd Font Mono"
 font-style = Regular
-font-variation = wght=425
-font-thicken = true
-font-thicken-strength = 32
 font-size = 12
 
 # Window
