@@ -77,7 +77,7 @@ nvim +LazyExtras
 ```bash
 # Record terminal session and convert to GIF
 asciinema rec demo.cast
-agg --theme nord --font-size 16 --font-family "IosevkaTerm Nerd Font Mono" demo.cast ~/Pictures/demo.gif && rm demo.cast
+agg --theme nord --font-size 16 --font-family "RecMonoCasual Nerd Font Mono" demo.cast ~/Pictures/demo.gif && rm demo.cast
 ```
 
 ## Architecture & Key Concepts

@@ -7,7 +7,7 @@ function rec
 
     asciinema rec /tmp/demo.cast
     agg --theme nord --font-size 16 \
-        --font-family "IosevkaTerm Nerd Font Mono" \
+        --font-family "RecMonoCasual Nerd Font Mono" \
         /tmp/demo.cast ~/Pictures/demo.gif
 
     if test -f ~/Pictures/demo.gif

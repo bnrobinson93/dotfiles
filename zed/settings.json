@@ -33,7 +33,7 @@
   "ui_font_family": ".ZedSans",
   "terminal": {
     "font_size": 16.0,
-    "font_family": "IosevkaTerm Nerd Font Mono"
+    "font_family": "RecMonoCasual Nerd Font Mono"
   },
   "base_keymap": "VSCode",
   "git_panel": {
@@ -48,7 +48,7 @@
   "auto_indent_on_paste": true,
   "wrap_guides": [120],
   "hard_tabs": false,
-  "buffer_font_family": "IosevkaTerm Nerd Font Mono",
+  "buffer_font_family": "RecMonoCasual Nerd Font Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",
   "icon_theme": {

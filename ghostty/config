@@ -3,7 +3,7 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "IosevkaTerm Nerd Font Mono"
+font-family = "RecMonoCasual Nerd Font Mono"
 font-style = Regular
 font-size = 12
 

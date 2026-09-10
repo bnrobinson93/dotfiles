@@ -148,7 +148,7 @@ type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   function rec {
     asciinema rec /tmp/demo.cast
-    agg --theme nord --font-size 16 --font-family "IosevkaTerm Nerd Font Mono" /tmp/demo.cast ~/Pictures/demo.gif
+    agg --theme nord --font-size 16 --font-family "RecMonoCasual Nerd Font Mono" /tmp/demo.cast ~/Pictures/demo.gif
     [ -f ~/Pictures/demo.gif ] && rm /tmp/demo.cast
   }
 fi
