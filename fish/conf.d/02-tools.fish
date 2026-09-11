@@ -41,13 +41,6 @@ set -g fish_complete_path $cache_dir/completions $fish_complete_path
 __cache_gen $cache_dir/completions/jj.fish jj env COMPLETE=fish jj
 __cache_gen $cache_dir/completions/mise.fish mise mise completion fish
 
-# 1Password SSH signing setup
-if set -q USE_1PASSWORD_SSH
-    if type -q op; and not test -f $HOME/.ssh/allowed_signers
-        op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
-    end
-end
-
 # Homebrew - shellenv output is static, cache it like the rest
 # Supports macOS Apple Silicon and Linux
 if test -d /opt/homebrew
