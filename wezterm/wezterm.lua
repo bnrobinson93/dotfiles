@@ -45,8 +45,7 @@ local config = {
 
 	-- Font
 	font = wezterm.font_with_fallback({
-		"Recursive Mono Casual",
-		"Symbols Nerd Font Mono",
+		"RecMonoLinear Nerd Font Propo",
 		"Fira Code",
 		"JetBrains Mono",
 	}),

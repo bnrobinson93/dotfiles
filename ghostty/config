@@ -3,28 +3,9 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "Recursive"
-font-family = "Symbols Nerd Font Mono"
-font-style = "Mono Casual"
-font-style-bold = "Mono Casual Bold"
-font-style-italic = "Mono Casual Italic"
-font-style-bold-italic = "Mono Casual Bold Italic"
-font-variation = MONO=1
-font-variation = CASL=1
-font-variation = wght=425
-font-variation-italic = MONO=1
-font-variation-italic = CASL=1
-font-variation-italic = wght=425
-font-variation-italic = slnt=-15
-font-variation-italic = CRSV=1
-font-variation-bold = MONO=1
-font-variation-bold = CASL=1
-font-variation-bold = wght=700
-font-variation-bold-italic = MONO=1
-font-variation-bold-italic = CASL=1
-font-variation-bold-italic = wght=700
-font-variation-bold-italic = slnt=-15
-font-variation-bold-italic = CRSV=1
+# Static Nerd Font build, not Recursive_VF: macOS registers the variable font as
+# one garbled face, so CoreText cannot select the Mono Linear instance.
+font-family = "RecMonoLinear Nerd Font Propo"
 font-size = 12
 
 # Window
