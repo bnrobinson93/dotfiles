@@ -1,0 +1,13 @@
+[Unit]
+Description=Herdr terminal workspace server
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/.local/share/mise/shims/herdr server
+ExecStartPost=-%h/.local/bin/herdr-boot-agents
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
