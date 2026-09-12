@@ -58,7 +58,11 @@ fi
 # for history
 if type atuin >/dev/null 2>&1; then
   . "$HOME/.atuin/bin/env"
-  eval "$(atuin init zsh --disable-up-arrow)"
+  atuin_cache="$HOME/.cache/zsh/atuin_init.zsh"
+  if [[ ! -f "$atuin_cache" || "$(command -v atuin)" -nt "$atuin_cache" ]]; then
+    atuin init zsh --disable-up-arrow > "$atuin_cache" 2>/dev/null
+  fi
+  source "$atuin_cache"
 fi
 
 # SIMPLIFIED STARSHIP - cache init but load synchronously when interactive
