@@ -43,6 +43,15 @@ run = [
   "stow -v2 -t ~/.ssh -R dot-ssh --dotfiles",
 ]
 
+[tasks.install-services]
+description = "Deploy and enable opt-in systemd user services (herdr, ...) — run deliberately per machine"
+dir = "~/.dotfiles"
+run = [
+  "stow -v2 systemd",
+  "systemctl --user daemon-reload",
+  "systemctl --user enable --now herdr",
+]
+
 [tasks.skills]
 description = "Deploy AI config and install/update skills and plugins"
 dir = "~/.dotfiles"

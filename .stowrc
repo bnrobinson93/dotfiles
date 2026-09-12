@@ -13,4 +13,5 @@
 --ignore=resources
 --ignore=^\.env$
 --ignore=starship
+--ignore=systemd
 --ignore=shell.*\.json
