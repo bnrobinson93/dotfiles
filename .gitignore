@@ -70,3 +70,8 @@ ai/dot-codex/*
 
 # Skills we symlink in are ours; .system is Codex's own, reinstalled on upgrade.
 ai/dot-codex/skills/.system/
+
+# ~/.config/atuin is the whole atuin/ dir symlinked in; atuin writes its own
+# runtime files (receipts, etc.) alongside config.toml. Only track the config.
+atuin/*
+!atuin/config.toml

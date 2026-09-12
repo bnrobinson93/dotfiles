@@ -68,7 +68,6 @@ end
 set -gx fzf_preview_dir_cmd eza --all --color=always
 set -gx FZF_DEFAULT_OPTS "\
 --height=50% \
---tmux bottom,40% \
 --layout=reverse \
 --border top \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
