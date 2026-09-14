@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# herdr-boot-agents — (re)create the standing vault/dots Claude workspaces
+# whenever the herdr server (re)starts, not just at machine boot.
+#
+# Run as herdr.service's ExecStartPost, so it fires on every start: a clean
+# boot, an update-driven self-restart, or a Restart=always crash recovery.
+# Idempotent by design — only starts an agent for a cwd that doesn't already
+# have a live claude agent, so a bare restart never piles up duplicates.
+set -uo pipefail
+
+for _ in $(seq 1 30); do
+  herdr status --json 2>/dev/null | jq -e '.server.running' >/dev/null 2>&1 && break
+  sleep 1
+done
+
+has_agent() {
+  local cwd="$1"
+  herdr agent list 2>/dev/null | jq -e --arg cwd "$cwd" \
+    '.result.agents[]? | select(.agent == "claude" and .cwd == $cwd)' >/dev/null 2>&1
+}
+
+ensure_agent() {
+  local label="$1" cwd="$2"
+  has_agent "$cwd" && return 0
+
+  local pane
+  pane=$(herdr workspace create --cwd "$cwd" --label "$label" --focus | jq -r '.result.root_pane.pane_id')
+
+  # agent start returns before the agent registers with the server, so a
+  # restart landing in that gap would otherwise see no agent yet and spawn
+  # a duplicate workspace on top of this one — poll instead of trusting it.
+  herdr agent start "$label" --kind claude --pane "$pane"
+  for _ in $(seq 1 30); do
+    has_agent "$cwd" && return 0
+    sleep 1
+  done
+}
+
+mkdir -p /home/brad/Documents/code
+
+ensure_agent vault /home/brad/Documents/Vault
+ensure_agent dots /home/brad/.dotfiles
+ensure_agent code /home/brad/Documents/code
