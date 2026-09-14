@@ -123,6 +123,13 @@ if ! jj workspace add "$WORKTREE" 2>&1 | grep -v '^Hint:'; then
 fi
 cd "$WORKTREE" || { alert "jj workspace vanished after creation"; exit 1; }
 
+# mise/config.toml has a [tasks] block, which mise's trust model treats as
+# unsafe (unlike a plain [tools] list), and jj workspaces don't get the
+# trust-sharing that git worktrees do. Without this, every `mise` subcommand
+# that isn't `run`/`install`/`exec`/`watch` (e.g. `mise config`, completion
+# regeneration) fails with an untrusted-config error in this fresh workspace.
+mise trust -y "$WORKTREE" || true
+
 echo "--- claude review ---"
 jj new 'trunk()' -m "ai: nightly dotfiles review" 2>&1 | grep -v '^Hint:'
 
