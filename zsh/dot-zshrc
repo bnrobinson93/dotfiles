@@ -119,13 +119,23 @@ fi
 export fzf_preview_dir_cmd="eza --all --color=always"
 export FZF_DEFAULT_OPTS="\
 --height=50% \
---tmux bottom,40% \
 --layout=reverse \
 --border top \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
 --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
 --color=selected-bg:#45475A \
 --color=border:#6C7086,label:#CDD6F4"
+
+# fzf for path fill only (^T file, Alt-C cd, **<Tab> completion). Its script
+# also claims ^R; atuin owns history search, so rebind ^R back right after.
+if [[ -o interactive ]] && type fzf >/dev/null 2>&1; then
+  eval "$(fzf --zsh)"
+  if type atuin >/dev/null 2>&1; then
+    bindkey -M emacs '^r' atuin-search
+    bindkey -M viins '^r' atuin-search-viins
+    bindkey -M vicmd '/' atuin-search
+  fi
+fi
 
 # type rg >/dev/null 2>&1 && alias grep="rg"
 # type fd >/dev/null 2>&1 && alias find="fd"
