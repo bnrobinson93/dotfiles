@@ -1,7 +1,8 @@
 ---
 name: implement
 description: Implement an approved Matt-style spec in an independent writable context.
-thinking: high
+model: openai/gpt-5.6-luna
+thinking: xhigh
 tools: read,bash,edit,write,grep,find,ls
 inactivityTimeout: 900
 sessionPreference: ephemeral

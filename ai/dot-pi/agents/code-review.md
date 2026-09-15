@@ -1,7 +1,8 @@
 ---
 name: code-review
 description: Matt two-axis Standards and Spec review in an independent coordinator context.
-thinking: high
+model: anthropic/claude-opus-5
+thinking: medium
 tools: read,bash,grep,find,ls,subagent
 inactivityTimeout: 900
 sessionPreference: ephemeral

@@ -16,6 +16,7 @@ for dir in $common_bin_dirs
 end
 
 # Essential paths
+fish_add_path $PNPM_HOME/bin
 fish_add_path $PNPM_HOME
 fish_add_path $HOME/.bun/bin
 fish_add_path $HOME/.local/bin
