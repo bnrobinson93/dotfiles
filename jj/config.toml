@@ -14,6 +14,7 @@ log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancesto
 # 3. Keep bases that are relevant to my work, but *only* where my stuff lives
 
 [revset-aliases]
+'immutable_heads()' = 'builtin_immutable_heads() | (trunk().. & ~mine())'
 'closest_bookmark(to)' = 'heads(::to & bookmarks() & ~trunk())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
 'bases' = 'trunk() | present(develop) | present(main)'
@@ -106,9 +107,6 @@ push = [
   """,
 ]
 
-[commit]
-sign = true
-
 [ui]
 pager = "cat"
 default-command = ["my_log"]
@@ -166,7 +164,7 @@ committer = "#94e2d5"
 
 # Per-machine override: conf.d/z-local.toml (see README, SSH section)
 [signing]
-behavior = "own"
+behavior = "keep"
 key = "~/.ssh/id_ed25519_GitHubSigning"
 backend = "ssh"
 
