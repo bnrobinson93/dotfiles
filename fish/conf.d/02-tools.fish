@@ -33,6 +33,11 @@ fish_add_path $HOME/.local/share/mise/shims
 __cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
 and source $cache_dir/zoxide.fish
 
+# Atuin - shell history search (matches zsh: native up-arrow stays fish's
+# own history, atuin owns ctrl-r; see fish_user_key_bindings.fish)
+__cache_gen $cache_dir/atuin.fish atuin atuin init fish --disable-up-arrow
+and source $cache_dir/atuin.fish
+
 # Completions (jj, mise): generated into a dir on fish_complete_path so fish
 # autoloads them on first tab-complete instead of parsing them at startup.
 set -g fish_complete_path $cache_dir/completions $fish_complete_path
