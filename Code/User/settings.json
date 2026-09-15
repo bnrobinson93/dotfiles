@@ -1,5 +1,5 @@
 {
-  "editor.fontFamily": "'Dank Mono', 'Courier New', monospace",
+  "editor.fontFamily": "'Recursive', 'Symbols Nerd Font Mono', 'Courier New', monospace",
   "editor.fontLigatures": true,
   "editor.fontSize": 18,
   "editor.formatOnPaste": false,
@@ -99,9 +99,9 @@
     "vscode.vim": 1
   },
   "git.enabled": false,
-  "editor.fontWeight": 450,
-  "editor.fontVariations": true,
-  "terminal.integrated.fontFamily": "\"Dank Mono Nerd Font Propo\"",
+  "editor.fontWeight": 425,
+  "editor.fontVariations": "'MONO' 1, 'CASL' 1, 'wght' 425, 'CRSV' 0.5",
+  "terminal.integrated.fontFamily": "\"Recursive\", \"Symbols Nerd Font Mono\"",
   "terminal.integrated.fontSize": 16,
   "gitlens.ai.model": "vscode",
   "gitlens.ai.vscode.model": "copilot:gpt-4.1",

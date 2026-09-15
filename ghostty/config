@@ -3,8 +3,9 @@ config-file = ?"~/.config/ghostty/auto/theme.ghostty"
 background-blur-radius = 20
 
 # Font
-font-family = "Dank Mono Nerd Font Propo"
-font-style = Regular
+# Static Nerd Font build, not Recursive_VF: macOS registers the variable font as
+# one garbled face, so CoreText cannot select the Mono Linear instance.
+font-family = "RecMonoLinear Nerd Font Propo"
 font-size = 12
 
 # Window
