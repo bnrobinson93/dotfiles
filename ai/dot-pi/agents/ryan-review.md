@@ -1,7 +1,8 @@
 ---
 name: ryan-review
 description: Independent backend review; applies the `ryan-review` skill, whose description defines its scope.
-thinking: high
+model: anthropic/claude-opus-5
+thinking: medium
 tools: read,bash,grep,find,ls
 inactivityTimeout: 600
 sessionPreference: ephemeral
