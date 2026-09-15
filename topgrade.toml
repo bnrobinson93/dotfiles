@@ -6,5 +6,13 @@
 # Prompt before each step group instead of blasting through; drop if annoying.
 # assume_yes = true
 
+[git]
+# JJ owns this repo; Git sees its detached export and cannot pull it safely.
+pull_predefined = false
+
+[containers]
+# Local-only development images are not published registries.
+ignored_containers = ["saas-dsp:*", "data-harbor:*"]
+
 [commands]
 "AI skills & plugins" = "$HOME/.dotfiles/update-skills.sh"

@@ -9,7 +9,8 @@ set -u
 # ponytail lives in the code-quality skill; ryan-review/sara-review carry their own self-contained instincts.
 SKILLS=(
   "vercel-labs/skills#find-skills||shared"
-  "modem-dev/hunk#hunk-review||shared"
+  # hunk-review is no longer published by modem-dev/hunk; retain local install.
+  "modem-dev/hunk#hunk-review|manual|shared"
   "openai/skills#figma||shared"
   "mattpocock/skills||shared"
 )
