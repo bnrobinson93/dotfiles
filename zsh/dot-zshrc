@@ -379,7 +379,7 @@ zsh_load_deferred() {
   # `vivid generate` costs ~900ms per shell start.
   if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
     local vivid_cache="$HOME/.cache/zsh/vivid-catppuccin-mocha.txt"
-    if [[ ! -f "$vivid_cache" ]] || [[ -n "$(find "$vivid_cache" -mtime +7 2>/dev/null)" ]]; then
+    if [[ ! -f "$vivid_cache" ]]; then
       vivid generate catppuccin-mocha > "$vivid_cache"
     fi
     export LS_COLORS="$(cat "$vivid_cache")"
