@@ -375,9 +375,14 @@ zsh_load_deferred() {
     echo -ne '\e[5 q'
   }
 
-  # Colors
+  # Colors - cache vivid output like the fish side (00-env.fish): uncached
+  # `vivid generate` costs ~900ms per shell start.
   if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
-    export LS_COLORS="$(vivid generate catppuccin-mocha)"
+    local vivid_cache="$HOME/.cache/zsh/vivid-catppuccin-mocha.txt"
+    if [[ ! -f "$vivid_cache" ]] || [[ -n "$(find "$vivid_cache" -mtime +7 2>/dev/null)" ]]; then
+      vivid generate catppuccin-mocha > "$vivid_cache"
+    fi
+    export LS_COLORS="$(cat "$vivid_cache")"
     export EZA_COLORS="$LS_COLORS"
   fi
 
