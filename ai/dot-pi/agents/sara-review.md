@@ -1,7 +1,8 @@
 ---
 name: sara-review
 description: Independent frontend review; applies the `sara-review` skill, whose description defines its scope.
-thinking: high
+model: anthropic/claude-opus-5
+thinking: medium
 tools: read,bash,grep,find,ls
 inactivityTimeout: 600
 sessionPreference: ephemeral

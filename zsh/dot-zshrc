@@ -16,7 +16,7 @@ export ZETTELKASTEN=$HOME/Documents/Vault
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
 # Static list instead of `find $HOME -maxdepth 2` — that scan ran every shell start
-ASSORTED_BIN_DIRS="$HOME/.local/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.docker/bin:$HOME/.yarn/bin"
+ASSORTED_BIN_DIRS="$HOME/.local/bin:$PNPM_HOME/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.docker/bin:$HOME/.yarn/bin"
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
@@ -57,7 +57,7 @@ fi
 
 # for history
 if type atuin >/dev/null 2>&1; then
-  . "$HOME/.atuin/bin/env"
+  [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
   atuin_cache="$HOME/.cache/zsh/atuin_init.zsh"
   if [[ ! -f "$atuin_cache" || "$(command -v atuin)" -nt "$atuin_cache" ]]; then
     atuin init zsh --disable-up-arrow > "$atuin_cache" 2>/dev/null
@@ -148,7 +148,7 @@ type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   function rec {
     asciinema rec /tmp/demo.cast
-    agg --theme nord --font-size 16 --font-family "MesloLGL Nerd Font,FiraCode Nerd Font,DankMono Nerd Font" /tmp/demo.cast ~/Pictures/demo.gif
+    agg --theme nord --font-size 16 --font-family "Recursive Mono Casual,Symbols Nerd Font Mono" /tmp/demo.cast ~/Pictures/demo.gif
     [ -f ~/Pictures/demo.gif ] && rm /tmp/demo.cast
   }
 fi

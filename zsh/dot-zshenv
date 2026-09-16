@@ -17,6 +17,7 @@ for dir in \
   "$HOME/.local/share/mise/shims" \
   /opt/homebrew/bin \
   /home/linuxbrew/.linuxbrew/bin \
+  "$PNPM_HOME/bin" \
   "$PNPM_HOME" \
   "$BUN_INSTALL/bin" \
   "$HOME/go/bin" \
