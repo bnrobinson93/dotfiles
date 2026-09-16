@@ -102,6 +102,7 @@ runs:
 
         echo hello > file.txt
         jj commit -m "jj signed commit"
+        jj sign
 
         # Exercises revset aliases + log templates from jj/config.toml
         jj
