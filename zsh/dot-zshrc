@@ -172,13 +172,21 @@ function ignore {
 }
 
 _jj_workspace_sync_git_env() {
-  local workspace_root workspace_base main_base main_root git_dir
+  local workspace_root workspace_base main_base main_root git_dir dir
   local workspace_suffix_re='-(ai[0-9]*|exp|explore)$'
 
-  workspace_root=$(jj workspace root 2>/dev/null) || {
+  # Walk up for the nearest .jj marker instead of spawning `jj workspace
+  # root`: that fork+exec cost ~40ms on every shell start and every cd
+  # (measured via zprof), since it ran unconditionally before this check.
+  dir="$PWD"
+  while [[ "$dir" != "/" && ! -e "$dir/.jj" ]]; do
+    dir=${dir:h}
+  done
+  if [[ ! -e "$dir/.jj" ]]; then
     unset GIT_DIR
     return 0
-  }
+  fi
+  workspace_root="$dir"
 
   workspace_base=${workspace_root:t}
   if [[ ! "$workspace_base" =~ "$workspace_suffix_re" ]]; then
@@ -447,22 +455,30 @@ function get_completions() {
     }
   fi
 
-  # JJ — cache completions, regenerate only when the jj binary changes
+  # JJ / Mise completions — true lazy autoload, matching the fish side
+  # (fish_complete_path): drop the generated #compdef script under a
+  # dir on $fpath and let zsh's own completion autoloader parse it on
+  # first Tab-press, instead of `source`-ing it here every shell start.
+  # jj's script alone is ~5300 lines; eagerly sourcing it cost ~48ms on
+  # every startup regardless of whether jj completion was ever used.
+  local comp_cache="$HOME/.cache/zsh/completions"
+  mkdir -p "$comp_cache"
+  fpath=("$comp_cache" $fpath)
+
   if type jj >/dev/null 2>&1; then
-    local jjc="$HOME/.cache/zsh/jj_completion.zsh"
+    local jjc="$comp_cache/_jj"
     if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
       jj util completion zsh > "$jjc" 2>/dev/null
     fi
-    source "$jjc"
+    compdef _jj jj
   fi
 
-  # Mise — cache completions, regenerate only when the mise binary changes
   if type mise >/dev/null 2>&1; then
-    local misec="$HOME/.cache/zsh/mise_completion.zsh"
+    local misec="$comp_cache/_mise"
     if [[ ! -f "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
       mise completion zsh > "$misec" 2>/dev/null
     fi
-    source "$misec"
+    compdef _mise mise
   fi
 }
 
