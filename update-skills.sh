@@ -13,6 +13,9 @@ SKILLS=(
   "modem-dev/hunk#hunk-review|manual|shared"
   "openai/skills#figma||shared"
   "mattpocock/skills||shared"
+  # tuicr publishes its own skill with the multiplexer wrappers it tells agents to
+  # run. ai/skills held a vendored copy that drifted and shipped none of them.
+  "agavra/tuicr#tuicr||shared"
 )
 
 PI_PACKAGES=(
@@ -110,7 +113,11 @@ deploy_local_ai() {
   # Pi reads ~/.pi/agent/AGENTS.md and ~/.pi/agent/skills, so it takes the same
   # shared payload as the others; its agents then need no cross-harness paths.
   local roots=("$claude_home" "$codex_home" "$opencode_home" "$pi_agent_home")
+  # --no-folding keeps <root>/skills a real directory. Folded, it is one symlink back
+  # into ai/skills, and every managed skill the skills CLI installs for Claude Code
+  # lands inside this repo.
   local shared_stow_args=(
+    --no-folding
     --ignore=dot-codex
     --ignore=dot-claude
     --ignore=dot-config

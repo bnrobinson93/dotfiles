@@ -80,7 +80,8 @@ test_new_machine_installs_without_removing() {
     "ponytail": {"source": "DietrichGebert/ponytail"},
     "hunk-review": {"source": "modem-dev/hunk"},
     "teach": {"source": "mattpocock/skills"},
-    "grilling": {"source": "mattpocock/skills"}
+    "grilling": {"source": "mattpocock/skills"},
+    "tuicr": {"source": "agavra/tuicr"}
   }
 }
 EOF
@@ -108,7 +109,8 @@ test_rerun_removes_only_stale_resolved_skills() {
     "figma": {"source": "openai/skills"},
     "ponytail": {"source": "DietrichGebert/ponytail"},
     "hunk-review": {"source": "modem-dev/hunk"},
-    "teach": {"source": "mattpocock/skills"}
+    "teach": {"source": "mattpocock/skills"},
+    "tuicr": {"source": "agavra/tuicr"}
   }
 }
 EOF
@@ -130,7 +132,7 @@ test_failed_update_preserves_snapshot_and_skips_removal() {
   local case_dir="$test_root/failed-update"
   mkdir -p "$case_dir/state/skills" "$case_dir/state/dotfiles"
   cat >"$case_dir/state/skills/.skill-lock.json" <<'EOF'
-{"skills": {"teach": {"source": "mattpocock/skills"}}}
+{"skills": {"teach": {"source": "mattpocock/skills"}, "tuicr": {"source": "agavra/tuicr"}}}
 EOF
   cat >"$case_dir/state/dotfiles/managed-skills.tsv" <<'EOF'
 retired/skills||shared	claude-code,codex,opencode	retired-skill

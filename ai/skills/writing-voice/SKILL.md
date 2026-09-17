@@ -31,7 +31,7 @@ Do not use for:
 
 - **Co-pilgrim, not lecturer.** "We," "our," "us." Pose the tension; walk through it together. Land on application, not pronouncement
 - **Conversational asides land hard.** "First, what on earth? So random!" "the easy answer is tough love every time!" Short interjections break up exposition and mark a real person thinking out loud
-- **Em-dashes sparingly.** His natural use sits between a paren and a comma (a soft pause), but em-dash now reads as an AI tell. Default to comma or paren; reach for em-dash only when the pause genuinely needs the weight, and never stack multiple in one paragraph
+- **No em-dashes.** His natural use sits between a paren and a comma (a soft pause), but em-dash now reads as an AI tell. Use a comma, or end the sentence
 - **Bullet-led structure with embedded callouts.** Section headers (Context / The Case For / The Case Against / Closing Thoughts / Application); bullets carry the argument; quotes/scripture indented as evidence; numbered sub-lists for enumerated pitfalls
 - **Pithy reframes earn their keep.** "Be a thermostat, not a thermometer." "If you want to go fast, go alone. If you want to go far, go together." One memorable line beats a paragraph
 - **Specificity over abstraction.** Hebrew/Greek roots with Strong's-style citation when relevant; concrete numbers; named patterns ("passivity trap," "guilt loop")
@@ -93,6 +93,12 @@ Simple writing is persuasive writing. A good argument in five sentences sways mo
 - Put each footnote definition immediately below the paragraph or list block containing the first reference, even when referenced again later. Renderers move footnotes to the bottom anyway; local placement makes writing and updating easier
 - Leave links with no body reference under one `## Links` section for later use
 - For mixed source lists, skip subheaders. Prefix each bullet with the source, e.g. `adr:` or `platform:`
+
+## Ownership
+
+This skill is Brad's own voice and outranks every general style guide, `unslop` included.
+`unslop` is the house default for text no voice skill claims, and it runs after this one to
+catch AI tells. Where the two disagree, this skill wins.
 
 ## Checklist before returning a draft
 

@@ -1,20 +1,23 @@
 ---
 name: learn-preferences
 description: >-
-  Feedback learning for Brad's durable coding style. Always invoke when Brad asks to
-  check, recheck, or double-check his comments in tuicr or hunk; says review feedback is ready
-  there; corrects code or coding choices in chat; or states a reusable coding rule such as
-  "that should not...", "we should...", "always...", "never...", or "I prefer...". Only
-  cross-project stylistic preferences update simplify; route repository and domain decisions
-  to project memory.
+  Route Brad's coding feedback to one durable home. Always invoke when he asks you to read his
+  review comments in tuicr or hunk, corrects a coding choice in chat, or states a reusable rule
+  ("that should not...", "we should...", "always...", "never...", "I prefer...").
 ---
 
 # Learn Preferences
 
-Turn user-authored coding feedback into one durable lesson with its rationale. Keep
-`../simplify/SKILL.md` canonical for cross-project style and project memory canonical for
-repository or domain knowledge. This skill owns capture and routing, not a second preference
-list.
+Turn user-authored coding feedback into one durable lesson with its rationale. Each lesson
+lands in exactly one of three homes:
+
+| Home | Holds |
+| --- | --- |
+| `~/.dotfiles/ai/skills/code-quality/references/` | The standing bar: comments, tests, laziness |
+| `~/.dotfiles/ai/skills/simplify/SKILL.md` | Learned cross-project preferences |
+| Project memory, via `remember-context` | Repository and domain knowledge |
+
+This skill owns capture and routing. The preference list itself lives in those homes.
 
 ## Workflow
 
@@ -59,9 +62,11 @@ list.
    Complete when every reusable lesson is a standalone rule with a reason.
 
 4. Update each lesson's canonical home once.
-   - For cross-project style, read `../simplify/SKILL.md` and search for equivalent or
-     conflicting guidance. Strengthen an existing rule before adding another. Replace
-     superseded guidance when newer explicit feedback conflicts.
+   - For cross-project style, read simplify and the matching `code-quality` reference file,
+     then search both for equivalent or conflicting guidance. Comment, test, and
+     over-engineering rules belong in the reference file; everything else goes in simplify's
+     learned preferences. Strengthen an existing rule before adding another, and replace
+     superseded guidance when newer explicit feedback conflicts, so the rule keeps one home.
    - For repository or domain knowledge, resolve the originating project from the review
      session, working directory, or code context, then apply `remember-context`. Ask only when
      multiple projects remain plausible.

@@ -11,6 +11,13 @@ description: >-
 Edit text to remove AI patterns while preserving requested voice, length, and formatting.
 This is a final writing pass, not a tone override. Caveman mode stays terse and fragmentary.
 
+## Rank
+
+This is the house style guide for text no other voice skill claims, and the last pass over text
+they do claim. `writing-voice` is Brad's own voice and outranks it: when a rule here would
+change how a piece sounds rather than strip a tell, that skill wins. Cut the tell and leave the
+voice.
+
 ## Process
 
 1. Scan for the patterns below.
