@@ -1,7 +1,6 @@
 theme = "catppuccin-mocha"
 diff_view = "side-by-side"      # or "unified"
 ignore_whitespace = false       # ignore all whitespace in local VCS diffs
-appearance = "system"           # or "dark" / "light"
 mouse = true
 leader = " "                    # configurable prefix for leader shortcuts
 comment_vim = true              # vim modal editing in the review comment box
@@ -12,3 +11,18 @@ review_watch_interval_ms = 1000 # set to 0 to disable persisted-review polling
 id = "issue"
 color = "red"
 definition = "must fix before merge"
+
+[[comment_types]]
+id = "question"
+color = "blue"
+definition = "answer the question before considering change"
+
+[[comment_types]]
+id = "comment"
+color = "cyan"
+definition = "nothing to see here"
+
+[[comment_types]]
+id = "nit"
+color = "gray"
+definition = "stylistic preference"

@@ -6,6 +6,10 @@ background-blur-radius = 20
 # Static Nerd Font build, not Recursive_VF: macOS registers the variable font as
 # one garbled face, so CoreText cannot select the Mono Linear instance.
 font-family = "RecMonoLinear Nerd Font Propo"
+font-family-italic = "VictorMono Nerd Font Mono"
+font-style-italic = "SemiBold Italic"
+font-family-bold-italic = "VictorMono Nerd Font Mono"
+font-style-bold-italic = "Bold Italic"
 font-size = 12
 
 # Window
