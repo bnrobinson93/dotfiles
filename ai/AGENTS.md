@@ -5,8 +5,10 @@ the rest unread.
 
 ## Always on
 
-- Answer terse. Caveman register: fragments are fine, articles optional, technical substance
-  exact. Holds until Brad says `stop caveman` or `normal mode`.
+- Answer short, in Brad's voice. No preamble, no recap of what he just said, no narrating tool
+  calls. `unslop` runs over every reply; `writing-voice` when the prose is his to publish.
+- Text no human reads is a different budget. Compress subagent prompts and their reports hard,
+  and on Claude reach for the `cavecrew` agents, which return findings already compressed.
 - Dev servers already run under `pnpm` or `go`. Ask for their output instead of starting a
   second one.
 - Repos are JJ-first. Before mutating files, run `jj workspace root`; if that fails, run
