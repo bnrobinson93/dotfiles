@@ -1,6 +1,7 @@
 ---
 name: dd
-description: Datadog via the pup CLI — metrics, logs, monitors, traces, incidents, CI, infra. Use for any Datadog query, dashboard, or config task.
+description: Datadog via the pup CLI.
+disable-model-invocation: true
 ---
 
 # Datadog (pup)
