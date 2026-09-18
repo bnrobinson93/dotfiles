@@ -1,9 +1,9 @@
 ---
 name: vcs
 description: >
-  Use for any repository inspection or mutation (commits, diffs, status, branches/bookmarks,
-  history). Repo may be Git or Jujutsu (jj); when a .jj directory exists, treat as JJ-first
-  and use jj instead of git. Full JJ workflow and command reference.
+  Use for any repository inspection or mutation: commits, diffs, status, bookmarks, history.
+  A repo with a .jj directory is JJ-first, where git is read-only and every mutation goes
+  through jj. Carries the JJ workflow and command reference.
 ---
 
 # Version Control Systems
@@ -17,18 +17,18 @@ Detect first (never combine detection commands — compound commands defeat allo
 
 ## JJ-first rules
 
-In JJ repository:
+**In a JJ repo, `git` is read-only.** Inspect with it if you like; every mutation goes through
+`jj`. That covers commit, checkout, switch, rebase, cherry-pick, stash, and branch
+creation or deletion, and it makes JJ the source of truth.
 
-- Do **not** use `git commit`, `git checkout`, `git switch`, `git rebase`, `git cherry-pick`, `git stash`, or branch
-  creation/deletion.
-- Do **not** use Git as source of truth when JJ available.
-- Human manages commit graph, bookmark placement, publication flow.
-- Default job: correct file edits **within current JJ change/workspace**.
-- No history rewriting unless explicitly asked.
-- No bookmark create/move/delete/publish unless explicitly asked.
-- No push/publish/PR unless explicitly asked.
-- If task needs history surgery or multiple changes, stop and explain recommended split — don't auto-execute.
-- Take advantage of the flexibility of changes by creating granular change IDs. They can always be squashed or moved around later
+The human owns the commit graph, bookmark placement, and publication. So:
+
+- Default job: correct file edits **within the current JJ change and workspace**.
+- History rewriting, bookmark create/move/delete, and push/publish/PR each wait for an
+  explicit ask.
+- When a task needs history surgery or several changes, stop and explain the split you
+  recommend rather than executing it.
+- Make changes granular. Change IDs are cheap, and squashing or moving them later is easy.
 
 ## Default JJ workflow for agents
 
@@ -63,31 +63,19 @@ Then summarize:
 
 ## Milestone commit policy
 
-Prefer multiple small local JJ changes over one large mixed change unless explicitly told otherwise.
+Local changes are **candidate history, not published history**, so they are cheap and you
+should make more of them. Cut one when a coherent subtask lands, when the work turns to a
+separate concern, or before a risky step you may want to walk back. Keep each narrow and
+described. When in doubt, split.
 
-When in doubt, bias toward additional local change rather than combining unrelated concerns.
+A milestone is the change alone. Bookmark moves and rewrites of earlier commits wait for an
+explicit ask.
 
-In JJ repos, create local commit/change when:
+## Workspace policy
 
-1. Coherent subtask complete, or
-2. Work diverges into separate concern, or
-3. Checkpoint useful before next risky/independent step.
-
-If creating local milestone commit/change:
-
-- Keep narrow and descriptive.
-- Candidate history, not final published history.
-- No bookmark create/move as part of that step.
-- No rewriting earlier commits unless explicitly asked.
-
-## Workspace Policy
-
-JJ workspaces = task sandboxes.
-
-- One workspace = one active task.
-- No `jj edit <rev>` to repoint workspace unless explicitly asked.
-- No additional workspaces unless explicitly asked.
-- If task should happen in different workspace/change, say so — don't auto-execute.
+A JJ workspace is a task sandbox: one workspace, one active task. Repointing it with
+`jj edit <rev>`, or adding another workspace, waits for an explicit ask. When the work belongs
+in a different workspace or change, say so instead of moving there yourself.
 
 ## Common JJ Commands
 
