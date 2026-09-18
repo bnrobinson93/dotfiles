@@ -31,5 +31,6 @@ Reference material, not a workflow. Read the file that covers what you are about
 - Call out scope creep the moment you notice it.
 - Propose the bold solution when it meaningfully wins. Boring is the default, not the ceiling.
 
-`simplify` enforces this bar over the finished diff. Meeting it while writing is cheaper than
-being walked back to it.
+Meeting this bar while writing is cheaper than being walked back to it. When the change is
+finished, run `simplify` over the diff before you report the work done. That pass is part of
+the task, not an optional extra.

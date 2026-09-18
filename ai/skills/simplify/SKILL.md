@@ -1,8 +1,10 @@
 ---
 name: simplify
 description: >-
-  Final gate before handback: enforce the house bar over the finished diff, comments first. Run
-  when coding is done, before reporting completion or handing the change to review.
+  Last gate before handback: enforce the house bar over the finished diff, comments first. Run
+  it after the final edit of a coding task, before saying the work is done, before filing a PR,
+  and whenever Brad asks to simplify, tidy, or clean up a change. Skipping it is a defect, not
+  a judgment call.
 ---
 
 # Simplify
