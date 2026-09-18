@@ -139,6 +139,11 @@ deploy_local_ai() {
   done
   try stow -R -d "$script_dir/ai" -t "$claude_home" dot-claude || true
   try stow -R -d "$script_dir/ai" -t "$pi_agent_home" dot-pi || true
+  # dot-config carries ~/.config/caveman/config.json, which sets defaultMode off and makes
+  # the compressed register opt-in per session. The wrapper package supplies the caveman/
+  # path segment, since stow places a package's contents directly into the target. The
+  # plugin only reads that file, so the symlink is safe.
+  try stow -R -d "$script_dir/ai" --no-folding -t "$xdg_config_home" dot-config || true
 }
 
 install_pi_packages() {
