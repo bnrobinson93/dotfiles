@@ -10,15 +10,6 @@ description: >
 
 # Writing Voice
 
-Apply only for prose-heavy work where style matters: long-form prose, documentation, code comments where prose matters, decision docs, READMEs, PR descriptions, anything Brad will publish or share.
-
-Do not use for:
-- routine implementation notes
-- terse chat replies
-- mechanical summaries
-- ordinary code edits where prose quality is not central
-- caveman-mode interaction
-
 ## Default process
 
 1. Identify audience and artifact: README, design doc, comment, essay, note, post, PR.

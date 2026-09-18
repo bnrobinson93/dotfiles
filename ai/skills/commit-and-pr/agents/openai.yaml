@@ -1,0 +1,4 @@
+interface:
+  display_name: "Commit and PR"
+  short_description: "Describe, push, and file the PR"
+  default_prompt: "Use $commit-and-pr to file a pull request for this work."

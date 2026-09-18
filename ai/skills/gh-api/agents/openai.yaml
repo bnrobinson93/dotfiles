@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub API"
+  short_description: "Call GitHub through gh api"
+  default_prompt: "Use $gh-api for this GitHub request."

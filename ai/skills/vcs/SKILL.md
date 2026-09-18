@@ -108,16 +108,3 @@ JJ workspaces = task sandboxes.
 
 - `trunk()` resolves to repo's configured trunk bookmark/reference.
 - In JJ repos, `gh` commands may need explicit bookmark/revision — JJ often operates headlessly.
-- If instruction suggests Git ops but in JJ repo, prefer JJ semantics.
-
-## Task-Local Overrides
-
-Task prompt may override default JJ behavior for session. Human may instruct to:
-
-- Stay in single-change mode
-- Create milestone commits for coherent subtasks
-- Draft PR text after implementation
-- Inspect or move to specific revision
-- Prepare work for bookmark-based PR flow
-
-Task-local instructions override defaults here.

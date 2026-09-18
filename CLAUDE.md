@@ -140,9 +140,11 @@ added here must work without harness-specific paths.
 - **`ai/skills/<name>/SKILL.md`** — frontmatter `name` must equal the directory name. Claude
   keys off the directory and the other harnesses key off the frontmatter, so a mismatch makes a
   skill unreachable from one of them.
-- **`ai/skills/<name>/references/*.md`** carries standards a skill routes to instead of
-  inlining. Point at them as `~/.dotfiles/ai/...`, the one path that resolves from every
-  harness root.
+- **Skill anatomy** follows the shared convention: `SKILL.md`, plus `references/` for docs
+  loaded on demand, `scripts/` for deterministic code, `agents/openai.yaml` for the Codex
+  display name and default prompt. Point at a reference as `~/.dotfiles/ai/...`, the one path
+  that resolves from every harness root. All trigger wording belongs in the description; the
+  body only loads once the skill has fired.
 - **One rule, one home.** `code-quality/references/` owns the standing bar, `simplify` owns
   learned cross-project preferences and enforces the bar over a finished diff, project memory
   owns repository and domain facts. `learn-preferences` routes new rules between them.

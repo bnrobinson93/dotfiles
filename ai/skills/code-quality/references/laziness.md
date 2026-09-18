@@ -38,7 +38,10 @@ patching only the path the ticket names leaves every sibling caller broken.
   ceiling (global lock, O(n²) scan, naive heuristic), the comment names the ceiling and the
   upgrade path.
 - Delete unused configuration and future-facing APIs until concrete behavior needs them.
-  Placeholder knobs create compatibility debt and invite callers to depend on no-ops.
+  Placeholder knobs create compatibility debt and invite callers to depend on no-ops. A CLI
+  flag is configuration: a script takes the arguments the task named, and earns a flag when
+  a caller needs to vary that input. `--algo`, `--quiet`, and a tuning threshold nobody asked
+  for are the usual three that sneak through.
 - Compute values from data already in scope rather than passing a redundant prop or argument.
   Redundant inputs increase coupling.
 - One concept, one authoritative home. Consumers reuse or inject it rather than copy it.
