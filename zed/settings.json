@@ -7,6 +7,13 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "markdown_preview_code_font_family": "Maple Mono NF",
+  "markdown_preview_font_family": "P052",
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry"
+    }
+  },
   "double_click_in_multibuffer": "open",
   "agent": {
     "default_model": {
@@ -32,12 +39,15 @@
   },
   "ui_font_family": ".ZedSans",
   "terminal": {
-    "font_size": 16.0,
-    "font_family": "Recursive Mono Casual"
+    "font_family": "RecMonoLinear Nerd Font Mono",
+    "font_fallbacks": [
+      "Symbols Nerd Font Mono"
+    ],
+    "font_size": 16.0
   },
   "base_keymap": "VSCode",
   "git_panel": {
-    "button": true
+    "button": false
   },
   "minimap": {
     "show": "never"
@@ -45,10 +55,10 @@
   "autosave": "on_focus_change",
   "buffer_font_weight": 425.0,
   "buffer_font_fallbacks": ["Symbols Nerd Font Mono", "Courier New", "monospace"],
-  "auto_indent_on_paste": true,
+  "auto_indent_on_paste": false,
   "wrap_guides": [120],
-  "hard_tabs": false,
-  "buffer_font_family": "Recursive Mono Casual",
+  "hard_tabs": true,
+  "buffer_font_family": "Dank Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",
   "icon_theme": {
