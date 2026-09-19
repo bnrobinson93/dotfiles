@@ -2,7 +2,7 @@
 name: sara-review
 description: Independent frontend review; applies the `sara-review` skill, whose description defines its scope.
 model: anthropic/claude-sonnet-5
-thinking: low
+thinking: medium
 tools: read,bash,grep,find,ls
 inactivityTimeout: 600
 sessionPreference: ephemeral
