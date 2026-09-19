@@ -1,0 +1,4 @@
+interface:
+  display_name: "Simplify"
+  short_description: "Last gate over a finished diff"
+  default_prompt: "Use $simplify over the finished diff before handback."

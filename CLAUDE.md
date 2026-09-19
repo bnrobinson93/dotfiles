@@ -128,6 +128,38 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
 - Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
 
+### Shared AI Config (`ai/`)
+
+`update-skills.sh` (`mise run skills`) stows `ai/` into four harness roots: `~/.claude`,
+`~/.codex`, `~/.config/opencode`, and `~/.pi/agent`. One payload, four agents, so anything
+added here must work without harness-specific paths.
+
+- **`ai/AGENTS.md`** (with `CLAUDE.md` symlinked to it) is injected into every prompt, so it
+  stays hooks-only: a few always-true facts and a trigger-to-skill table. Detail belongs in a
+  skill, never here.
+- **`ai/skills/<name>/SKILL.md`** — frontmatter `name` must equal the directory name. Claude
+  keys off the directory and the other harnesses key off the frontmatter, so a mismatch makes a
+  skill unreachable from one of them.
+- **Skill anatomy** follows the shared convention: `SKILL.md`, plus `references/` for docs
+  loaded on demand, `scripts/` for deterministic code, `agents/openai.yaml` for the Codex
+  display name and default prompt. Point at a reference as `~/.dotfiles/ai/...`, the one path
+  that resolves from every harness root. All trigger wording belongs in the description; the
+  body only loads once the skill has fired.
+- **One rule, one home.** `code-quality/references/` owns the standing bar, `simplify` owns
+  learned cross-project preferences and enforces the bar over a finished diff, project memory
+  owns repository and domain facts. `learn-preferences` routes new rules between them.
+- **A skill its upstream publishes belongs in `SKILLS` in `update-skills.sh`, not in
+  `ai/skills/`.** The vendored copy of tuicr's skill drifted for months and shipped none of the
+  wrapper scripts it told agents to run.
+- **`ai` stows with `--no-folding`.** Folded, `~/.claude/skills` is one symlink back into
+  `ai/skills`, and every managed skill the skills CLI installs for Claude Code lands in this
+  repo. Same hazard as `stow omarchy`.
+- **`ai/dot-claude/`** and **`ai/dot-pi/`** are the only harness-specific packages. Codex's
+  `config.toml`, `hooks.json`, and `herdr-agent-state.sh` under `ai/dot-codex/` are seeds
+  copied by hand; nothing deploys them, because Codex and Herdr rewrite those files in place.
+
+Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
+
 ### Neovim Plugin Architecture
 
 **Base**: LazyVim framework with modular plugin system

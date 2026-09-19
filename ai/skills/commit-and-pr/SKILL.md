@@ -1,13 +1,26 @@
 ---
-name: file-pr
-description: file a concise pull request. Use when the user asks to file, open, or create a PR or create a PR description.
+name: commit-and-pr
+description: File a concise pull request, describing and pushing the work first when that is still outstanding. Use when Brad asks to file a PR, write a PR description, or commit and push finished work.
 ---
 
-# File PR
+# Commit and PR
 
-Before filing, check whether a PR for the branch already exists. Review the diff locally against the parent branch or main to ensure its contents match the goal.
+## Get the work pushed
 
-PRs are squashed so the title becomes the commit message, so follow the repositories title conventions.
+The change is usually committed and pushed already. When it is not, apply the `vcs` skill and
+finish that here rather than handing the work back.
+
+1. Describe undescribed work. In JJ, split unrelated concerns into their own changes, then
+   `jj desc -m` each. In Git, commit them separately.
+2. Push it. In JJ, `jj push` resolves the bookmark and creates one when the change has none.
+
+Complete when the bookmark or branch is on the remote carrying every change meant for this PR.
+
+## File the PR
+
+Check whether a PR for the branch already exists. Review the diff locally against the parent branch or main to ensure its contents match the goal.
+
+PRs are squashed so the title becomes the commit message; follow the repository's title conventions.
 Look at recently merged PRs and Git history for example if needed.
 
 Prefer a concise, human-readable title that explains why the change matters. Include the ticket ID when one is available. Use a scope only when the changes stay within one area and recent PR titles use scopes; infer it from the changed paths.

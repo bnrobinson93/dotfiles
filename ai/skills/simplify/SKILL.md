@@ -1,53 +1,73 @@
 ---
 name: simplify
-description: Review finished code against Brad's cross-project coding style, simplifying and streamlining before handback. Use automatically whenever coding is done and ready for user review. Repository and domain decisions belong in project memory, not this skill.
+description: >-
+  Last gate before handback: enforce the house bar over the finished diff, comments first. Run
+  it after the final edit of a coding task, before saying the work is done, before filing a PR,
+  and whenever Brad asks to simplify, tidy, or clean up a change. Skipping it is a defect, not
+  a judgment call.
 ---
 
 # Simplify
 
-Review changes in the current branch or jj bookmark, or in the state the user specifies.
-Only touch code in the staged diff. Apply every preference below and correct violations
-before handback. Keep only rules that remain useful across unrelated repositories. Store SDK,
-service, API, schema, architecture, business, and other repository-specific decisions in
-project memory.
+The last pass before handback. Everything checked here should already be true when the code was
+written; it usually is not. Fix it, then report what you fixed.
 
-## Learned cross-project preferences
+## 1. Fix the scope
 
-- Delete unused configuration and future-facing APIs until concrete behavior needs them.
-  Placeholder knobs create compatibility debt and invite callers to depend on no-ops.
+Read the whole change before editing any of it.
 
-- Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should
-  read as states, not commands.
+- JJ repo: `jj diff --summary`, then `jj diff` for the files it names. When the work spans
+  several changes, use `jj diff -f 'trunk()'`.
+- Git repo: `git diff` and `git diff --cached`, or diff against the parent branch when the work
+  spans commits.
+- "Staged" is not the boundary. The boundary is the code this task touched.
+- Keep every edit inside that boundary. A violation in an untouched file is one line in the
+  report.
 
-- Combine overlapping types, functions, constants, or behavioral instructions. One concept
-  should have one authoritative home; consumers should reuse or inject it rather than copy it.
-  In generated prompts, place authoritative guidance after bulky source material so examples
-  cannot drown it out.
+Complete when you have read every hunk in the diff.
 
-- Compute values from data already in scope instead of passing redundant props or arguments;
-  redundant inputs increase coupling.
+## 2. Comments
 
-- In tests and fixtures, derive values through the same production helper the code under test
-  uses, then pass them in; do not reimplement that logic in hand-written SQL or string
-  concatenation. Duplicated derivation silently drifts from production (format, canonicalization),
-  so the test passes against the wrong shape.
+This is where the bar slips most, so it goes first. Read
+`~/.dotfiles/ai/skills/code-quality/references/comments.md` and hold each comment in the diff
+against its closed list. What survives is a gotcha, a one-or-two-line public interface note
+where the language expects one, a constraint code cannot hold, a decoded regex, or a canonical
+tag. Everything else goes, restatement and change narration first.
 
-- Delete comments that restate what the code or a type signature already says; they are clutter
-  that must be kept in sync for no gain. Keep only the non-obvious why (security constraints,
-  ordering rationale, external contracts). When the same why is already documented at its real
-  home (the function it describes, an ADR, a spec), do not duplicate it at the call site.
+Complete when every comment in the diff is on that list.
 
-- Task wrappers should declare and forward child-command options directly so callers do not need
-  a `--` separator between the wrapper and its arguments.
+## 3. The rest of the bar
 
-- Keep personal environment and workflow overrides in dotfiles or ignored local config. Do not
-  change a shared repository's tracked behavior to accommodate one developer's machine.
+Check the diff against `~/.dotfiles/ai/skills/code-quality/references/laziness.md`, and against
+`~/.dotfiles/ai/skills/code-quality/references/tests.md` where it touches tests. The frequent
+offenders: code that reimplements a helper already in the repo, an abstraction nobody asked
+for, a config knob with no caller, an argument the callee could compute.
 
-- Keep feature-specific test fakes and behavior in that feature's test file. If multiple
-  features truly share a helper, move it to a neutral test-helper file instead of making one
-  feature's tests own another feature's setup.
+Complete when each offender is fixed or named in the report with its reason for staying.
 
-- Do not add BDD tests unless the user explicitly requests them. Keep this work with the
-  requested lower-level tests and leave acceptance-suite ownership to QA.
+## 4. Learned preferences
 
-- In general, never write comments. The only exceptions are 1 to 2 (if absolutely necessary) lines for a public interface and true 'gotchas'. "Gotchas" means non-obvious code that will break core functionality if removed or changed
+Apply every rule below to the diff.
+
+- Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should read
+  as states, not commands.
+
+- Combine overlapping types, functions, constants, or behavioral instructions. In generated
+  prompts, place authoritative guidance after bulky source material so examples cannot drown it
+  out.
+
+- Task wrappers should declare and forward child-command options directly, so callers reach the
+  child's flags without a `--` separator.
+
+- Keep personal environment and workflow overrides in dotfiles or ignored local config. A
+  shared repository's tracked behavior stays shaped by the team, not by one machine.
+
+Complete when every rule has been applied or is inapplicable to this diff.
+
+## 5. Report
+
+Name what you deleted and why, in a line or two.
+
+Keep this list to rules that hold across unrelated repositories. SDK, service, API, schema,
+architecture, and business decisions belong in project memory, and `learn-preferences` routes
+them there.

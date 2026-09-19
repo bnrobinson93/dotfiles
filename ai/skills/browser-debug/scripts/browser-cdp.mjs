@@ -3,16 +3,46 @@
 import { existsSync } from "node:fs";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { basename, delimiter, join } from "node:path";
 import { spawn } from "node:child_process";
 
 const port = Number(process.env.BROWSER_DEBUG_PORT || 9222);
 const endpoint = `http://127.0.0.1:${port}`;
 const ownerFile = join(tmpdir(), `browser-debug-${port}.json`);
-const browsers = [
+// Preference order, first hit wins. Absolute paths are macOS app bundles; bare names resolve
+// against PATH on Linux.
+const browserCandidates = [
+  process.env.BROWSER_DEBUG_BINARY,
   "/Applications/Arc.app/Contents/MacOS/Arc",
   "/Applications/Helium.app/Contents/MacOS/Helium",
-];
+  "helium",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  "chromium",
+  "chromium-browser",
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "google-chrome-stable",
+  "google-chrome",
+  "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+  "brave-browser",
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+  "microsoft-edge",
+].filter(Boolean);
+
+function resolveBrowsers() {
+  const pathDirs = (process.env.PATH || "").split(delimiter).filter(Boolean);
+  const resolved = [];
+
+  for (const candidate of browserCandidates) {
+    if (candidate.includes("/")) {
+      if (existsSync(candidate)) resolved.push(candidate);
+      continue;
+    }
+    const hit = pathDirs.map((dir) => join(dir, candidate)).find(existsSync);
+    if (hit) resolved.push(hit);
+  }
+
+  return resolved;
+}
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -56,7 +86,7 @@ async function launch(url = "about:blank") {
     return version;
   }
 
-  for (const binary of browsers.filter(existsSync)) {
+  for (const binary of resolveBrowsers()) {
     const profile = await mkdtemp(join(tmpdir(), "browser-debug-"));
     const child = spawn(
       binary,
@@ -88,7 +118,9 @@ async function launch(url = "about:blank") {
     child.kill("SIGTERM");
   }
 
-  throw new Error("Arc and Helium failed to expose a CDP endpoint");
+  throw new Error(
+    "no Chromium-family browser exposed a CDP endpoint; set BROWSER_DEBUG_BINARY to one",
+  );
 }
 
 async function pages() {

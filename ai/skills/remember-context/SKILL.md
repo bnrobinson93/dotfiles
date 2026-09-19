@@ -1,16 +1,19 @@
 ---
 name: remember-context
-description: Store durable project or user memory for future agent sessions. Use when the user asks to remember, save, or preserve a decision, code nuance, workflow, preference, or important location.
+description: Store durable project or user memory for future sessions. Use when Brad asks you to remember a decision, a code nuance, a workflow, a preference, or where something lives.
 ---
 
 # Remember context
 
-1. Read `~/.claude/projects/-Users-brad-robinson--dotfiles/memory/MEMORY.md`
-2. Follow existing links relevant to the subject
-3. Add or update one focused file in the same `memory/` directory
-4. Add one concise bullet to `MEMORY.md` linking that file
-5. Capture `Why`, `Applies to`, and `Failure mode` when useful
+1. Resolve the memory directory. When the harness names one in its own instructions, that is
+   the one. Otherwise derive `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<slug>/memory/`,
+   where `<slug>` is the workspace root with every `/` and `.` replaced by `-`
+   (`pwd | sed 's#[./]#-#g'`, so `/home/brad/.dotfiles` becomes `-home-brad--dotfiles`)
+2. Read `MEMORY.md` there
+3. Follow existing links relevant to the subject
+4. Add or update one focused file in the same `memory/` directory
+5. Add one concise bullet to `MEMORY.md` linking that file
+6. Capture `Why`, `Applies to`, and `Failure mode` when useful
 
-The project slug derives from `ls -1d ~/.dotfiles | sed 's/\./-/g; s/\//-/g'`; resolve the equivalent path when it differs between machines.
-
-Store durable facts only. Exclude secrets, transient task state, and information already canonical in repository files.
+Store durable facts: a decision and its reason, a constraint, a workflow, where something
+lives. Secrets, transient task state, and anything the repository files already say stay out.

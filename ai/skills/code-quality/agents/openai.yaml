@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Quality"
+  short_description: "House bar for comments, tests, laziness"
+  default_prompt: "Use $code-quality for the standard this change should meet."

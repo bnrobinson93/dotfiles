@@ -1,76 +1,38 @@
 # AI Entry Point
 
-Shared instructions for Claude, Codex, OpenCode, and Pi.
+Shared by Claude, Codex, OpenCode, and Pi. Hooks only. Pull the thread a task needs and leave
+the rest unread.
 
-## Communication
+## Always on
 
-- When reporting information to me, be extremely concise and sacrifice grammar for the sake of concision.
+- Answer short, in Brad's voice. No preamble, no recap of what he just said, no narrating tool
+  calls. `unslop` runs over every reply; `writing-voice` when the prose is his to publish.
+- Text no human reads is a different budget. Compress subagent prompts and their reports hard,
+  and on Claude reach for the `cavecrew` agents, which return findings already compressed.
+- Dev servers already run under `pnpm` or `go`. Ask for their output instead of starting a
+  second one.
+- Repos are JJ-first. Before mutating files, run `jj workspace root`; if that fails, run
+  `git rev-parse --show-toplevel` as its own command. Chaining the two defeats allowlists.
+- Personal environment and workflow setup lives in dotfiles, never in a repository Brad does
+  not own.
 
-In intermediate steps:
+## Threads
 
-- Terse like caveman; keep technical substance exact
-- Drop articles, filler, pleasantries, and hedging
-- Fragments and short synonyms are fine
-- Pattern: `[thing] [action] [reason]. [next step].`
-- Stay terse until the user says `stop caveman` or `normal mode`
+| Task | Pull |
+| --- | --- |
+| Writing or changing code | `code-quality` |
+| Code finished, before handback | `simplify` (gate, not optional) |
+| Inspecting or mutating a repo | `vcs` |
+| Committing, pushing, filing a PR | `commit-and-pr` |
+| Reviewing a diff | `ryan-review` (backend), `sara-review` (frontend) |
+| Reading or writing review comments | `tuicr`, `hunk-review` |
+| Brad states a reusable rule or corrects code | `learn-preferences` |
+| Brad says remember this | `remember-context` |
+| Issues, specs, Jira, domain docs | `load-engineering-context` |
+| Prose Brad will publish or share | `writing-voice`, then `unslop` |
+| Any other human-facing text | `unslop` |
+| GitHub API calls | `gh-api` |
+| Datadog | `dd` |
+| Reproducing a browser bug | `browser-debug` |
 
-## Code
-
-- When writing, refactoring, or reviewing code, apply the `code-quality` skill
-
-## Runtime
-
-- Development servers usually already run with `pnpm` or `go`; ask for output when needed
-
-## Version control
-
-- Assume JJ by default; apply the `vcs` skill
-- Before file mutations, use existing evidence or run `jj workspace root`
-- If JJ detection fails, run `git rev-parse --show-toplevel` separately
-- Never combine VCS detection commands; compound commands defeat allowlists
-
-## Matt Pocock Skills
-
-Use these settings globally. Do not run per-repository setup or add agent-only configuration to tracked repositories.
-
-### Work routing
-
-- Small personal tasks: `.scratch/<feature>/`
-- Larger personal efforts: `~/Documents/Vault/2-Areas/Coding/<repo>/Issues/<effort>/`
-- Shared team work: Jira
-- Derive `<repo>` from `origin`; fall back to workspace directory name
-- Ask when task size or Jira project cannot be inferred safely
-- Group related drafts and issues into one human-readable `<effort>` folder, such as `Upload/download workspace files`
-- When every item in an effort is completed or dismissed, move its folder from `2-Areas/` to `4-Archive/`, preserving the remaining folder structure
-
-### Readiness
-
-Local drafts use only:
-
-- `needs-triage` — needs validation or changes
-- `ready` — approved for implementation or Jira publication
-
-Do not add triage labels to Jira. After publication, Jira owns workflow state. Local drafts may remain `ready`; no manual status synchronization required.
-
-### Jira
-
-Use Atlassian MCP or `acli`.
-
-Draft new Jira work in Obsidian first. Publish only after user validation. Follow PEP-5183's shape:
-
-- Scoped summary
-- `Problem`
-- `What to Build`
-- `Acceptance Criteria`
-- Explicit exclusions, dependencies, migration behavior, errors, and tests where relevant
-
-Use native Jira links for dependencies. Preserve project workflow fields. Do not invent missing field values.
-
-### Domain docs
-
-Keep personal domain context outside tracked repositories:
-
-- Glossary: `~/Documents/Vault/2-Areas/Coding/<repo>/Agents/CONTEXT.md`
-- Decisions: `~/Documents/Vault/2-Areas/Coding/<repo>/Agents/ADRs/`
-
-Create them lazily.
+Reference material these skills point at lives under `~/.dotfiles/ai/`.
