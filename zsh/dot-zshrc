@@ -1,9 +1,7 @@
-# FAST compinit
 autoload -Uz compinit
 [[ ! -d "$HOME/.cache/zsh" ]] && mkdir -p "$HOME/.cache/zsh"
 compinit -C -d "$HOME/.cache/zsh/zcompdump-$ZSH_VERSION"
 
-# Essential environment
 export LANG=en_US.UTF-8
 if [[ -n $SSH_CONNECTION ]]; then
    type vim >/dev/null 2>&1 && export EDITOR='vim' || export EDITOR='vi'
@@ -11,7 +9,6 @@ else
    export EDITOR='nvim'
 fi
 
-# Essential exports
 export ZETTELKASTEN=$HOME/Documents/Vault
 export BUN_INSTALL="$HOME/.bun"
 export PNPM_HOME="$HOME/.local/share/pnpm"
@@ -20,28 +17,22 @@ ASSORTED_BIN_DIRS="$HOME/.local/bin:$PNPM_HOME/bin:$HOME/.bun/bin:$HOME/.cargo/b
 HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
-# Essential PATH - single assignment
 export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
-# Basic settings
 set -o emacs
 unsetopt no_match
 
-# Fix jj pager
+# Nerd-font glyphs sit in private-use ranges; less escapes them without this.
 export LESSUTFCHARDEF="E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
-# Essential aliases
 # Guarded on interactive: these shadow standard command names, and agent tool
 # calls source this file explicitly, so they must see real POSIX behavior.
 if [[ -o interactive ]]; then
   alias vi=$EDITOR
 
-  # uutils replacements, benchmarked against GNU coreutils 9.11 on 2M/26M/129M/296M
-  # text plus a 230M binary: 2-6x faster. uniq/tac/base64 are byte-identical to GNU
-  # on every input tested. cut is 6x faster but its -c counts bytes where GNU counts
-  # characters, so multibyte input truncates differently - accepted deliberately,
-  # since that matches Go's string indexing.
-  # NOT included: sort, 4x slower than GNU and its collation differs under en_US.UTF-8.
+  # uu-cut's -c counts bytes where GNU counts characters, so multibyte input
+  # truncates differently - accepted, it matches how Go indexes strings. sort is
+  # excluded: slower than GNU, and its collation changes sort | uniq output.
   for _uu in uniq tac base64 cut; do
     (( $+commands[uu-$_uu] )) && alias $_uu="uu-$_uu"
   done
@@ -55,7 +46,6 @@ if [[ -o interactive ]]; then
   alias ....='cd ../../..'
 fi
 
-# for history
 if type atuin >/dev/null 2>&1; then
   [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
   atuin_cache="$HOME/.cache/zsh/atuin_init.zsh"
@@ -65,27 +55,18 @@ if type atuin >/dev/null 2>&1; then
   source "$atuin_cache"
 fi
 
-# SIMPLIFIED STARSHIP - cache init but load synchronously when interactive
 if type starship >/dev/null 2>&1; then
-  # Only initialize starship for interactive shells to avoid overhead in scripts
   if [[ -o interactive ]]; then
-    # Cache starship init to avoid repeated expensive calls
     local starship_cache="$HOME/.cache/zsh/starship_init.zsh"
-    
-    # Regenerate cache if starship config is newer or cache doesn't exist
     if [[ ! -f "$starship_cache" ]] || [[ "${HOME}/.config/starship.toml" -nt "$starship_cache" ]] 2>/dev/null; then
       starship init zsh > "$starship_cache" 2>/dev/null
     fi
-    
-    # Source the cached version
     source "$starship_cache" 2>/dev/null
   fi
 else
-  # Fallback prompt if starship not available
   export PS1='%n@%m:%~%# '
 fi
 
-# Essential tool functions
 if type "eza" >/dev/null 2>&1; then
   # eza rejects GNU ls flags, so keep the shadow out of scripts and tool calls.
   [[ -o interactive ]] && alias ls="eza"
@@ -137,14 +118,8 @@ if [[ -o interactive ]] && type fzf >/dev/null 2>&1; then
   fi
 fi
 
-# type rg >/dev/null 2>&1 && alias grep="rg"
-# type fd >/dev/null 2>&1 && alias find="fd"
-# type bat >/dev/null 2>&1 && alias cat="bat"
-# type z > /dev/null 2>&1 && alias cd="z"
-# type dust >/dev/null 2>&1 && alias du="dust -B"
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 
-# recording
 if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   function rec {
     asciinema rec /tmp/demo.cast
@@ -175,9 +150,8 @@ _jj_workspace_sync_git_env() {
   local workspace_root workspace_base main_base main_root git_dir dir
   local workspace_suffix_re='-(ai[0-9]*|exp|explore)$'
 
-  # Walk up for the nearest .jj marker instead of spawning `jj workspace
-  # root`: that fork+exec cost ~40ms on every shell start and every cd
-  # (measured via zprof), since it ran unconditionally before this check.
+  # Walk up for the nearest .jj marker instead of spawning `jj workspace root`:
+  # that fork+exec cost ~40ms on every shell start and every cd (zprof).
   dir="$PWD"
   while [[ "$dir" != "/" && ! -e "$dir/.jj" ]]; do
     dir=${dir:h}
@@ -207,14 +181,8 @@ _jj_workspace_sync_git_env() {
   fi
 }
 
-_jj_workspace_sync_git_env_on_pwd() {
-  _jj_workspace_sync_git_env
-}
-
-if (( ${+functions[_jj_workspace_sync_git_env]} )); then
-  chpwd_functions=(${chpwd_functions:#_jj_workspace_sync_git_env_on_pwd} _jj_workspace_sync_git_env_on_pwd)
-  _jj_workspace_sync_git_env
-fi
+chpwd_functions=(${chpwd_functions:#_jj_workspace_sync_git_env} _jj_workspace_sync_git_env)
+_jj_workspace_sync_git_env
 
 _jj_workspace_jump() {
   local suffix="$1"
@@ -305,11 +273,10 @@ if [[ "${USE_1PASSWORD_SSH}" == "1" ]]; then
     op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' > $HOME/.ssh/allowed_signers
   fi
 else
-  # Guardrail: if a lingering 1Password socket is set, unset it unless explicitly opted in
+  # A socket inherited from a parent shell would defeat the opt-out.
   if [[ "${SSH_AUTH_SOCK:-}" == *"/.1password/agent.sock" ]]; then
     unset SSH_AUTH_SOCK
   fi
-  # On macOS, populate SSH_AUTH_SOCK from launchd-managed agent if empty
   if [[ -z "${SSH_AUTH_SOCK:-}" && "$OSTYPE" == darwin* ]]; then
     launchctl_sock=$(launchctl getenv SSH_AUTH_SOCK 2>/dev/null)
     if [[ -n "$launchctl_sock" ]]; then
@@ -318,40 +285,30 @@ else
   fi
 fi
 
-# SYNCHRONOUS deferred loading - no background jobs
-zsh_load_deferred() {
-  # Only load once
-  [[ -n "$ZSH_DEFERRED_LOADED" ]] && return
-  
-  # History settings
+if [[ -o interactive ]]; then
   setopt histignoredups APPEND_HISTORY EXTENDED_HISTORY INC_APPEND_HISTORY
   setopt HIST_FIND_NO_DUPS HIST_IGNORE_SPACE NO_HIST_BEEP SHARE_HISTORY
   SAVEHIST=10000
   HISTSIZE=10000
   HISTFILE=$HOME/.history
 
-  # Load zap if available
   [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" ]] && source "${XDG_DATA_HOME:-$HOME/.local/share}/zap/zap.zsh" 2>/dev/null
-  
-  # Load essential plugins (synchronously to avoid job management issues)
+
   command -v plug >/dev/null && {
     plug "zsh-users/zsh-autosuggestions" 2>/dev/null
-    plug "zsh-users/zsh-syntax-highlighting" 2>/dev/null 
+    plug "zsh-users/zsh-syntax-highlighting" 2>/dev/null
     plug 'none9632/zsh-sudo' 2>/dev/null
   }
-  
-  # Plugin settings
+
   ZSH_AUTOSUGGEST_STRATEGY=(history completion)
   zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}'
   zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
   ZSH_HIGHLIGHT_MAXLENGTH=300
 
-  # Key bindings setup
   autoload -U up-line-or-beginning-search down-line-or-beginning-search
   zle -N up-line-or-beginning-search
   zle -N down-line-or-beginning-search
 
-  # Essential key bindings
   bindkey -v
   [[ -n "${terminfo[khome]}" ]] && bindkey -- "${terminfo[khome]}" beginning-of-line
   [[ -n "${terminfo[kend]}" ]] && bindkey -- "${terminfo[kend]}" end-of-line
@@ -359,32 +316,27 @@ zsh_load_deferred() {
   [[ -n "${terminfo[kcud1]}" ]] && bindkey -- "${terminfo[kcud1]}" history-beginning-search-forward
   [[ -n "${terminfo[kdch1]}" ]] && bindkey -- "${terminfo[kdch1]}" delete-char
 
-  # Emacs-style bindings in vi insert mode
   bindkey -M viins '^A' beginning-of-line
   bindkey -M viins '^E' end-of-line
 
-  # Cursor shape changes for vi mode
   function zle-keymap-select {
     case $KEYMAP in
-      vicmd)      echo -ne '\e[1 q';; # block cursor for normal mode
-      viins|main) echo -ne '\e[5 q';; # line cursor for insert mode
+      vicmd)      echo -ne '\e[1 q';; # block cursor
+      viins|main) echo -ne '\e[5 q';; # line cursor
     esac
   }
   zle -N zle-keymap-select
 
-  # Initialize cursor to line for insert mode
   function zle-line-init {
     echo -ne '\e[5 q'
   }
   zle -N zle-line-init
 
-  # Reset cursor to line after each command
   preexec() {
     echo -ne '\e[5 q'
   }
 
-  # Colors - cache vivid output like the fish side (00-env.fish): uncached
-  # `vivid generate` costs ~900ms per shell start.
+  # Uncached, `vivid generate` costs ~900ms per shell start.
   if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
     local vivid_cache="$HOME/.cache/zsh/vivid-catppuccin-mocha.txt"
     if [[ ! -f "$vivid_cache" ]]; then
@@ -393,101 +345,85 @@ zsh_load_deferred() {
     export LS_COLORS="$(cat "$vivid_cache")"
     export EZA_COLORS="$LS_COLORS"
   fi
+fi
 
-  ZSH_DEFERRED_LOADED=1
-}
-
-# Load deferred items immediately for interactive shells
-[[ -o interactive ]] && zsh_load_deferred
-
-# Other lazy loaders
-function get_completions() {
-  if type kubectl >/dev/null 2>&1; then
-    kubectl() {
-      if [[ -z $KUBECTL_COMPLETE ]]; then
-        source <(command kubectl completion zsh) 2>/dev/null
-        KUBECTL_COMPLETE=1
-      fi
-      command kubectl "$@"
-    }
-    alias k=kubectl
-    alias kgp="kubectl get pods"
-  fi
-
-  if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
-    brew() {
-      if [[ -z $BREW_COMPLETE ]]; then
-        test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
-        export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
-        BREW_COMPLETE=1
-      fi
-      command brew "$@"
-    }
-  fi
-
-  if type go >/dev/null 2>&1; then
-    go() {
-      if [[ -z $GO_ADDED ]]; then
-        export PATH="$(command go env GOPATH)/bin:$PATH"
-        GO_ADDED=1
-      fi
-      command go "$@"
-    }
-  fi
-
-  # Rust lazy loading
-  if [[ -d "$HOME/.cargo" ]]; then
-    cargo() {
-      if [[ -z $CARGO_ADDED ]]; then
-        source "$HOME/.cargo/env"
-        CARGO_ADDED=1
-      fi
-      command cargo "$@"
-    }
-    
-    rustc() {
-      if [[ -z $CARGO_ADDED ]]; then
-        source "$HOME/.cargo/env"
-        CARGO_ADDED=1
-      fi
-      command rustc "$@"
-    }
-  fi
-
-  # Mise completions — true lazy autoload, matching the fish side
-  # (fish_complete_path): drop the generated #compdef script under a
-  # dir on $fpath and let zsh's own completion autoloader parse it on
-  # first Tab-press, instead of `source`-ing it here every shell start.
-  local comp_cache="$HOME/.cache/zsh/completions"
-  mkdir -p "$comp_cache"
-  fpath=("$comp_cache" $fpath)
-
-  # jj: the dynamic shim (not `jj util completion`, ~5300 lines) — completes
-  # aliases, revsets, and bookmarks by invoking jj at tab time, matching the
-  # fish side (fish/conf.d/02-tools.fish). The generated script is ~35 lines
-  # and self-registers via `compdef` when sourced, so it's cheap enough to
-  # source eagerly rather than route through the fpath autoloader — it also
-  # defines `_clap_dynamic_completer_jj`, not `_jj`, so autoloading it as
-  # `_jj` wouldn't find a matching function anyway.
-  if type jj >/dev/null 2>&1; then
-    local jjc="$HOME/.cache/zsh/jj_completion.zsh"
-    if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
-      COMPLETE=zsh jj > "$jjc" 2>/dev/null
+if type kubectl >/dev/null 2>&1; then
+  kubectl() {
+    if [[ -z $KUBECTL_COMPLETE ]]; then
+      source <(command kubectl completion zsh) 2>/dev/null
+      KUBECTL_COMPLETE=1
     fi
-    source "$jjc"
-  fi
+    command kubectl "$@"
+  }
+  alias k=kubectl
+  alias kgp="kubectl get pods"
+fi
 
-  if type mise >/dev/null 2>&1; then
-    local misec="$comp_cache/_mise"
-    if [[ ! -f "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
-      mise completion zsh > "$misec" 2>/dev/null
+if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
+  brew() {
+    if [[ -z $BREW_COMPLETE ]]; then
+      test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+      test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
+      export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
+      BREW_COMPLETE=1
     fi
-    compdef _mise mise
-  fi
-}
+    command brew "$@"
+  }
+fi
 
-get_completions
+if type go >/dev/null 2>&1; then
+  go() {
+    if [[ -z $GO_ADDED ]]; then
+      export PATH="$(command go env GOPATH)/bin:$PATH"
+      GO_ADDED=1
+    fi
+    command go "$@"
+  }
+fi
+
+if [[ -d "$HOME/.cargo" ]]; then
+  cargo() {
+    if [[ -z $CARGO_ADDED ]]; then
+      source "$HOME/.cargo/env"
+      CARGO_ADDED=1
+    fi
+    command cargo "$@"
+  }
+
+  rustc() {
+    if [[ -z $CARGO_ADDED ]]; then
+      source "$HOME/.cargo/env"
+      CARGO_ADDED=1
+    fi
+    command rustc "$@"
+  }
+fi
+
+# Completions land on $fpath so zsh's autoloader parses them on first
+# Tab-press, rather than this file sourcing them every shell start.
+local comp_cache="$HOME/.cache/zsh/completions"
+mkdir -p "$comp_cache"
+fpath=("$comp_cache" $fpath)
+
+# jj's dynamic shim (not `jj util completion`) completes aliases, revsets and
+# bookmarks by invoking jj at tab time. It self-registers via `compdef`, and
+# defines `_clap_dynamic_completer_jj` rather than `_jj`, so it has to be
+# sourced here instead of autoloaded from $fpath.
+if type jj >/dev/null 2>&1; then
+  local jjc="$HOME/.cache/zsh/jj_completion.zsh"
+  if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
+    COMPLETE=zsh jj > "$jjc" 2>/dev/null
+  fi
+  source "$jjc"
+fi
+
+if type mise >/dev/null 2>&1; then
+  local misec="$comp_cache/_mise"
+  if [[ ! -f "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
+    mise completion zsh > "$misec" 2>/dev/null
+  fi
+  compdef _mise mise
+fi
 
 if type jj >/dev/null 2>&1; then
   bookmark() {
@@ -497,11 +433,8 @@ if type jj >/dev/null 2>&1; then
   }
 fi
 
-# Wezterm shell integration (enables semantic zones, prompt tracking, Alt+click, etc.)
+# Fetched from https://raw.githubusercontent.com/wezterm/wezterm/refs/heads/main/assets/shell-integration/wezterm.sh
 if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
-  # Source official wezterm shell integration
-  # Download from:
-  # https://raw.githubusercontent.com/wezterm/wezterm/refs/heads/main/assets/shell-integration/wezterm.sh
   if [[ -f "${HOME}/.local/bin/wezterm-shell-integration.sh" ]]; then
     source "${HOME}/.local/bin/wezterm-shell-integration.sh"
   fi
