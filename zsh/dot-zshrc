@@ -455,22 +455,27 @@ function get_completions() {
     }
   fi
 
-  # JJ / Mise completions — true lazy autoload, matching the fish side
+  # Mise completions — true lazy autoload, matching the fish side
   # (fish_complete_path): drop the generated #compdef script under a
   # dir on $fpath and let zsh's own completion autoloader parse it on
   # first Tab-press, instead of `source`-ing it here every shell start.
-  # jj's script alone is ~5300 lines; eagerly sourcing it cost ~48ms on
-  # every startup regardless of whether jj completion was ever used.
   local comp_cache="$HOME/.cache/zsh/completions"
   mkdir -p "$comp_cache"
   fpath=("$comp_cache" $fpath)
 
+  # jj: the dynamic shim (not `jj util completion`, ~5300 lines) — completes
+  # aliases, revsets, and bookmarks by invoking jj at tab time, matching the
+  # fish side (fish/conf.d/02-tools.fish). The generated script is ~35 lines
+  # and self-registers via `compdef` when sourced, so it's cheap enough to
+  # source eagerly rather than route through the fpath autoloader — it also
+  # defines `_clap_dynamic_completer_jj`, not `_jj`, so autoloading it as
+  # `_jj` wouldn't find a matching function anyway.
   if type jj >/dev/null 2>&1; then
-    local jjc="$comp_cache/_jj"
+    local jjc="$HOME/.cache/zsh/jj_completion.zsh"
     if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
-      jj util completion zsh > "$jjc" 2>/dev/null
+      COMPLETE=zsh jj > "$jjc" 2>/dev/null
     fi
-    compdef _jj jj
+    source "$jjc"
   fi
 
   if type mise >/dev/null 2>&1; then
