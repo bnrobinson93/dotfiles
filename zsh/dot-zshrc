@@ -10,14 +10,7 @@ else
 fi
 
 export ZETTELKASTEN=$HOME/Documents/Vault
-export BUN_INSTALL="$HOME/.bun"
-export PNPM_HOME="$HOME/.local/share/pnpm"
-# Static list instead of `find $HOME -maxdepth 2` — that scan ran every shell start
-ASSORTED_BIN_DIRS="$HOME/.local/bin:$PNPM_HOME/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$HOME/go/bin:$HOME/.docker/bin:$HOME/.yarn/bin"
-HOMEBREW_DIRS="/home/linuxbrew/.linuxbrew/bin:/opt/homebrew/bin"
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
-
-export PATH="$PATH:$PNPM_HOME:$ASSORTED_BIN_DIRS:$HOMEBREW_DIRS"
 
 set -o emacs
 unsetopt no_match
@@ -90,11 +83,6 @@ if type zoxide >/dev/null 2>&1; then
     zoxide init zsh > "$zoxide_cache" 2>/dev/null
   fi
   source "$zoxide_cache"
-fi
-
-# Mise - shims instead of `activate`: activate spawns `mise hook-env` at startup
-if type mise >/dev/null 2>&1; then
-  export PATH="$HOME/.local/share/mise/shims:$PATH"
 fi
 
 export fzf_preview_dir_cmd="eza --all --color=always"

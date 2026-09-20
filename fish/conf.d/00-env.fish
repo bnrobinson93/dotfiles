@@ -1,5 +1,6 @@
 set -gx LANG en_US.UTF-8
-set -gx TERM xterm-ghostty
+# No TERM here: ghostty, tmux and ghostty's ssh-env integration each set it for
+# the context they own, so pinning one value breaks tmux panes and inbound ssh.
 
 if set -q SSH_CONNECTION
     if type -q vim
