@@ -186,13 +186,17 @@ If nothing meets that bar tonight, change nothing and say so. An empty night is 
 outcome and is preferred over churn.
 
 If multiple, completely different things are worth doing, create separate bookmarks and PRs against main.
+
+Before finalizing, invoke the simplify skill and apply it to every diff you are leaving behind.
+It is a gate, not a judgment call, and its comments pass matters most: these nightly PRs keep
+arriving full of comments that narrate the change instead of earning their place.
 PROMPT
 )
 PROMPT_TEMPLATE="${PROMPT_TEMPLATE//__BENCH_RESULTS__/$BENCH_RESULTS}"
 PROMPT_TEMPLATE="${PROMPT_TEMPLATE//__SCRATCH__/$SCRATCH}"
 
 printf '%s' "$PROMPT_TEMPLATE" | claude -p --permission-mode acceptEdits \
-  --allowed-tools 'Read,Edit,Write,Grep,Glob,WebSearch,WebFetch,Bash(rg:*),Bash(fd:*),Bash(shellcheck:*),Bash(mise:*),Bash(stow -n:*),Bash(jj diff:*),Bash(jj log:*),Bash(jj st:*),Bash(fish -c:*),Bash(fish -i -c:*),Bash(zsh -c:*),Bash(zsh -i -c:*),Bash(command -v:*),Bash(hyperfine:*)'
+  --allowed-tools 'Read,Edit,Write,Grep,Glob,Skill,WebSearch,WebFetch,Bash(rg:*),Bash(fd:*),Bash(shellcheck:*),Bash(mise:*),Bash(stow -n:*),Bash(jj diff:*),Bash(jj log:*),Bash(jj st:*),Bash(fish -c:*),Bash(fish -i -c:*),Bash(zsh -c:*),Bash(zsh -i -c:*),Bash(command -v:*),Bash(hyperfine:*)'
 
 if [ -z "$(jj diff --no-pager -s)" ]; then
   echo "no changes proposed; abandoning empty commit"
