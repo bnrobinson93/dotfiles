@@ -220,7 +220,7 @@ Modular Lua config split into 4 files:
 - Persistent fish functions must live in repo path `fish/functions/`; do not create one-off files only in `~/.config/fish/functions`, because `install.sh` removes `~/.config/fish` before restowing.
 - **Setup**: Install fisher plugin manager, then `fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent` (runtimes come from mise, not nvm)
 - Integrations: Native syntax highlighting, autosuggestions, vi-mode, Starship
-- **Performance**: ~35ms startup vs ~70ms for zsh (measured 2026-07-19). Kept fast by never running `tool init | source` directly: generated init scripts are cached via `__cache_gen` in `02-tools.fish` (keyed on binary mtime), completions lazy-load from `fish_complete_path`, and mise uses shims instead of `activate`. New tool integrations must follow the same pattern.
+- **Performance**: ~35ms startup vs ~70ms for zsh (measured 2026-07-19 on the x86 laptop). Compare like for like: the nightly cron box is an aarch64 Pi with most of these tools absent, and lands near 53ms/114ms doing strictly less work. Kept fast by never running `tool init | source` directly: generated init scripts are cached via `__cache_gen` in `02-tools.fish` (keyed on binary mtime), completions lazy-load from `fish_complete_path`, and mise uses shims instead of `activate`. New tool integrations must follow the same pattern.
 
 ### Version Control Dual Setup
 

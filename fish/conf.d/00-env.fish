@@ -1,5 +1,4 @@
 set -gx LANG en_US.UTF-8
-set -gx TERM xterm-ghostty
 
 if set -q SSH_CONNECTION
     if type -q vim
