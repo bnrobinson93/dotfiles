@@ -11,9 +11,6 @@ onepassword_ssh_sock="$(ls -1 $HOME/{.1password,Library/Group Containers/2BUA8C4
 [[ -S "$onepassword_ssh_sock" ]] && export SSH_AUTH_SOCK="$onepassword_ssh_sock"
 unset onepassword_ssh_sock
 
-# The only place PATH is built, since .zshenv runs for every zsh, interactive or
-# not. Mise appears as shims rather than `mise activate`, which would spawn
-# `mise hook-env` at startup and on every prompt.
 zshenv_path_dirs=()
 for dir in \
   "$HOME/.local/bin" \
