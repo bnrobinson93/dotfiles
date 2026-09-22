@@ -76,6 +76,11 @@ if ! jj sync 2>&1 | grep -v '^Hint:'; then
   alert "jj sync failed on the main checkout"
 fi
 
+echo "--- mise update ---"
+if ! TOPGRADE_NO_CONFIRM=1 mise update 2>&1 | tail -20; then
+  echo "mise update reported a failure (see above); continuing"
+fi
+
 echo "--- mise run stow ---"
 if ! mise run stow 2>&1 | grep -viE '^\s+(level|LINK|UNLINK|.* does not need|.* did not exist)' | tail -20; then
   echo "stow reported a failure (see above); continuing"
