@@ -51,7 +51,7 @@ fi
 if type starship >/dev/null 2>&1; then
   if [[ -o interactive ]]; then
     local starship_cache="$HOME/.cache/zsh/starship_init.zsh"
-    if [[ ! -f "$starship_cache" ]] || [[ "${HOME}/.config/starship.toml" -nt "$starship_cache" ]] 2>/dev/null; then
+    if [[ ! -f "$starship_cache" || "$(command -v starship)" -nt "$starship_cache" ]]; then
       starship init zsh > "$starship_cache" 2>/dev/null
     fi
     source "$starship_cache" 2>/dev/null

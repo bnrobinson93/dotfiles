@@ -2,23 +2,12 @@ if not status is-interactive
     exit
 end
 
-# Regenerate a cached script only when the tool's binary is newer than the
-# cache (i.e. after an upgrade). Avoids re-spawning every tool each shell
-# start — `X init | source` for starship/mise/zoxide/jj cost ~125ms combined.
-# __cache_gen <cache-file> <tool-or-path> <command to generate it...>
-function __cache_gen
-    set -l cache $argv[1]
-    set -l bin (command -v $argv[2]); or return 1
-    if not test -f $cache; or test $bin -nt $cache
-        mkdir -p (dirname $cache)
-        $argv[3..] >$cache 2>/dev/null
-    end
-end
-
 set -l cache_dir $HOME/.cache/fish
 
-__cache_gen $cache_dir/starship.fish starship starship init fish
-and source $cache_dir/starship.fish
+# `starship init fish` emits a stub that re-runs starship through psub on every
+# start. Without --print-full-init the cache holds that stub and buys nothing.
+__cache_gen $cache_dir/starship-full-init.fish starship starship init fish --print-full-init
+and source $cache_dir/starship-full-init.fish
 
 # Shims instead of `activate`: activate runs `mise hook-env` at startup and on
 # every prompt (~17ms a spawn). We use no mise [env] blocks, so nothing is lost.
