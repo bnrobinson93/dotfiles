@@ -52,15 +52,9 @@ set -gx LESSUTFCHARDEF "E000-F8FF:p,F0000-FFFFD:p,100000-10FFFD:p"
 
 set -gx BAT_THEME "Catppuccin Mocha"
 
-# Uncached, `vivid generate` costs ~900ms per shell start.
-if type -q vivid
-    set -l vivid_cache $HOME/.cache/fish/vivid-catppuccin-mocha.txt
-
-    if not test -f $vivid_cache; or test (find $vivid_cache -mtime +7 2>/dev/null)
-        mkdir -p (dirname $vivid_cache)
-        vivid generate catppuccin-mocha >$vivid_cache
-    end
-
-    set -gx LS_COLORS (cat $vivid_cache)
-    set -gx EZA_COLORS $LS_COLORS
-end
+# Uncached, `vivid generate` costs ~900ms per shell start. `read` rather than
+# `cat` keeps the warm path fork-free.
+set -l vivid_cache $HOME/.cache/fish/vivid-catppuccin-mocha.txt
+__cache_gen $vivid_cache vivid vivid generate catppuccin-mocha
+and read -gx LS_COLORS <$vivid_cache
+and set -gx EZA_COLORS $LS_COLORS
