@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+# kitty-select — fzf picker for live kitty sessions, session files and project folders.
+# Port of herdr-select. Launch it from kitty as an overlay window.
+
+set -euo pipefail
+
+SESSION_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kitty/sessions
+
+BLACKLIST_PATTERNS=(
+  '^code$'
+  '-ai'
+  '-exp$'
+  '-orch'
+)
+
+PINNED_DIRS=(
+  ~/.dotfiles
+  ~/Documents/Vault
+)
+
+SEARCH_PATHS=()
+while IFS= read -r line; do
+  SEARCH_PATHS+=("$line")
+done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
+
+is_blacklisted() {
+  local name=$1
+  local pattern
+
+  for pattern in "${BLACKLIST_PATTERNS[@]}"; do
+    [[ "$name" =~ $pattern ]] && return 0
+  done
+
+  return 1
+}
+
+if [[ "${1:-}" == "--preview" ]]; then
+  type=${2:-}
+  target=${3:-}
+
+  case "$type" in
+  session)
+    kitten @ ls | jq -r --arg name "$target" '
+        .[].tabs[].windows[]
+        | select(.session_name == $name)
+        | "\(.title)\n  \(.cwd)\n"
+      '
+    ;;
+  file)
+    cat "$target"
+    ;;
+  folder)
+    if command -v eza >/dev/null 2>&1; then
+      eza --all --color=always "$target"
+    else
+      ls -la "$target"
+    fi
+    ;;
+  esac
+
+  exit 0
+fi
+
+session_rows() {
+  kitten @ ls 2>/dev/null | jq -r '
+    [ .[].tabs[].windows[] | select(.session_name != "")
+      | {name: .session_name, at: .last_focused_at} ]
+    | group_by(.name)
+    | map({name: .[0].name, at: (map(.at) | max)})
+    | sort_by(-.at)
+    | .[]
+    | ["󰆍", .name, "session", .name]
+    | @tsv
+  ' || true
+}
+
+file_rows() {
+  local live
+  live=$(session_rows | cut -f2)
+
+  [[ -d "$SESSION_DIR" ]] || return 0
+  for path in "$SESSION_DIR"/*.kitty-session; do
+    [[ -f "$path" ]] || continue
+    name=${path##*/}
+    name=${name%.kitty-session}
+    grep -qxF "$name" <<<"$live" && continue
+    printf "󰆓\t%s\tfile\t%s\n" "$name" "$path"
+  done
+}
+
+directory_rows() {
+  local include_blacklisted=${1:-false}
+
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    zoxide query -l 2>/dev/null || true
+  } | sed 's:/*$::' |
+    awk 'NF && !seen[$0]++' |
+    while IFS= read -r path; do
+      path=${path%/}
+      name=${path##*/}
+      [[ "$include_blacklisted" == true ]] || {
+        is_blacklisted "$name" && continue
+      }
+      [[ -d "$path" ]] || continue
+      printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+    done
+}
+
+folder_rows() {
+  {
+    printf "%s\n" "${PINNED_DIRS[@]}"
+    fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
+  } | sed 's:/*$::' |
+    awk 'NF && !seen[$0]++' |
+    while IFS= read -r path; do
+      path=${path%/}
+      name=${path##*/}
+      printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
+    done
+}
+
+script_path=$(printf '%q' "${BASH_SOURCE[0]}")
+default_reload_cmd=$(printf '%q --default' "${BASH_SOURCE[0]}")
+all_reload_cmd=$(printf '%q --all' "${BASH_SOURCE[0]}")
+session_reload_cmd=$(printf '%q --sessions' "${BASH_SOURCE[0]}")
+folder_reload_cmd=$(printf '%q --folders' "${BASH_SOURCE[0]}")
+close_session_cmd=$(printf '%q --close-session {3} {4}' "${BASH_SOURCE[0]}")
+
+case "${1:-}" in
+--default)
+  {
+    session_rows
+    file_rows
+    directory_rows
+  }
+  exit 0
+  ;;
+--all)
+  {
+    session_rows
+    file_rows
+    directory_rows true
+  }
+  exit 0
+  ;;
+--sessions)
+  {
+    session_rows
+    file_rows
+  }
+  exit 0
+  ;;
+--folders)
+  folder_rows
+  exit 0
+  ;;
+--close-session)
+  if [[ "${2:-}" == "session" && -n "${3:-}" ]]; then
+    kitten @ action close_session "$3" >/dev/null
+  fi
+  exit 0
+  ;;
+esac
+
+selection=$(
+  {
+    session_rows
+    file_rows
+    directory_rows
+  } |
+    fzf --no-sort --ansi \
+      --delimiter '\t' --with-nth '1,2' \
+      --border rounded --border-label ' kitty ' \
+      --header '  ^a all ^s sessions ^d close session ^p projects' \
+      --bind "ctrl-a:change-prompt(⚡  )+reload($all_reload_cmd)" \
+      --bind "ctrl-s:change-prompt(󰆍  )+reload($session_reload_cmd)" \
+      --bind "ctrl-d:execute-silent($close_session_cmd)+reload($default_reload_cmd)" \
+      --bind "ctrl-p:change-prompt(📁  )+reload($folder_reload_cmd)" \
+      --preview-window 'right:55%' \
+      --preview "$script_path --preview {3} {4}"
+)
+
+[[ -n "${selection:-}" ]] || exit 0
+
+type=$(cut -f3 <<<"$selection")
+target=$(cut -f4- <<<"$selection")
+
+case "$type" in
+session)
+  path=$(kitty-session-path "$target")
+  kitten @ action goto_session "$path"
+  ;;
+file)
+  kitten @ action goto_session "$target"
+  ;;
+folder)
+  kitty-session-at "$target"
+  ;;
+esac

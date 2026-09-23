@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# kitty-session-path NAME — print the session file backing a live session.
+
+set -euo pipefail
+
+name=${1:?Usage: kitty-session-path NAME}
+
+# Generated sessions live in the data dir; hand-written ones (startup_session,
+# for instance) live beside kitty.conf.
+for dir in "${XDG_DATA_HOME:-$HOME/.local/share}/kitty/sessions" "${XDG_CONFIG_HOME:-$HOME/.config}/kitty"; do
+  if [[ -f "$dir/$name.kitty-session" ]]; then
+    printf "%s\n" "$dir/$name.kitty-session"
+    exit 0
+  fi
+done
+
+cwd=$(kitten @ ls | jq -r --arg name "$name" '
+  [ .[].tabs[].windows[] | select(.session_name == $name) | .cwd ][0] // ""
+')
+[[ -n "$cwd" && -f "$cwd/$name.kitty-session" ]] || {
+  printf "No session file for: %s\n" "$name" >&2
+  exit 1
+}
+printf "%s\n" "$cwd/$name.kitty-session"

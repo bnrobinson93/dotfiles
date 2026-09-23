@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# kitty-session-cycle next|prev — step through live sessions in name order.
+# Name order rather than focus order, so repeated presses walk the whole set
+# instead of bouncing between the last two.
+
+set -euo pipefail
+
+direction=${1:?Usage: kitty-session-cycle next|prev}
+
+active=$(kitten @ ls --match 'session:.' |
+  jq -r '[ .[].tabs[].windows[].session_name ][0] // ""')
+
+target=$(kitten @ ls | jq -r --arg active "$active" --arg dir "$direction" '
+  [ .[].tabs[].windows[].session_name | select(. != "") ] | unique
+  | . as $names
+  | (index($active) // -1) as $i
+  | if length == 0 then ""
+    elif $dir == "prev" then $names[($i - 1) % length]
+    else $names[($i + 1) % length]
+    end
+')
+
+[[ -n "$target" ]] || exit 0
+
+# goto_session, not focus-window: only goto_session records the switch in
+# kitty's session history, which tab_bar_filter and most_recent_session read.
+path=$(kitty-session-path "$target")
+kitten @ action goto_session "$path"
