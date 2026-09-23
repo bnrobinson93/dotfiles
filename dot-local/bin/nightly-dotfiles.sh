@@ -87,11 +87,14 @@ if ! "$DOTFILES/update-skills.sh" --verify-claude-settings 2>&1; then
 fi
 
 echo "--- shell startup benchmark ---"
-# Measured, not guessed: CLAUDE.md records a baseline (fish ~35ms, zsh ~70ms, 2026-07-19)
-# and the review below is told to flag drift against it rather than eyeball the configs.
+# Measured, not guessed: CLAUDE.md records the baseline, and the review below is told
+# to flag drift against it rather than eyeball the configs.
 bench_shell() {
   local bin="$1" n=7 total=0 start end
   command -v "$bin" >/dev/null 2>&1 || { echo "$bin: not installed"; return; }
+  # topgrade ran above, so the first start regenerates every cached tool init; timed,
+  # that one-off divides into the average as phantom drift.
+  "$bin" -i -c exit >/dev/null 2>&1
   for _ in $(seq 1 "$n"); do
     start=$(date +%s%N)
     "$bin" -i -c exit >/dev/null 2>&1
