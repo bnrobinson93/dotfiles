@@ -7,6 +7,9 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "markdown_preview_font_size": 18.0,
+  "markdown_preview_code_font_family": "RecMonoCasual Nerd Font Mono",
+  "markdown_preview_font_family": ".ZedSans",
   "double_click_in_multibuffer": "open",
   "agent": {
     "default_model": {
@@ -33,7 +36,7 @@
   "ui_font_family": ".ZedSans",
   "terminal": {
     "font_size": 16.0,
-    "font_family": "Recursive Mono Casual"
+    "font_family": "Dank Mono"
   },
   "base_keymap": "VSCode",
   "git_panel": {
@@ -48,7 +51,7 @@
   "auto_indent_on_paste": true,
   "wrap_guides": [120],
   "hard_tabs": false,
-  "buffer_font_family": "Recursive Mono Casual",
+  "buffer_font_family": "Dank Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",
   "icon_theme": {
@@ -76,8 +79,8 @@
   "buffer_font_size": 18.0,
   "theme": {
     "mode": "system",
-    "light": "Tokyo Night Light",
-    "dark": "Catppuccin Mocha"
+    "light": "Catppuccin Frappé",
+    "dark": "Tokyo Night"
   },
   "project_panel": {
     "default_width": 400,
