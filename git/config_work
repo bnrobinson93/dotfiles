@@ -1,3 +1,5 @@
 [user]
   signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEue29p9rw3Auo+JQVEHydzJyEsMir+EFKQVn7b2qX03
+[url "ssh://git@github.com/virtru-corp/"]
+	insteadOf = https://go.pkg.virtru.com/
 
