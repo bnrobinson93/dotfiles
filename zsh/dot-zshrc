@@ -96,14 +96,23 @@ export FZF_DEFAULT_OPTS="\
 --color=border:#6C7086,label:#CDD6F4"
 
 # fzf for path fill only (^T file, Alt-C cd, **<Tab> completion). Its script
-# also claims ^R; atuin owns history search, so rebind ^R back right after.
+# also claims ^R; Atuin gets the final binding below.
 if [[ -o interactive ]] && type fzf >/dev/null 2>&1; then
   eval "$(fzf --zsh)"
-  if type atuin >/dev/null 2>&1; then
-    bindkey -M emacs '^r' atuin-search
-    bindkey -M viins '^r' atuin-search-viins
-    bindkey -M vicmd '/' atuin-search
-  fi
+fi
+
+if [[ -o interactive ]] && type atuin >/dev/null 2>&1; then
+  _atuin_search_reverse() {
+    _atuin_search --reverse "$@"
+  }
+  _atuin_search_reverse_viins() {
+    _atuin_search_reverse --keymap-mode=vim-insert "$@"
+  }
+  zle -N atuin-search-reverse _atuin_search_reverse
+  zle -N atuin-search-reverse-viins _atuin_search_reverse_viins
+  bindkey -M emacs '^r' atuin-search-reverse
+  bindkey -M viins '^r' atuin-search-reverse-viins
+  bindkey -M vicmd '/' atuin-search-reverse
 fi
 
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
