@@ -75,15 +75,18 @@ $truncated_diff"
 
         set commit_message (printf "%s" "$prompt" | opencode run --model $oc_model --format default 2>/dev/null | string collect)
 
-        # Strip surrounding markdown fences the model sometimes adds.
+        # Extract the first Conventional Commit subject; models sometimes add analysis or markdown.
         set commit_message (printf "%s" "$commit_message" | awk '
-            NR == 1 && /^```/ { next }
-            { buf[NR] = $0 }
-            END {
-                end = NR
-                if (end in buf && buf[end] ~ /^```[[:space:]]*$/) end--
-                for (i = 1; i <= end; i++) if (i in buf) print buf[i]
-            }' | string trim | string collect)
+            {
+                line = $0
+                sub(/^[[:space:]]*/, "", line)
+                sub(/[[:space:]]*$/, "", line)
+                sub(/^[-*][[:space:]]+/, "", line)
+                if (line ~ /^[a-z][a-z0-9-]*(\\([^)]*\\))?!?:[[:space:]]+[^[:space:]]/) {
+                    print line
+                    exit
+                }
+            }' | string collect | string trim)
     end
 
     if test -z "$commit_message"
