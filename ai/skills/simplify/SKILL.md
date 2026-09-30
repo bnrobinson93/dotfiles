@@ -73,6 +73,10 @@ Apply every rule below to the diff.
 - Keep small, task-local predicates in the owning module until reuse or isolation justifies a
   shared utility; extracting a one-caller helper adds navigation without reducing duplication.
 
+- Keep issue tickets focused on the problem, fix, and acceptance criteria. Use brief implementation
+  hints when useful, but omit QA history, background, and explicit exclusions because unlisted
+  work is already out of scope.
+
 - When one function accepts multiple equivalent input forms, keep the dispatcher thin and split
   form-specific resolution into named helpers so each path reads clearly.
 

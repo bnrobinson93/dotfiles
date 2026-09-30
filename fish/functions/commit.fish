@@ -42,9 +42,9 @@ function commit --description 'AI-generated commit message'
     if test -n "$custom_message"
         set commit_message $custom_message
     else if type -q opencode
-        set -l oc_model opencode/big-pickle
+        set -l oc_model opencode/muse-spark-1.3-contributor-free
         if test (uname -s) = Darwin
-            set oc_model anthropic/claude-haiku-4-5
+            set oc_model anthropic/claude-sonnet-5-5
         end
 
         echo "✓ Generating commit message..."
