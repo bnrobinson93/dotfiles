@@ -1,9 +1,13 @@
-Include /Users/brad.robinson/.colima/ssh_config
-
 ## Managed by dotfiles (stow). Safe to edit.
 #
 # Connection strategy per machine. Commit signing is separate — git/jj invoke
 # ssh-keygen (or an override program) directly and never read this file.
+#
+# This repo is public, so host blocks live in untracked ~/.ssh/config.d/*.conf.
+# They must be included before the Match blocks: those IdentityFile lines
+# replace ssh's defaults rather than adding to them, so a key declared after
+# them is never offered.
+Include ~/.ssh/config.d/*.conf
 
 # macOS: 1Password agent only. No IdentityFile listed, so nothing but the
 # agent is ever offered.
@@ -21,4 +25,3 @@ Match exec "test $(uname) != Darwin && test -f $HOME/.ssh/id_ed25519_GitHub"
 # Elsewhere without keys: fall back to the 1Password agent.
 Match exec "test $(uname) != Darwin"
   IdentityAgent ~/.1password/agent.sock
-
