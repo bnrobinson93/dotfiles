@@ -7,10 +7,28 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "cli_default_open_behavior": "existing_window",
+  "markdown_preview_font_size": 18.0,
+  "markdown_preview_code_font_family": "Maple Mono NF",
+  "markdown_preview_font_family": "P052",
+  "agent_servers": {
+    "opencode": {
+      "type": "registry"
+    },
+    "pi-acp": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "type": "registry"
+    },
+    "claude-acp": {
+      "type": "registry"
+    }
+  },
   "double_click_in_multibuffer": "open",
   "agent": {
     "default_model": {
-      "provider": "copilot_chat",
+      "provider": "anthropic",
       "model": "claude-haiku-4.5",
       "enable_thinking": false
     },
@@ -19,7 +37,7 @@
   },
   "tab_size": 2,
   "edit_predictions": {
-    "provider": "copilot"
+    "provider": "ollama"
   },
   "toolbar": {
     "breadcrumbs": true
@@ -32,12 +50,15 @@
   },
   "ui_font_family": ".ZedSans",
   "terminal": {
-    "font_size": 16.0,
-    "font_family": "Recursive Mono Casual"
+    "font_family": "RecMonoLinear Nerd Font Mono",
+    "font_fallbacks": [
+      "Symbols Nerd Font Mono"
+    ],
+    "font_size": 16.0
   },
   "base_keymap": "VSCode",
   "git_panel": {
-    "button": true
+    "button": false
   },
   "minimap": {
     "show": "never"
@@ -45,10 +66,10 @@
   "autosave": "on_focus_change",
   "buffer_font_weight": 425.0,
   "buffer_font_fallbacks": ["Symbols Nerd Font Mono", "Courier New", "monospace"],
-  "auto_indent_on_paste": true,
+  "auto_indent_on_paste": false,
   "wrap_guides": [120],
-  "hard_tabs": false,
-  "buffer_font_family": "Recursive Mono Casual",
+  "hard_tabs": true,
+  "buffer_font_family": "Dank Mono",
   "buffer_font_features": { "calt": true },
   "format_on_save": "on",
   "icon_theme": {
@@ -74,11 +95,7 @@
   },
   "ui_font_size": 16,
   "buffer_font_size": 18.0,
-  "theme": {
-    "mode": "system",
-    "light": "Tokyo Night Light",
-    "dark": "Catppuccin Mocha"
-  },
+  "theme": "Omazed",
   "project_panel": {
     "default_width": 400,
     "starts_open": false
