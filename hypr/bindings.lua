@@ -127,6 +127,12 @@ hl.unbind("SUPER + ALT + SPACE") -- was: Apps menu
 o.bind("SUPER + SPACE", "Omarchycast", "omarchy-shell shell toggle io.github.aditya-raj-tiwari.omarchycast")
 o.bind("SUPER + ALT + SPACE", "Omarchy menu", "omarchy-menu toggle")
 
+-- Spotify. togglePlayer defers to the plugin's shortcutPlayer setting, which
+-- defaults to "Omarchy Music app" and lands in the browser webapp; call the
+-- panel directly so the binding does not depend on shell.json.
+hl.unbind("SUPER + SHIFT + M")
+o.bind("SUPER + SHIFT + M", "Omarchy Spotify", "omarchy shell -q quickshell.spotify.player toggleFullPlayer")
+
 -- Window sizing on the Caps row of digits. Fullscreen is a toggle and works
 -- from any layout, so it is bound straight through. The two fractional sizes
 -- only mean anything for a floating window -- asking a tiled window to be 50%
