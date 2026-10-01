@@ -42,7 +42,7 @@ fi
 if type atuin >/dev/null 2>&1; then
   [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
   atuin_cache="$HOME/.cache/zsh/atuin_init.zsh"
-  if [[ ! -f "$atuin_cache" || "$(command -v atuin)" -nt "$atuin_cache" ]]; then
+  if [[ ! -s "$atuin_cache" || "$(command -v atuin)" -nt "$atuin_cache" ]]; then
     atuin init zsh --disable-up-arrow > "$atuin_cache" 2>/dev/null
   fi
   source "$atuin_cache"
@@ -51,7 +51,7 @@ fi
 if type starship >/dev/null 2>&1; then
   if [[ -o interactive ]]; then
     local starship_cache="$HOME/.cache/zsh/starship_init.zsh"
-    if [[ ! -f "$starship_cache" || "$(command -v starship)" -nt "$starship_cache" ]]; then
+    if [[ ! -s "$starship_cache" || "$(command -v starship)" -nt "$starship_cache" ]]; then
       starship init zsh > "$starship_cache" 2>/dev/null
     fi
     source "$starship_cache" 2>/dev/null
@@ -79,7 +79,7 @@ fi
 
 if type zoxide >/dev/null 2>&1; then
   zoxide_cache="$HOME/.cache/zsh/zoxide_init.zsh"
-  if [[ ! -f "$zoxide_cache" || "$(command -v zoxide)" -nt "$zoxide_cache" ]]; then
+  if [[ ! -s "$zoxide_cache" || "$(command -v zoxide)" -nt "$zoxide_cache" ]]; then
     zoxide init zsh > "$zoxide_cache" 2>/dev/null
   fi
   source "$zoxide_cache"
@@ -102,17 +102,9 @@ if [[ -o interactive ]] && type fzf >/dev/null 2>&1; then
 fi
 
 if [[ -o interactive ]] && type atuin >/dev/null 2>&1; then
-  _atuin_search_reverse() {
-    _atuin_search --reverse "$@"
-  }
-  _atuin_search_reverse_viins() {
-    _atuin_search_reverse --keymap-mode=vim-insert "$@"
-  }
-  zle -N atuin-search-reverse _atuin_search_reverse
-  zle -N atuin-search-reverse-viins _atuin_search_reverse_viins
-  bindkey -M emacs '^r' atuin-search-reverse
-  bindkey -M viins '^r' atuin-search-reverse-viins
-  bindkey -M vicmd '/' atuin-search-reverse
+  bindkey -M emacs '^r' atuin-search
+  bindkey -M viins '^r' atuin-search-viins
+  bindkey -M vicmd '/' atuin-search
 fi
 
 type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
@@ -336,7 +328,7 @@ if [[ -o interactive ]]; then
   # Uncached, `vivid generate` costs ~900ms per shell start.
   if type vivid >/dev/null 2>&1 && [[ -z "$LS_COLORS" ]]; then
     local vivid_cache="$HOME/.cache/zsh/vivid-catppuccin-mocha.txt"
-    if [[ ! -f "$vivid_cache" ]]; then
+    if [[ ! -s "$vivid_cache" ]]; then
       vivid generate catppuccin-mocha > "$vivid_cache"
     fi
     export LS_COLORS="$(cat "$vivid_cache")"
@@ -408,7 +400,7 @@ fpath=("$comp_cache" $fpath)
 # sourced here instead of autoloaded from $fpath.
 if type jj >/dev/null 2>&1; then
   local jjc="$HOME/.cache/zsh/jj_completion.zsh"
-  if [[ ! -f "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
+  if [[ ! -s "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
     COMPLETE=zsh jj > "$jjc" 2>/dev/null
   fi
   source "$jjc"
@@ -416,7 +408,7 @@ fi
 
 if type mise >/dev/null 2>&1; then
   local misec="$comp_cache/_mise"
-  if [[ ! -f "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
+  if [[ ! -s "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
     mise completion zsh > "$misec" 2>/dev/null
   fi
   compdef _mise mise

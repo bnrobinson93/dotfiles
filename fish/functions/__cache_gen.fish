@@ -5,7 +5,7 @@
 function __cache_gen
     set -l cache $argv[1]
     set -l bin (command -v $argv[2]); or return 1
-    if not test -f $cache; or test $bin -nt $cache
+    if not test -s $cache; or test $bin -nt $cache
         mkdir -p (path dirname $cache)
         $argv[3..] >$cache 2>/dev/null
     end
