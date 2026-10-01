@@ -65,7 +65,9 @@ ai/dot-codex/*
 !ai/dot-codex/hooks.json
 
 # ~/.config/atuin is the whole atuin/ dir symlinked in; atuin writes its own
-# runtime files (receipts, etc.) alongside config.toml. Only track the config.
+# runtime files (receipts, etc.) alongside config.toml. Only track the config
+# and themes.
 atuin/*
 !atuin/config.toml
+!atuin/themes/
 kitty/__pycache__/
