@@ -1,5 +1,6 @@
 [Unit]
 Description=Herdr terminal workspace server
+After=keyring-unlock.service
 
 [Service]
 Type=simple
