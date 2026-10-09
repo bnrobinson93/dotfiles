@@ -18,6 +18,13 @@ and source $cache_dir/zoxide.fish
 
 # Up-arrow stays fish's own history; atuin owns ctrl-r (see
 # fish_user_key_bindings.fish).
+#
+# PERF: must stay above the source below, or that init forks `atuin uuid` through
+# a mise shim — ~20ms a shell against 2ms for the binary.
+if test -r /proc/sys/kernel/random/uuid; and test "$ATUIN_SHLVL" != "$SHLVL"
+    set -gx ATUIN_SESSION (string replace -a -- - '' </proc/sys/kernel/random/uuid)
+    set -gx ATUIN_SHLVL $SHLVL
+end
 __cache_gen $cache_dir/atuin.fish atuin atuin init fish --disable-up-arrow
 and source $cache_dir/atuin.fish
 
