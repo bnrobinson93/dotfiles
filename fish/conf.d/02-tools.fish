@@ -2,6 +2,16 @@ if not status is-interactive
     exit
 end
 
+# Auto-load SSH keys on startup
+if type -q ssh-add
+    ssh-add -q ~/.ssh/id_ed25519_GitHub ~/.ssh/id_ed25519_GitHubSigning 2>/dev/null
+end
+
+# Load GitHub CLI token from file
+if test -f ~/.config/gh/auth_token
+    set -gx GH_TOKEN (cat ~/.config/gh/auth_token)
+end
+
 set -l cache_dir $HOME/.cache/fish
 
 # `starship init fish` emits a stub that re-runs starship through psub on every
