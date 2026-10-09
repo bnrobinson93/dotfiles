@@ -81,6 +81,11 @@ if ! TOPGRADE_NO_CONFIRM=1 mise update 2>&1 | tail -20; then
   echo "mise update reported a failure (see above); continuing"
 fi
 
+echo "--- restart herdr ---"
+if ! systemctl --user restart herdr 2>&1; then
+  echo "herdr restart failed (see above); continuing"
+fi
+
 echo "--- mise run stow ---"
 if ! mise run stow 2>&1 | grep -viE '^\s+(level|LINK|UNLINK|.* does not need|.* did not exist)' | tail -20; then
   echo "stow reported a failure (see above); continuing"
