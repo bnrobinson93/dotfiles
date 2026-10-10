@@ -39,22 +39,41 @@ if [[ -o interactive ]]; then
   alias ....='cd ../../..'
 fi
 
+# Regenerate a cached init only after the tool is upgraded, so no shell start pays
+# `X init`. Kept in step with fish/functions/__cache_gen.fish.
+# __cache_gen <cache-file> <tool> <command to generate it...>
+__cache_gen() {
+  local cache=$1 bin=${commands[$2]}
+  [[ -n $bin ]] || return 1
+  # A mise shim symlinks to the mise binary, so -nt follows it there and a tool
+  # upgrade never invalidates the cache. mise reshims on every install.
+  [[ $bin == "$HOME/.local/share/mise/shims/"* ]] && bin="$HOME/.local/share/mise/shims"
+  if [[ ! -s $cache || $bin -nt $cache ]]; then
+    mkdir -p "${cache:h}"
+    shift 2
+    "$@" >"$cache" 2>/dev/null
+  fi
+}
+
 if type atuin >/dev/null 2>&1; then
   [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
-  atuin_cache="$HOME/.cache/zsh/atuin_init.zsh"
-  if [[ ! -s "$atuin_cache" || "$(command -v atuin)" -nt "$atuin_cache" ]]; then
-    atuin init zsh --disable-up-arrow > "$atuin_cache" 2>/dev/null
+  # atuin's init mints the session id with `atuin uuid`, which goes through a mise
+  # shim: 28ms against 4ms for the installed binary. atuin treats the id as an opaque
+  # string and skips minting when one is set for this SHLVL, so mirror its condition
+  # and hand it the kernel's. Darwin has no /proc and keeps the shim call.
+  if [[ -z ${ATUIN_SESSION:-} || ${ATUIN_SHLVL:-} != "$SHLVL" ]] &&
+     [[ -r /proc/sys/kernel/random/uuid ]]; then
+    export ATUIN_SESSION="${$(</proc/sys/kernel/random/uuid)//-/}"
+    export ATUIN_SHLVL=$SHLVL
   fi
-  source "$atuin_cache"
+  __cache_gen "$HOME/.cache/zsh/atuin_init.zsh" atuin atuin init zsh --disable-up-arrow
+  source "$HOME/.cache/zsh/atuin_init.zsh"
 fi
 
 if type starship >/dev/null 2>&1; then
   if [[ -o interactive ]]; then
-    local starship_cache="$HOME/.cache/zsh/starship_init.zsh"
-    if [[ ! -s "$starship_cache" || "$(command -v starship)" -nt "$starship_cache" ]]; then
-      starship init zsh > "$starship_cache" 2>/dev/null
-    fi
-    source "$starship_cache" 2>/dev/null
+    __cache_gen "$HOME/.cache/zsh/starship_init.zsh" starship starship init zsh
+    source "$HOME/.cache/zsh/starship_init.zsh" 2>/dev/null
   fi
 else
   export PS1='%n@%m:%~%# '
@@ -78,11 +97,8 @@ else
 fi
 
 if type zoxide >/dev/null 2>&1; then
-  zoxide_cache="$HOME/.cache/zsh/zoxide_init.zsh"
-  if [[ ! -s "$zoxide_cache" || "$(command -v zoxide)" -nt "$zoxide_cache" ]]; then
-    zoxide init zsh > "$zoxide_cache" 2>/dev/null
-  fi
-  source "$zoxide_cache"
+  __cache_gen "$HOME/.cache/zsh/zoxide_init.zsh" zoxide zoxide init zsh
+  source "$HOME/.cache/zsh/zoxide_init.zsh"
 fi
 
 export fzf_preview_dir_cmd="eza --all --color=always"
@@ -399,18 +415,12 @@ fpath=("$comp_cache" $fpath)
 # defines `_clap_dynamic_completer_jj` rather than `_jj`, so it has to be
 # sourced here instead of autoloaded from $fpath.
 if type jj >/dev/null 2>&1; then
-  local jjc="$HOME/.cache/zsh/jj_completion.zsh"
-  if [[ ! -s "$jjc" || "$(command -v jj)" -nt "$jjc" ]]; then
-    COMPLETE=zsh jj > "$jjc" 2>/dev/null
-  fi
-  source "$jjc"
+  __cache_gen "$HOME/.cache/zsh/jj_completion.zsh" jj env COMPLETE=zsh jj
+  source "$HOME/.cache/zsh/jj_completion.zsh"
 fi
 
 if type mise >/dev/null 2>&1; then
-  local misec="$comp_cache/_mise"
-  if [[ ! -s "$misec" || "$(command -v mise)" -nt "$misec" ]]; then
-    mise completion zsh > "$misec" 2>/dev/null
-  fi
+  __cache_gen "$comp_cache/_mise" mise mise completion zsh
   compdef _mise mise
 fi
 

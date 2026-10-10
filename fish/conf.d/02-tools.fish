@@ -16,6 +16,17 @@ fish_add_path $HOME/.local/share/mise/shims
 __cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
 and source $cache_dir/zoxide.fish
 
+# atuin's init mints the session id with `atuin uuid`, which goes through a mise
+# shim: 28ms against 4ms for the installed binary. atuin treats the id as an opaque
+# string and skips minting when one is set for this SHLVL, so mirror its condition
+# and hand it the kernel's. Darwin has no /proc and keeps the shim call.
+if not set -q ATUIN_SESSION; or test "$ATUIN_SHLVL" != "$SHLVL"
+    if test -r /proc/sys/kernel/random/uuid
+        set -gx ATUIN_SESSION (string replace -a - "" </proc/sys/kernel/random/uuid)
+        set -gx ATUIN_SHLVL $SHLVL
+    end
+end
+
 # Up-arrow stays fish's own history; atuin owns ctrl-r (see
 # fish_user_key_bindings.fish).
 __cache_gen $cache_dir/atuin.fish atuin atuin init fish --disable-up-arrow
