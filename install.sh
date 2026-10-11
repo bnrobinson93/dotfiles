@@ -19,13 +19,6 @@ fi
 # Starship prompt
 curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
-# tmux plugins
-mkdir -p ~/.config/tmux/plugins
-if [[ ! -d ~/.config/tmux/plugins/tpm ]]; then
-  echo Installing TPM for tmux...
-  git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
-fi
-
 echo Installing homebrew...
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
