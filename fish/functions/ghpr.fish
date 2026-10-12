@@ -224,7 +224,7 @@ function __ghpr_generate_description --no-scope-shadowing
     set -l pr_guidance ""
     set -l pr_skill ~/.config/opencode/skills/commit-and-pr/SKILL.md
     if not test -f $pr_skill
-        echo "Error: file-pr skill not found at $pr_skill"
+        echo "Error: commit-and-pr skill not found at $pr_skill"
         return 1
     end
     set pr_guidance (__ghpr_read_skill_body $pr_skill | string collect)

@@ -6,7 +6,7 @@ done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${X
 SEARCH_PATHS+=("$HOME/.dotfiles")
 
 if type fd >/dev/null 2>&1; then
-  selected_folder=$(fd --full-path "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d | fzf)
+  selected_folder=$(fd . "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d | fzf)
 else
   selected_folder=$(find "${SEARCH_PATHS[@]}" -mindepth 1 -maxdepth 1 -type d | fzf)
 fi
