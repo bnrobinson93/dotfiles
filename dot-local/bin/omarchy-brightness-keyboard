@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Keyboard backlight control that remembers its level across the lock screen.
+#
+# Overrides /usr/share/omarchy/bin/omarchy-brightness-keyboard — see
+# uwsm/env.d/50-local-bin for the PATH prepend. Stock `off` saves the current
+# level before zeroing it, so a second blank while the backlight is already
+# dark (or after the firmware dropped it on resume) saves 0, and the unlock
+# `restore` then brings back 0. Skipping the save when already off keeps the
+# last lit level.
+
+if [[ ${1:-} == "off" ]]; then
+  for device in /sys/class/leds/*kbd_backlight*; do
+    [[ -e $device ]] || continue
+    (($(<"$device/brightness") == 0)) && exit 0
+    break
+  done
+fi
+
+exec /usr/share/omarchy/bin/omarchy-brightness-keyboard "$@"
