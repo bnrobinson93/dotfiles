@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Unlock GNOME Keyring for unattended startup
+
+PASS_FILE="$HOME/.config/keyring-unlock.pass"
+
+if [ ! -f "$PASS_FILE" ]; then
+  echo "keyring password file not found: $PASS_FILE" >&2
+  echo "Create it with: echo 'your-password' > ~/.config/keyring-unlock.pass && chmod 400 ~/.config/keyring-unlock.pass"
+  exit 1
+fi
+
+cat "$PASS_FILE" | gnome-keyring-daemon -r -d --unlock
