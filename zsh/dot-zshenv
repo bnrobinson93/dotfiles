@@ -5,6 +5,8 @@ export KUBECONFIG="$HOME/.kube/config"
 export TRY_PATH="$HOME/Documents/code/tries"
 export BAT_THEME="Catppuccin Mocha"
 
+export GOPRIVATE="github.com/virtru-corp/*"
+
 # The macOS path contains a space: as an unquoted brace expansion this silently matches nothing.
 for onepassword_ssh_sock in \
   "$HOME/.1password/agent.sock" \

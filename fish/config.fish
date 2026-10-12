@@ -15,5 +15,3 @@ if status is-interactive
 end
 
 set -gx GOPRIVATE "github.com/virtru-corp/*"
-set -gx GONOPROXY "github.com/virtru-corp/*"
-set -gx GONOSUMDB "github.com/virtru-corp/*"

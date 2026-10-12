@@ -26,9 +26,11 @@ if test (uname) = Darwin; and not set -q USE_1PASSWORD_SSH
     set -gx USE_1PASSWORD_SSH 1
 end
 if test "$USE_1PASSWORD_SSH" = 1
-    set -l onepassword_ssh_sock (ls -1 "$HOME/.1password/agent.sock" "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" 2>/dev/null | head -1)
-    if test -S "$onepassword_ssh_sock"
-        set -gx SSH_AUTH_SOCK "$onepassword_ssh_sock"
+    set -l onepassword_ssh_sock (path filter -t socket \
+        $HOME/.1password/agent.sock \
+        "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock")
+    if set -q onepassword_ssh_sock[1]
+        set -gx SSH_AUTH_SOCK $onepassword_ssh_sock[1]
     end
 
     if type -q op; and not test -f $HOME/.ssh/allowed_signers
