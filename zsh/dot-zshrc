@@ -37,6 +37,14 @@ if [[ -o interactive ]]; then
   alias ..='cd ..'
   alias ...='cd ../..'
   alias ....='cd ../../..'
+
+  # Auto-load SSH keys
+  if command -v ssh-add >/dev/null 2>&1; then
+    ssh-add -q ~/.ssh/id_ed25519_GitHub ~/.ssh/id_ed25519_GitHubSigning 2>/dev/null
+  fi
+
+  # Load GitHub CLI token from file
+  [[ -f ~/.config/gh/auth_token ]] && export GH_TOKEN="$(cat ~/.config/gh/auth_token)"
 fi
 
 if type atuin >/dev/null 2>&1; then
