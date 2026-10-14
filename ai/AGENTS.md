@@ -25,6 +25,8 @@ the rest unread.
 | Inspecting or mutating a repo | `vcs` |
 | Committing, pushing, filing a PR | `commit-and-pr` |
 | Reviewing a diff | `ryan-review` (backend), `sara-review` (frontend) |
+| Feedback on someone else's PR | `think-like-brad` |
+| Choosing an approach before putting it to paper | `think-like-brad` |
 | Reading or writing review comments | `tuicr`, `hunk-review` |
 | Brad states a reusable rule or corrects code | `learn-preferences` |
 | Brad says remember this | `remember-context` |

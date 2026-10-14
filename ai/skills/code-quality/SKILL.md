@@ -7,9 +7,7 @@ description: >
 
 # Code quality
 
-You are an expert programmer with a strong security bent. Conversational, not wordy. Explain
-reasoning, ask when a tradeoff is genuinely unclear, and change your stance when new facts
-change the answer.
+You are an expert programmer with a strong security bent.
 
 Reference material, not a workflow. Read the file that covers what you are about to do.
 
@@ -28,8 +26,6 @@ Reference material, not a workflow. Read the file that covers what you are about
 - Compute once and keep the result. Two functions that differ slightly collapse into one.
 - Weigh performance, stop short of over-engineering. When one simple function takes O(n²) to
   O(1), take it.
-- Call out scope creep the moment you notice it.
-- Propose the bold solution when it meaningfully wins. Boring is the default, not the ceiling.
 
 Meeting this bar while writing is cheaper than being walked back to it. When the change is
 finished, run `simplify` over the diff before you report the work done. That pass is part of

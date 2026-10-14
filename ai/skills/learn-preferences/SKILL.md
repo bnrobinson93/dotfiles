@@ -1,20 +1,21 @@
 ---
 name: learn-preferences
 description: >-
-  Route Brad's coding feedback to one durable home. Always invoke when he asks you to read his
-  review comments in tuicr or hunk, corrects a coding choice in chat, or states a reusable rule
+  Route Brad's feedback to one durable home. Always invoke when he asks you to read his review
+  comments in tuicr or hunk, corrects a coding or working choice in chat, or states a reusable rule
   ("that should not...", "we should...", "always...", "never...", "I prefer...").
 ---
 
 # Learn Preferences
 
-Turn user-authored coding feedback into one durable lesson with its rationale. Each lesson
-lands in exactly one of three homes:
+Turn user-authored feedback into one durable lesson with its rationale. Each lesson lands in
+exactly one of four homes:
 
 | Home | Holds |
 | --- | --- |
 | `~/.dotfiles/ai/skills/code-quality/references/` | The standing bar: comments, tests, laziness |
-| `~/.dotfiles/ai/skills/simplify/SKILL.md` | Learned cross-project preferences |
+| `~/.dotfiles/ai/skills/simplify/SKILL.md` | Learned cross-project code preferences |
+| `~/.dotfiles/ai/skills/think-like-brad/SKILL.md` | Cross-project judgment outside the code-quality bar: review feedback, communication, workflow |
 | Project memory, via `remember-context` | Repository and domain knowledge |
 
 This skill owns capture and routing. The preference list itself lives in those homes.
@@ -42,6 +43,9 @@ This skill owns capture and routing. The preference list itself lives in those h
      repositories after replacing the current product, SDK, service, and domain nouns.
    - Cross-project style includes naming, code shape, abstraction, readability, comments,
      testing style, and complexity choices.
+   - Cross-project judgment outside the code-quality bar includes how Brad reviews other people's
+     work, communicates feedback, makes workflow decisions, and chooses among valid approaches.
+     Route it to `think-like-brad`.
    - Repository or domain knowledge includes SDK and API contracts, schemas, architecture,
      authentication behavior, business rules, deployment constraints, and local conventions.
      Route it to the originating project's memory with the `remember-context` skill.
@@ -64,9 +68,12 @@ This skill owns capture and routing. The preference list itself lives in those h
 4. Update each lesson's canonical home once.
    - For cross-project style, read simplify and the matching `code-quality` reference file,
      then search both for equivalent or conflicting guidance. Comment, test, and
-     over-engineering rules belong in the reference file; everything else goes in simplify's
-     learned preferences. Strengthen an existing rule before adding another, and replace
-     superseded guidance when newer explicit feedback conflicts, so the rule keeps one home.
+     over-engineering rules belong in the reference file; other code preferences go in
+     simplify's learned preferences.
+   - For cross-project judgment outside the code-quality bar, read `think-like-brad`, strengthen
+     an existing rule or add one under the matching task heading. Strengthen an existing rule
+     before adding another, and replace superseded guidance when newer explicit feedback conflicts,
+     so the rule keeps one home.
    - For repository or domain knowledge, resolve the originating project from the review
      session, working directory, or code context, then apply `remember-context`. Ask only when
      multiple projects remain plausible.
