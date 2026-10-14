@@ -120,9 +120,11 @@ export FZF_DEFAULT_OPTS="\
 --color=border:#6C7086,label:#CDD6F4"
 
 # fzf for path fill only (^T file, Alt-C cd, **<Tab> completion). Its script
-# also claims ^R; Atuin gets the final binding below.
+# also claims ^R; Atuin gets the final binding below. Safe to cache: its output
+# embeds no paths or session state.
 if [[ -o interactive ]] && type fzf >/dev/null 2>&1; then
-  eval "$(fzf --zsh)"
+  __cache_gen "$HOME/.cache/zsh/fzf_init.zsh" fzf fzf --zsh
+  source "$HOME/.cache/zsh/fzf_init.zsh"
 fi
 
 if [[ -o interactive ]] && type atuin >/dev/null 2>&1; then
@@ -450,3 +452,7 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+# The last line's status becomes the first prompt's `$?`, and starship paints a
+# failed one red. Without this a fresh zsh opens on a red ❯.
+true
