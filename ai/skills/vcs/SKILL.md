@@ -77,6 +77,18 @@ A JJ workspace is a task sandbox: one workspace, one active task. Repointing it 
 `jj edit <rev>`, or adding another workspace, waits for an explicit ask. When the work belongs
 in a different workspace or change, say so instead of moving there yourself.
 
+## Before stack surgery
+
+Before rebasing, duplicating, abandoning, or force-pushing a stack:
+
+1. Run `jj workspace list --ignore-working-copy` and verify every registered workspace path exists. A directory that looks like a workspace but is absent from this list is an orphan, not a worktree to inspect.
+2. Run `jj log -r 'divergent()' --no-pager` and inspect bookmarks plus their `@origin` counterparts. If a working copy has no commit, checkout reports a concurrent checkout, or unexpected divergence appears, resolve the workspace state first.
+3. Run `jj op log -n 5` so a recovery point is visible before history surgery.
+
+A squash-merged stacked PR is a new commit with no ancestry link to its local changes. After fetching the new base, rebase only the still-unmerged root and abandon local copies already represented by the squash. Rebasing every old commit recreates duplicate content and divergent change IDs.
+
+If a rebase goes wrong, use `jj op restore <operation>` before reconstructing hidden commits by hand. After surgery, verify `divergent()` is empty for the active stack, bookmarks point at the intended commits, and working copies are clean.
+
 ## Common JJ Commands
 
 - Check current state: `jj status`
