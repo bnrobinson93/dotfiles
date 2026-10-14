@@ -45,6 +45,17 @@ runs:
         echo "$out"
         grep -q FISH_OK <<<"$out"
 
+    - name: Zsh loads full config and leaves a clean status
+      shell: bash
+      # `$?` read at the top of -c is still whatever .zshrc left behind, which is
+      # what the first prompt sees — and starship renders a failed one as a red ❯.
+      # Checked here rather than on the exit code because `zsh -i` without a tty
+      # warns about zle, and the marker proves the config loaded at all.
+      run: |
+        out=$(zsh -i -c 'echo "ZSH_OK status=$?"' 2>&1)
+        echo "$out"
+        grep -q 'ZSH_OK status=0' <<<"$out"
+
     - name: Tmux config parses
       shell: bash
       # Session runs default shell (stays alive, unlike `true` which raced the
