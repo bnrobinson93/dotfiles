@@ -1,0 +1,7 @@
+# Default startup session so the initial context is a named session ("home").
+# Without it the first tab belongs to no session, so the tab bar keeps showing
+# it alongside whichever session you switch to.
+new_tab home
+cd ~
+layout splits
+launch

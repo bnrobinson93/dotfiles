@@ -5,27 +5,32 @@ export KUBECONFIG="$HOME/.kube/config"
 export TRY_PATH="$HOME/Documents/code/tries"
 export BAT_THEME="Catppuccin Mocha"
 
-onepassword_ssh_sock="$(ls -1 $HOME/{.1password,Library/Group Containers/2BUA8C4S2C.com.1password/t}/agent.sock 2>/dev/null | head -1)"
-[[ -S "$onepassword_ssh_sock" ]] && export SSH_AUTH_SOCK="$onepassword_ssh_sock"
+export GOPRIVATE="github.com/virtru-corp/*"
+
+# The macOS path contains a space: as an unquoted brace expansion this silently matches nothing.
+for onepassword_ssh_sock in \
+  "$HOME/.1password/agent.sock" \
+  "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+do
+  [[ -S "$onepassword_ssh_sock" ]] && { export SSH_AUTH_SOCK="$onepassword_ssh_sock"; break; }
+done
 unset onepassword_ssh_sock
 
-# Keep non-interactive zsh able to find core dev tools.
 zshenv_path_dirs=()
 for dir in \
   "$HOME/.local/bin" \
   "$HOME/.local/share/mise/shims" \
   /opt/homebrew/bin \
   /home/linuxbrew/.linuxbrew/bin \
+  "$PNPM_HOME/bin" \
   "$PNPM_HOME" \
   "$BUN_INSTALL/bin" \
   "$HOME/go/bin" \
   "$HOME/.cargo/bin" \
   "$HOME/.docker/bin" \
   "$HOME/.rd/bin" \
-  "$HOME/.rvm/bin" \
   "$HOME/.yarn/bin" \
-  "$HOME/.rbenv/bin" \
-  /home/brad/.opencode/bin
+  "$HOME/.opencode/bin"
 do
   [[ -d "$dir" ]] && zshenv_path_dirs+=("$dir")
 done
@@ -33,4 +38,4 @@ path=($zshenv_path_dirs $path)
 typeset -U path
 export PATH
 unset zshenv_path_dirs dir
-. "$HOME/.cargo/env"
+[ -s "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

@@ -35,24 +35,178 @@ local function template_title(ctx)
   return ""
 end
 
+-- Templates get applied on top of existing notes at least as often as they
+-- create one: 0-Inbox auto-applies Zettel, and imported notes get their real
+-- template later. These helpers let a template skip whatever the note already
+-- has, so a second template never doubles the H1, sections or date footer.
+local drop_marker = "__DROP_LINE__"
+
+-- Frontmatter keys that really are lists. Everything else is a scalar, and a
+-- list value there is merge damage rather than intent.
+local list_metadata_keys = {
+  attendies = true,
+  author = true,
+  categories = true,
+  consulted = true,
+  deciders = true,
+  driver = true,
+  format = true,
+  informed = true,
+  location = true,
+  type = true,
+}
+
+local function normalize_metadata(out)
+  for key, value in pairs(out) do
+    -- Heal a list key that got flattened to a scalar somewhere upstream, so a
+    -- `categories: "[[Journal]]"` note goes back to being a list on next write.
+    if list_metadata_keys[key] and type(value) == "string" and value ~= "" then
+      out[key] = { value }
+      value = out[key]
+    end
+
+    if type(value) == "table" and vim.islist(value) then
+      local seen, deduped = {}, {}
+      for _, item in ipairs(value) do
+        if not seen[item] then
+          seen[item] = true
+          deduped[#deduped + 1] = item
+        end
+      end
+      -- Existing value wins: the note's own value is merged in first.
+      out[key] = list_metadata_keys[key] and deduped or deduped[1]
+    end
+  end
+  return out
+end
+
+local function ctx_buf(ctx)
+  return ctx and ctx.location and ctx.location[1] or nil
+end
+
+-- Buffer lines with the frontmatter block removed.
+local function note_body_lines(bufnr)
+  if not (bufnr and vim.api.nvim_buf_is_valid(bufnr)) then
+    return {}
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  if lines[1] ~= "---" then
+    return lines
+  end
+
+  for i = 2, #lines do
+    if lines[i] == "---" then
+      return vim.list_slice(lines, i + 1)
+    end
+  end
+
+  return lines
+end
+
+-- "## Links:" and "## Links" are the same section; legacy notes use both.
+local function heading_key(text)
+  return (vim.trim(text):gsub("[:%s]+$", ""):lower())
+end
+
+local function existing_headings(bufnr)
+  local seen = {}
+  for _, line in ipairs(note_body_lines(bufnr)) do
+    local heading = line:match("^#+%s+(.+)$")
+    if heading then
+      seen[heading_key(heading)] = true
+    end
+  end
+  return seen
+end
+
+local function buffer_has(bufnr, pattern)
+  for _, line in ipairs(note_body_lines(bufnr)) do
+    if line:match(pattern) then
+      return true
+    end
+  end
+  return false
+end
+
+-- Skip any heading block the note already carries. Only H1/H2 open a new
+-- block, so a "###" inside a kept section rides along with it. A body H1
+-- (Just Processing) is dropped whenever the note already has one, whatever it
+-- says, because MD025 allows exactly one.
+local function drop_known_sections(body, seen, has_h1)
+  local kept, skipping = {}, false
+  for line in (body .. "\n"):gmatch("([^\n]*)\n") do
+    local hashes, heading = line:match("^(#+)%s+(.+)$")
+    if hashes and #hashes <= 2 then
+      local key = heading_key(heading)
+      skipping = seen[key] or (#hashes == 1 and has_h1) or false
+      seen[key] = true
+    end
+    if not skipping then
+      kept[#kept + 1] = line
+    end
+  end
+  return table.concat(kept, "\n")
+end
+
+-- A substitution can only blank a line, not delete it, so it leaves a marker
+-- and this sweeps the marker plus its trailing blank line after the insert.
+local function strip_dropped_lines(bufnr)
+  if not (bufnr and vim.api.nvim_buf_is_valid(bufnr)) then
+    return
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+  local kept, i, dropped = {}, 1, false
+  while i <= #lines do
+    if vim.trim(lines[i]) == drop_marker then
+      dropped = true
+      if lines[i + 1] and lines[i + 1]:match("^%s*$") then
+        i = i + 1
+      end
+    else
+      kept[#kept + 1] = lines[i]
+    end
+    i = i + 1
+  end
+
+  if dropped then
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, kept)
+  end
+end
+
 local function yaml_string(value)
   return '"' .. tostring(value):gsub("\\", "\\\\"):gsub('"', '\\"') .. '"'
+end
+
+-- Meeting is "YYYY-MM-DD Name", Sermon/Highlands are "Name YYYY-MM-DD"; the
+-- undated title is the alias. Periodic notes are nothing but a date, so fall
+-- back to the full title rather than returning an empty string.
+local function alias_title(ctx)
+  local title = template_title(ctx)
+  local stripped = vim.trim((title:gsub("^%d%d%d%d%-%d%d%-%d%d%s+", ""):gsub("%s+%d%d%d%d%-%d%d%-%d%d$", "")))
+  if stripped == "" then
+    return title
+  end
+  return stripped
 end
 
 local function person_aliases(ctx)
   local title = template_title(ctx)
   local first, last = title:match("^(%S+)%s+(%S+)")
+  first = first or title:match("^(%S+)")
 
-  if first and last then
-    return "[" .. yaml_string(first) .. ", " .. yaml_string(first .. " " .. last:sub(1, 1)) .. "]"
+  if not first then
+    return "[]"
   end
 
-  first = title:match("^(%S+)")
-  if first then
-    return "[" .. yaml_string(first) .. "]"
+  -- Possessive form so "[[Christy's]]" style links resolve.
+  local aliases = { first, first .. "'s" }
+  if last then
+    aliases[#aliases + 1] = first .. " " .. last:sub(1, 1)
   end
 
-  return "[]"
+  return "[" .. table.concat(vim.tbl_map(yaml_string, aliases), ", ") .. "]"
 end
 
 local function month_ts(ctx, offset)
@@ -130,6 +284,18 @@ local function jump_to_template_cursor(bufnr)
       return
     end
   end
+end
+
+local function schedule_template_cleanup(ctx)
+  local bufnr = ctx_buf(ctx)
+  if not bufnr then
+    return
+  end
+
+  vim.schedule(function()
+    strip_dropped_lines(bufnr)
+    jump_to_template_cursor(bufnr)
+  end)
 end
 
 local function wrap_selection(before, after)
@@ -311,7 +477,232 @@ local function insert_footnote()
   vim.cmd("startinsert")
 end
 
+-- For hover preview doc
+local function resolve_embed()
+  local util = require("obsidian.util")
+  local search = require("obsidian.search")
+
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  local embed, pos = nil, 1
+  while pos <= #line do
+    local s, e = line:find("!%[%[.-%]%]", pos)
+    if not s then
+      break
+    end
+    if col >= s and col <= e then
+      embed = line:sub(s + 1, e)
+      break
+    end
+    pos = e + 1
+  end
+  if not embed then
+    return nil
+  end
+
+  local location = util.parse_link(embed)
+  if not location then
+    return nil
+  end
+  location = vim.uri_decode(location)
+
+  -- A "#^id" suffix is a block reference, not a header anchor. strip_anchor_links
+  -- would mangle it into a header anchor that never resolves, so peel it first.
+  local bare, anchor, block_id
+  block_id = location:match("#(%^[%w%-]+)$")
+  if block_id then
+    bare = location:sub(1, #location - #block_id - 1)
+  else
+    bare, anchor = util.strip_anchor_links(location)
+  end
+
+  local notes = search.resolve_note(bare, {
+    notes = { collect_anchor_links = true, collect_blocks = true, load_contents = true },
+  })
+  if vim.tbl_isempty(notes) then
+    return nil
+  end
+
+  -- Case-insensitive filesystems (macOS) resolve the linked note via direct
+  -- path lookup, so notes[1] is always the right note. Case-sensitive ones
+  -- (Linux) fall back to fuzzy ripgrep matching when the link case differs
+  -- from the filename, and notes[1] may be the wrong candidate. Try each note
+  -- and keep the first that actually yields a section.
+  local function build_section(note)
+    local lines = note.contents
+    if not lines then
+      return nil
+    end
+    local section = {}
+    local start_row = 1
+    if block_id then
+      local block = note:resolve_block(block_id)
+      if not block then
+        return nil
+      end
+      local sec = block.section
+      local from, to
+      if sec and sec.content_range then
+        from = sec.content_range.start_row + 1
+        to = sec.content_range.end_row
+      else
+        from, to = block.line, block.line
+      end
+      start_row = from
+      for i = from, to do
+        -- Drop the trailing "^id" marker from the block's own lines.
+        section[#section + 1] = (util.strip_block_links(lines[i]))
+      end
+    elseif anchor then
+      local anchor_obj = note:resolve_anchor_link(anchor)
+      if not anchor_obj then
+        return nil
+      end
+      local header_level = anchor_obj.level
+      start_row = anchor_obj.line + 1
+      for i = anchor_obj.line + 1, #lines do
+        local parsed = util.parse_header(lines[i])
+        if parsed and parsed.level <= header_level then
+          break
+        end
+        section[#section + 1] = lines[i]
+      end
+    else
+      start_row = 2
+      for i = 2, #lines do
+        section[#section + 1] = lines[i]
+      end
+    end
+
+    -- Peel only while every non-blank line is quoted, so a nested quote keeps
+    -- its own marker.
+    local function all_quoted()
+      local any = false
+      for _, line in ipairs(section) do
+        if not line:match("^%s*$") then
+          if not line:match("^%s*>") then
+            return false
+          end
+          any = true
+        end
+      end
+      return any
+    end
+
+    while all_quoted() do
+      for i, line in ipairs(section) do
+        section[i] = (line:gsub("^%s*>%s?", ""))
+      end
+    end
+
+    while #section > 0 and section[#section]:match("^%s*$") do
+      section[#section] = nil
+    end
+    if #section == 0 then
+      return nil
+    end
+    return section, start_row
+  end
+
+  for _, note in ipairs(notes) do
+    local section, start_row = build_section(note)
+    if section then
+      local title = " " .. bare .. (anchor or (block_id and "#" .. block_id) or "") .. " "
+      return section, title, tostring(note.path), start_row
+    end
+  end
+
+  return nil
+end
+
+local embed_hover_win = nil
+local embed_hover_buf = nil
+
+local function hover_config(section, title)
+  local width = math.min(80, vim.o.columns - 4)
+  local height = 0
+  for _, line in ipairs(section) do
+    height = height + math.max(1, math.ceil(vim.fn.strdisplaywidth(line) / width))
+  end
+  return {
+    relative = "cursor",
+    row = 1,
+    col = 0,
+    width = width,
+    height = math.min(math.max(height, 1), 20),
+    style = "minimal",
+    border = "rounded",
+    title = title,
+    focusable = false,
+  }
+end
+
+local function enable_wrapping(win)
+  vim.wo[win].wrap = true
+  vim.wo[win].linebreak = true
+  vim.wo[win].breakindent = true
+end
+
+local function close_embed_hover()
+  if embed_hover_win and vim.api.nvim_win_is_valid(embed_hover_win) then
+    vim.api.nvim_win_close(embed_hover_win, true)
+  end
+  if embed_hover_buf and vim.api.nvim_buf_is_valid(embed_hover_buf) then
+    vim.api.nvim_buf_delete(embed_hover_buf, { force = true })
+  end
+  embed_hover_win = nil
+  embed_hover_buf = nil
+end
+
+-- Opens the linked note's own buffer, so `:w` and `:q` behave normally.
+local function edit_embed()
+  local name = vim.api.nvim_buf_get_name(0)
+  local section, title, path, start_row
+  if vim.startswith(name, vault_path) and name:match("%.md$") then
+    section, title, path, start_row = resolve_embed()
+  end
+  if not path then
+    return vim.lsp.buf.hover()
+  end
+
+  local buf = vim.fn.bufadd(path)
+  vim.fn.bufload(buf)
+
+  local win = embed_hover_win
+  if win and vim.api.nvim_win_is_valid(win) then
+    local scratch = embed_hover_buf
+    -- Drop the handles before swapping: close_embed_hover force-deletes
+    -- embed_hover_buf, and that is the note's own buffer from here on.
+    embed_hover_win, embed_hover_buf = nil, nil
+    vim.api.nvim_win_set_buf(win, buf)
+    if scratch and vim.api.nvim_buf_is_valid(scratch) then
+      vim.api.nvim_buf_delete(scratch, { force = true })
+    end
+  else
+    win = vim.api.nvim_open_win(buf, false, hover_config(section, title))
+  end
+
+  enable_wrapping(win)
+  vim.api.nvim_set_current_win(win)
+  vim.api.nvim_win_set_cursor(win, { math.min(start_row, vim.api.nvim_buf_line_count(buf)), 0 })
+  vim.cmd("normal! zt")
+end
+
 return {
+  {
+    -- LazyVim binds K on LSP attach, after any autocmd of ours can, so take
+    -- over its keymap entry rather than racing it.
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        ["*"] = {
+          keys = {
+            { "K", edit_embed, desc = "Hover" },
+          },
+        },
+      },
+    },
+  },
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
@@ -324,11 +715,38 @@ return {
           jump_to_template_cursor(args.buf)
         end,
       })
+
+      vim.api.nvim_create_autocmd("CursorHold", {
+        pattern = vault_path .. "/**/*.md",
+        callback = function()
+          close_embed_hover()
+          local section, title = resolve_embed()
+          if not section then
+            return
+          end
+
+          embed_hover_buf = vim.api.nvim_create_buf(false, true)
+          vim.api.nvim_buf_set_lines(embed_hover_buf, 0, -1, false, section)
+
+          embed_hover_win = vim.api.nvim_open_win(embed_hover_buf, false, hover_config(section, title))
+          enable_wrapping(embed_hover_win)
+
+          -- Must follow nvim_open_win: render-markdown attaches on FileType and
+          -- only decorates windows already showing the buffer.
+          vim.bo[embed_hover_buf].filetype = "markdown"
+          vim.treesitter.start(embed_hover_buf, "markdown")
+        end,
+      })
+
+      vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
+        pattern = vault_path .. "/**/*.md",
+        callback = close_embed_hover,
+      })
     end,
     opts = {
       attachments = {
         confirm_img_paste = true,
-        folder = "resources/attachments",
+        folder = "99-System/attachments",
       },
       legacy_commands = false,
       workspaces = {
@@ -351,13 +769,18 @@ return {
       daily_notes = {
         folder = "Periodic/Daily",
         date_format = "%Y-%m-%d",
-        template = "Daily nvim Template.md",
+        template = "Daily.md",
+        default_tags = {}, -- plugin default is { "daily-notes" }; folder already says it
       },
       footer = { enabled = false },
+      -- Parity with the app, where Templater has a folder template on 0-Inbox:
+      -- every new note starts as a Zettel and the real template gets applied on
+      -- top later. The substitutions below make that second apply idempotent.
+      note = { template = "Zettel.md" },
       new_notes_location = "notes_subdir",
       frontmatter = {
         enabled = function(path)
-          return not vim.startswith(tostring(path), "resources/templates/")
+          return not vim.startswith(tostring(path), "99-System/templates/")
         end,
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
@@ -375,16 +798,20 @@ return {
           -- Update the modified time
           out.updated = now
 
-          -- More things I may want
-          if note.tags then
+          -- More things I may want (skip empties: no `tags: []` noise)
+          if note.tags and #note.tags > 0 then
             out.tags = note.tags
           end
-          if note.aliases then
+          if note.aliases and #note.aliases > 0 then
             out.aliases = note.aliases
           end
 
-          -- return the final result
-          return out
+          -- Applying a template over an existing note runs obsidian.nvim's
+          -- Note:merge, which list-extends every metadata key present in both.
+          -- That turns scalars into two-item lists (`created: [old, new]`), so
+          -- collapse anything that is not genuinely a list back to the value
+          -- the note already had.
+          return normalize_metadata(out)
         end,
       },
       note_id_func = function(title)
@@ -400,48 +827,89 @@ return {
         end
       end,
       templates = {
-        folder = "resources/templates/nvim",
+        folder = "99-System/templates/nvim",
         date_format = "%Y-%m-%d",
         time_format = "%H:%M",
         customizations = {
-          ["bible insight nvim template"] = {
+          ["adr"] = {
+            notes_subdir = "2-Areas/Virtru",
+          },
+          ["bible insight"] = {
             notes_subdir = "2-Areas/Bible/Topics",
           },
-          ["bible study note nvim template"] = {
-            notes_subdir = "2-Areas/Bible/Topics",
-          },
-          ["bible study nvim template"] = {
-            notes_subdir = "2-Areas/Bible/Teaching",
-          },
-          ["highlands nvim template"] = {
-            notes_subdir = "2-Areas/Bible/Learning",
-          },
-          ["meeting nvim template"] = {
-            notes_subdir = "0-Inbox",
-          },
-          ["monthly nvim template"] = {
-            notes_subdir = "Periodic/Monthly",
-          },
-          ["person nvim template"] = {
+          ["book"] = {
             notes_subdir = "3-Resources",
           },
-          ["sermon nvim template"] = {
+          ["just processing"] = {
+            notes_subdir = "0-Inbox",
+          },
+          ["place"] = {
+            notes_subdir = "3-Resources",
+          },
+          ["recipe"] = {
+            notes_subdir = "3-Resources/Recipes",
+          },
+          ["spike"] = {
+            notes_subdir = "2-Areas/Virtru",
+          },
+          ["sprint review"] = {
+            notes_subdir = "2-Areas/Virtru",
+          },
+          ["bible study note"] = {
+            notes_subdir = "2-Areas/Bible/Topics",
+          },
+          ["bible brad"] = {
+            notes_subdir = "2-Areas/Bible/Teaching",
+          },
+          ["highlands"] = {
             notes_subdir = "2-Areas/Bible/Learning",
           },
-          ["weekly nvim template"] = {
+          ["meeting"] = {
+            notes_subdir = "0-Inbox",
+          },
+          ["monthly"] = {
+            notes_subdir = "Periodic/Monthly",
+          },
+          ["person"] = {
+            notes_subdir = "3-Resources",
+          },
+          ["sermon"] = {
+            notes_subdir = "2-Areas/Bible/Learning",
+          },
+          ["weekly"] = {
             notes_subdir = "Periodic/Weekly",
           },
-          ["yearly nvim template"] = {
+          ["yearly"] = {
             notes_subdir = "Periodic",
           },
         },
         substitutions = {
-          alias_title = function(ctx)
-            return template_title(ctx):gsub("^%d%d%d%d%-%d%d%-%d%d%s+", "")
-          end,
+          alias_title = alias_title,
           person_aliases = person_aliases,
+          -- One H1 per note (MD025) — obsidian.nvim `gd` breaks otherwise.
+          h1 = function(ctx)
+            schedule_template_cleanup(ctx)
+            if buffer_has(ctx_buf(ctx), "^#%s+") then
+              return drop_marker
+            end
+            return "# " .. alias_title(ctx)
+          end,
+          links = function(ctx)
+            schedule_template_cleanup(ctx)
+            if existing_headings(ctx_buf(ctx))["links"] then
+              return drop_marker
+            end
+            return "## Links"
+          end,
+          date_footer = function(ctx)
+            schedule_template_cleanup(ctx)
+            if buffer_has(ctx_buf(ctx), "%[%[%d%d%d%d%-%d%d%-%d%d%]%]") then
+              return drop_marker
+            end
+            return "[[" .. os.date("%Y-%m-%d") .. "]]"
+          end,
           body = function(ctx, name)
-            local path = vault_path .. "/resources/templates/bodies/" .. name .. " Body.md"
+            local path = vault_path .. "/99-System/templates/bodies/" .. name .. " Body.md"
             local file = io.open(path, "r")
             if not file then
               return ""
@@ -450,25 +918,18 @@ return {
             file:close()
             body = body:gsub("{{cursor}}", "__CURSOR__")
             body = body:gsub("{{month}}", os.date("%Y-%m", week_ts(ctx, 0)))
+            body = body:gsub("{{week}}", os.date("%G-W%V", day_ts(ctx, 0)))
             body = body:gsub("{{year}}", os.date("%Y", year_ts(ctx, 0)))
-            if ctx and ctx.location then
-              local bufnr = ctx.location[1]
-              vim.schedule(function()
-                jump_to_template_cursor(bufnr)
-              end)
-            end
+            local bufnr = ctx_buf(ctx)
+            body = drop_known_sections(body, existing_headings(bufnr), buffer_has(bufnr, "^#%s+"))
+            schedule_template_cleanup(ctx)
             return body
           end,
           content = function()
             return ""
           end,
           cursor = function(ctx)
-            if ctx and ctx.location then
-              local bufnr = ctx.location[1]
-              vim.schedule(function()
-                jump_to_template_cursor(bufnr)
-              end)
-            end
+            schedule_template_cleanup(ctx)
             return "__CURSOR__"
           end,
           datetime = function()
@@ -523,6 +984,13 @@ return {
     },
     keys = {
       {
+        "<M-S-e>",
+        "<cmd>Obsidian template Evergreen<cr>",
+        desc = "Open Daily Note",
+        mode = { "n" },
+        buffer = true,
+      },
+      {
         "<M-S-d>",
         "<cmd>Obsidian today<cr>",
         desc = "Open Daily Note",
@@ -569,6 +1037,13 @@ return {
         insert_footnote,
         desc = "Insert footnote",
         mode = "i",
+        buffer = true,
+      },
+      {
+        "<leader>xt",
+        "<cmd>Obsidian tags todo<cr>",
+        desc = "Obsidian #todo tags",
+        mode = { "n" },
         buffer = true,
       },
     },

@@ -1,0 +1,6 @@
+# macOS path_helper runs after .zshenv and moves system paths ahead of mise.
+[[ -d /opt/homebrew/bin ]] && path=(/opt/homebrew/bin $path)
+[[ -d /home/linuxbrew/.linuxbrew/bin ]] && path=(/home/linuxbrew/.linuxbrew/bin $path)
+path=("$HOME/.local/bin" "$HOME/.local/share/mise/shims" $path)
+typeset -U path
+export PATH

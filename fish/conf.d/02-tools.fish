@@ -1,52 +1,63 @@
-# Tool Integrations
-# Sets up modern CLI tools and their configurations
-# Tool Integrations - Optimized for Fast Startup
-# Only load in interactive shells
 if not status is-interactive
     exit
 end
 
-# Starship prompt (fish handles this efficiently with psub)
-if type -q starship
-    starship init fish | source
+# Auto-load SSH keys on startup
+if type -q ssh-add
+    ssh-add -q ~/.ssh/id_ed25519_GitHub ~/.ssh/id_ed25519_GitHubSigning 2>/dev/null
 end
 
-# Mise - for managing versions
-if type -q mise
-    mise activate fish | source
+# Load GitHub CLI token from file
+if test -f ~/.config/gh/auth_token
+    set -gx GH_TOKEN (cat ~/.config/gh/auth_token)
 end
 
-# Zoxide - smart directory jumping (replaces cd)
-if type -q zoxide
-    zoxide init fish | source
-end
+set -l cache_dir $HOME/.cache/fish
 
-# JJ (Jujutsu) completion
-if type -q jj
-    jj util completion fish | source
-end
+# `starship init fish` emits a stub that re-runs starship through psub on every
+# start. Without --print-full-init the cache holds that stub and buys nothing.
+__cache_gen $cache_dir/starship-full-init.fish starship starship init fish --print-full-init
+and source $cache_dir/starship-full-init.fish
 
-# Mise completions (requires usage CLI)
-if type -q mise
-    mise completion fish | source
-end
+# Shims instead of `activate`: activate runs `mise hook-env` at startup and on
+# every prompt (~17ms a spawn). We use no mise [env] blocks, so nothing is lost.
+fish_add_path $HOME/.local/share/mise/shims
 
-# 1Password SSH signing setup
-if set -q USE_1PASSWORD_SSH
-    if type -q op; and not test -f $HOME/.ssh/allowed_signers
-        op item get --vault Private "GitHub Signing" --fields email,public_key | sed 's/,/ /' >$HOME/.ssh/allowed_signers
+__cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
+and source $cache_dir/zoxide.fish
+
+# atuin's init mints the session id with `atuin uuid`, which goes through a mise
+# shim: 28ms against 4ms for the installed binary. atuin treats the id as an opaque
+# string and skips minting when one is set for this SHLVL, so mirror its condition
+# and hand it the kernel's. Darwin has no /proc and keeps the shim call.
+if not set -q ATUIN_SESSION; or test "$ATUIN_SHLVL" != "$SHLVL"
+    if test -r /proc/sys/kernel/random/uuid
+        set -gx ATUIN_SESSION (string replace -a - "" </proc/sys/kernel/random/uuid)
+        set -gx ATUIN_SHLVL $SHLVL
     end
 end
 
-# Homebrew - load immediately (only ~15ms overhead, worth having available)
-# Supports macOS Apple Silicon and Linux
+# Up-arrow stays fish's own history; atuin owns ctrl-r (see
+# fish_user_key_bindings.fish).
+__cache_gen $cache_dir/atuin.fish atuin atuin init fish --disable-up-arrow
+and source $cache_dir/atuin.fish
+
+# Generated onto fish_complete_path so fish autoloads them on first
+# tab-complete instead of parsing them at startup.
+set -g fish_complete_path $cache_dir/completions $fish_complete_path
+# jj's dynamic shim (not `jj util completion`) completes aliases, revsets and
+# bookmarks by invoking jj at tab time.
+__cache_gen $cache_dir/completions/jj.fish jj env COMPLETE=fish jj
+__cache_gen $cache_dir/completions/mise.fish mise mise completion fish
+
 if test -d /opt/homebrew
-    eval (/opt/homebrew/bin/brew shellenv)
+    __cache_gen $cache_dir/brew.fish /opt/homebrew/bin/brew /opt/homebrew/bin/brew shellenv
+    and source $cache_dir/brew.fish
 else if test -d /home/linuxbrew/.linuxbrew
-    eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+    __cache_gen $cache_dir/brew.fish /home/linuxbrew/.linuxbrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew shellenv
+    and source $cache_dir/brew.fish
 end
 
-# Wezterm shell integration (fast, load immediately)
 if test "$TERM_PROGRAM" = WezTerm
     set -l wezterm_integration $HOME/.local/bin/wezterm-shell-integration.sh
     if test -f $wezterm_integration
@@ -54,16 +65,13 @@ if test "$TERM_PROGRAM" = WezTerm
     end
 end
 
-# Envman (if you use it)
 if test -s $HOME/.config/envman/load.fish
     source $HOME/.config/envman/load.fish
 end
 
-# fzf - Catppuccin Mocha colors with layout matching fzf.fish plugin defaults
 set -gx fzf_preview_dir_cmd eza --all --color=always
-set -Ux FZF_DEFAULT_OPTS "\
+set -gx FZF_DEFAULT_OPTS "\
 --height=50% \
---tmux bottom,40% \
 --layout=reverse \
 --border top \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \

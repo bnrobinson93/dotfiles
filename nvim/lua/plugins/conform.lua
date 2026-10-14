@@ -57,7 +57,7 @@ return {
         json = { "biome", "prettier", stop_after_first = true },
         jsx = { "biome", "prettier", stop_after_first = true },
         less = { "biome", "prettier", stop_after_first = true },
-        markdown = { "biome", "prettier", stop_after_first = true },
+        markdown = { "prettier", stop_after_first = true },
         scss = { "biome", "prettier", stop_after_first = true },
         typescript = { "biome", "prettier", stop_after_first = true },
         typescriptreact = { "biome", "prettier", stop_after_first = true },

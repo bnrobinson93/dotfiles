@@ -1,15 +1,83 @@
 
 [settings]
-idiomatic_version_file_enable_tools = ["node", "go", "ruby"]
+idiomatic_version_file_enable_tools = ["node", "ruby", "terraform"]
 
 [settings.ruby]
 compile = false
 
+[settings.upgrade]
+auto_prune = false
+
 [tools]
 bun = "latest"
-fzf = "0.70"
+buf = "latest"
+fzf = "0.70.0"
 go = "latest"
 node = "latest"
 rust = "latest"
 ruby = "latest"
+terraform = "latest"
 usage = "latest"
+uv = "latest"
+"github:agavra/tuicr" = "latest"
+sqlc = "latest"
+codex = "latest"
+claude = "latest"
+gh = "latest"
+"aqua:modem-dev/hunk" = "latest"
+vivid = "latest"
+hyperfine = "latest"
+pi = "latest"
+opencode = "latest"
+herdr = "latest"
+atuin = "18.23.0"
+
+# Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
+# install.sh should shrink into these over time.
+
+[tasks.stow]
+description = "Deploy non-AI dotfiles symlinks (config, local bin, home, ssh)"
+dir = "~/.dotfiles"
+run = [
+  "stow -v2 .",
+  "stow -v2 starship",
+  "stow -v2 -t ~/.local -R dot-local --dotfiles",
+  "stow -v2 -t ~ -R zsh --dotfiles",
+  "stow -v2 -t ~/.ssh -R dot-ssh --dotfiles",
+]
+
+[tasks.install-services]
+description = "Deploy and enable opt-in systemd user services (herdr, ...) — run deliberately per machine"
+dir = "~/.dotfiles"
+run = [
+  "stow -v2 systemd",
+  "systemctl --user daemon-reload",
+  "systemctl --user enable --now herdr",
+]
+
+[tasks.skills]
+description = "Deploy AI config and install/update skills and plugins"
+dir = "~/.dotfiles"
+run = "./update-skills.sh"
+
+[tasks.update]
+description = "Update everything (system, brew, mise, plugins) via topgrade"
+run = "topgrade"
+
+# ~/.config/omarchy/shell.json is the shell's own state, not ours. The shell writes it on
+# ordinary interaction — reordering the bar, changing a widget setting, `omarchy plugin
+# enable` — `omarchy bar`/`omarchy plugin` write it too, and Omarchy's migrations patch it
+# in place when upstream defaults move, so it needs no help from this repo. Configure the
+# bar with the CLI or by right-clicking it; nothing here tracks or regenerates the file.
+#
+# Only the personal plugins need installing, since they live in their own repos rather
+# than Omarchy's registry. Installs only: `--enable` would write to shell.json.
+[tasks.omarchy-plugins]
+description = "Install the personal shell plugins from their own repos"
+dir = "~/.dotfiles"
+run = """
+for id in idle-ladder menu-button orientation; do
+  if [ -d "$HOME/.config/omarchy/plugins/$id" ]; then continue; fi
+  omarchy plugin add "https://github.com/bnrobinson93/omarchy-$id.git" --yes
+done
+"""

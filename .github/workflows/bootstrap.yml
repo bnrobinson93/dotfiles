@@ -1,0 +1,33 @@
+name: Bootstrap
+
+# Full install.sh replay — catches bootstrap bitrot (dead curl installers,
+# renamed brew formulas) without taxing every PR. Per-PR coverage is ci.yml.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1" # Mondays 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-install:
+    name: install.sh + smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run install.sh
+        # </dev/null makes any interactive prompt (chsh, ssh-setup) fail fast
+        # instead of hanging. install.sh has no set -e, so this step passing only
+        # means it ran; the smoke action holds the real assertions.
+        run: ./install.sh </dev/null
+
+      - name: Put brew on PATH for later steps
+        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+
+      - uses: ./.github/actions/config-smoke-test

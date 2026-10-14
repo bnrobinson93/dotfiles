@@ -1,0 +1,4 @@
+interface:
+  display_name: "Remember Context"
+  short_description: "Store durable project and user memory"
+  default_prompt: "Use $remember-context to preserve this decision for future sessions."

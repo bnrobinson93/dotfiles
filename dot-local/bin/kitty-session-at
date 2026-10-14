@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# kitty-session-at PATH — focus the kitty session for PATH, creating it if absent.
+# Mirrors herdr-workspace-at.
+
+set -euo pipefail
+
+session=$(kitty-session-file "${1:?Usage: kitty-session-at PATH}")
+kitten @ action goto_session "$session"

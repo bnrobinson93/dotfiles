@@ -1,0 +1,3 @@
+[ -s "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+[ -s "$HOME/.atuin/bin/env" ] && . "$HOME/.atuin/bin/env"
+[ -s "$HOME/.config/envman/load.sh" ] && . "$HOME/.config/envman/load.sh"

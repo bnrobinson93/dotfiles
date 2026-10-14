@@ -1,0 +1,4 @@
+interface:
+  display_name: "Writing Voice"
+  short_description: "Brad's voice for prose he publishes"
+  default_prompt: "Use $writing-voice to draft this in Brad's voice."

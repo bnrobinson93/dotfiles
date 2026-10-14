@@ -1,0 +1,4 @@
+interface:
+  display_name: "Datadog"
+  short_description: "Datadog through the pup CLI"
+  default_prompt: "Use $dd for this Datadog question."

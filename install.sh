@@ -1,12 +1,12 @@
 #!/bin/bash
 echo Installing programs...
 if type apt >/dev/null; then
-  sudo apt install -y git zsh fish ripgrep tmux stow curl wget pipx jq
+  sudo apt install -y git zsh fish ripgrep tmux stow curl wget jq
 elif type pacman >/dev/null; then
-  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget python-pipx jq
+  sudo pacman -S --noconfirm --needed git zsh fish ripgrep tmux stow curl wget jq
 else
   echo "Couldn't detect package manager"
-  echo "Please install \`git zsh fish ripgrep tmux stow curl wget pipx jq\` manually and re-run this script."
+  echo "Please install \`git zsh fish ripgrep tmux stow curl wget jq\` manually and re-run this script."
 fi
 
 echo Ensuring we have the latest...
@@ -17,17 +17,7 @@ else
 fi
 
 # Starship prompt
-curl -sS https://starship.rs/install.sh | sh
-
-# Fabric
-curl -fsSL https://raw.githubusercontent.com/danielmiessler/fabric/main/scripts/installer/install.sh | bash
-
-# tmux plugins
-mkdir -p ~/.config/tmux/plugins
-if [[ ! -d ~/.config/tmux/plugins/tpm ]]; then
-  echo Installing TPM for tmux...
-  git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
-fi
+curl -sS https://starship.rs/install.sh | sh -s -- --yes
 
 echo Installing homebrew...
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -40,132 +30,42 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise gh pipx jq dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise gh jq topgrade dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.claude ~/.codex ~/.config/opencode
+# ~/.config/omarchy must exist before stow runs, or stow folds the whole directory
+# into a symlink and Omarchy's generated state (themed/, defaults/, current) lands
+# in the repo. Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created:
+# Omarchy upgrades drop their own files into env.d.
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy ~/.config/uwsm/env.d
 pushd "$(dirname -- "$0")" || exit
 
-find_superclaude_bin() {
-  if command -v superclaude >/dev/null 2>&1; then
-    command -v superclaude
-    return 0
-  fi
-
-  local pipx_bin_dir="${PIPX_BIN_DIR:-}"
-  if [[ -z "$pipx_bin_dir" ]] && command -v pipx >/dev/null 2>&1; then
-    pipx_bin_dir="$(pipx environment --value PIPX_BIN_DIR 2>/dev/null || true)"
-  fi
-
-  local candidate_dir=""
-  for candidate_dir in "$pipx_bin_dir" "$HOME/.local/bin"; do
-    if [[ -n "$candidate_dir" && -x "$candidate_dir/superclaude" ]]; then
-      printf '%s\n' "$candidate_dir/superclaude"
-      return 0
-    fi
-  done
-
-  return 1
-}
-
-backup_conflicting_ai_entrypoint() {
-  local target="$1"
-  if [[ ! -e "$target" && ! -L "$target" ]]; then
-    return 0
-  fi
-
-  local backup_target="${target}.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak"
-  echo "Backing up existing $(basename "$target") to $backup_target"
-  mv "$target" "$backup_target"
-}
-
-if superclaude_bin="$(find_superclaude_bin)"; then
-  :
-else
-  echo "Installing SuperClaude CLI with pipx..."
-  pipx ensurepath || true
-  if pipx install superclaude || pipx upgrade superclaude; then
-    superclaude_bin="$(find_superclaude_bin || true)"
-  else
-    superclaude_bin=""
-    echo "Warning: SuperClaude CLI install failed; continuing with dotfiles setup."
-  fi
-fi
-
-if [[ -n "${superclaude_bin:-}" ]]; then
-  echo "Installing SuperClaude into ~/.claude..."
-  if ! "$superclaude_bin" install; then
-    echo "Warning: SuperClaude install failed; continuing with dotfiles setup."
-  fi
-
-  echo "Verifying SuperClaude installation..."
-  "$superclaude_bin" install --list || true
-  "$superclaude_bin" doctor || true
-
-  if [[ -t 0 ]]; then
-    echo "Install SuperClaude MCP servers? [y/N] "
-    read -r superclaude_mcp_choice
-    shopt -s nocasematch
-    if [[ "${superclaude_mcp_choice}" == "y" ]]; then
-      "$superclaude_bin" mcp --list || true
-      "$superclaude_bin" mcp || true
-    fi
-    shopt -u nocasematch
-  else
-    echo "Non-interactive shell detected; skipping optional SuperClaude MCP setup."
-  fi
-else
-  echo "SuperClaude CLI not found after pipx step; skipping SuperClaude setup."
-fi
-
 echo Clearing install files to avoid stow conflicts...
-for path in alacritty fish ghostty git kitty nvim mise tmux starship.toml; do
+for path in fish ghostty git kitty nvim mise tmux starship.toml; do
   rm -rf "$HOME/.config/$path"
 done
 
-echo "Removing previously stowed AI instruction links..."
-stow -D -t ~/.claude ai 2>/dev/null || true
-stow -D -t ~/.codex ai 2>/dev/null || true
-stow -D -t ~/.config/opencode ai 2>/dev/null || true
-stow -D -d ai -t ~/.codex dot-codex 2>/dev/null || true
-
-echo "Backing up conflicting Claude entrypoints before restowing..."
-backup_conflicting_ai_entrypoint "$HOME/.claude/AGENTS.md"
-backup_conflicting_ai_entrypoint "$HOME/.claude/CLAUDE.md"
-
-ai_stow_args=(--ignore=dot-codex --ignore='^skills/(teach|hunk-review)$')
+# Debian-family homes get /etc/skel's ~/.profile, and a real file there makes
+# `stow -t ~ zsh` refuse the whole package. It may hold the user's own PATH
+# lines, so move it aside rather than deleting it.
+if [[ -f "$HOME/.profile" && ! -L "$HOME/.profile" ]]; then
+  backup="$HOME/.profile.bak.$(date +%s)"
+  echo "Existing ~/.profile moved to $backup"
+  mv "$HOME/.profile" "$backup"
+fi
 
 echo Populating config and local scripts...
-stow -v2 .
-stow -v2 starship
-stow -v2 -t ~/.local -S dot-local --dotfiles
-stow -v2 -t ~ -S zsh gitmux --dotfiles
-stow -v2 "${ai_stow_args[@]}" -t ~/.claude ai
-stow -v2 "${ai_stow_args[@]}" -t ~/.codex ai
-stow -v2 "${ai_stow_args[@]}" -t ~/.config/opencode ai
-stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
-
-cp -pR hypr/* ~/.config/hypr/
-
-echo "Converting any PKCS#8 SSH keys to OpenSSH format..."
-if [[ -x "$HOME/.local/bin/ssh-convert-openssh.sh" ]]; then
-  failed_conversions=0
-  for k in "$HOME"/.ssh/id_*; do
-    [[ -f "$k" && "$k" != *.pub && "$k" != *.bak* ]] || continue
-    grep -q "BEGIN PRIVATE KEY" "$k" 2>/dev/null || continue
-    if ! "$HOME/.local/bin/ssh-convert-openssh.sh" "$k"; then
-      echo "  Warning: failed to convert SSH key '$k'; please convert it manually if needed."
-      failed_conversions=$((failed_conversions + 1))
-    fi
-  done
-  if [[ "$failed_conversions" -gt 0 ]]; then
-    echo "  Finished converting SSH keys with $failed_conversions failure(s). See warnings above for keys needing manual intervention."
-  fi
-else
-  echo "  Hint: ssh-convert-openssh.sh not found; run it manually if signing fails."
+# `mise run stow` is these same stow invocations, and install.sh shrinks into the mise
+# tasks over time. mise reads mise/config.toml from this directory, so the tasks are
+# available before anything is stowed. PATH is extended by hand because the scripts these
+# tasks call ship in dot-local and a fresh login shell has not picked up ~/.local/bin yet.
+export PATH="$HOME/.local/bin:$PATH"
+if command -v omarchy >/dev/null 2>&1; then
+  mise run omarchy-plugins
 fi
+mise run stow
 
 echo "Installing fisher (fish plugin manager) and plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
@@ -174,6 +74,9 @@ fish -c "fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93
 echo "Installing tools configured in mise (e.g., Node.js, fzf)..."
 if command -v mise >/dev/null 2>&1; then
   mise install
+  # Shims aren't on a fresh login shell's PATH yet, but later steps here call
+  # mise-managed tools (herdr) by name.
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
 
   git_excludes_file="$(git config --global --get core.excludesfile 2>/dev/null || true)"
   if [[ -n "$git_excludes_file" ]]; then
@@ -194,20 +97,20 @@ chsh -s "$(which fish)"
 echo Getting the nice to haves...
 brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
 
-echo "Installing AI skills and plugins..."
+echo "Deploying AI config and updating skills/plugins..."
 "$PWD/update-skills.sh" || true
 
 echo Installing Herdr...
 curl -fsSL https://herdr.dev/install.sh | sh
-
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex
-  herdr plugin install NathanFlurry/herdr-plugin-jj-workspace --yes
-  herdr plugin install rjyo/herdr-window-title-sync --yes
-  herdr plugin install third774/herdr-last-workspace --yes
-  herdr plugin install Newt6611/herdr-tab-title --yes
-  herdr plugin install scott306lr/herdr-plugin-hunk-autodiff --yes
+  herdr plugin install EzraCerpac/jj-waltz/plugins/herdr --yes # create/delete jj workspaces
+  herdr plugin install mroth/herdr-jj-status --yes             # Show JJ branch
+  herdr plugin install rjyo/herdr-window-title-sync --yes      # update term title to match location
+  herdr plugin install third774/herdr-last-workspace --yes     # Go to previous workspace
+  herdr plugin install aarsh21/herdr-tab-title --yes           # auto label tab by program
+  herdr plugin install yuucu/herdr-hunk --yes                  # Open hunk for review
 fi
 
 if uname -a | grep -q "WSL"; then
@@ -232,12 +135,3 @@ if [[ -x "$HOME/.local/bin/ssh-setup-github.sh" ]]; then
 else
   echo "Hint: Use ~/.local/bin/ssh-setup-github.sh to create/upload keys to GitHub."
 fi
-
-echo "Set up Fabric? [Y/n] "
-read -r choice
-shopt -s nocasematch
-if [[ "${choice}" != "n" ]]; then
-  export PATH="$HOME/.local/bin:$PATH"
-  fabric --setup
-fi
-shopt -u nocasematch

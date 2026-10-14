@@ -5,41 +5,55 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
-log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges) | bases"
+# Used by explicit `jj log` — broad cleanup-audit view: shows ALL my mutable leaf
+# tips (my_leaves), incl loose/unbookmarked, so I can spot + clean up strays.
+# Bare `jj` uses the tighter `clean_log` instead (see aliases.my_log).
+log = "latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_leaves | (bases & my_bookmark_ranges) | bases"
 # 1. Current bookmark: full context near @
-# 2. Other bookmarks I own: only their tips + my leaves on them
+# 2. Other bookmarks I own: their tips + ALL my mutable leaf tips (incl loose)
 # 3. Keep bases that are relevant to my work, but *only* where my stuff lives
 
 [revset-aliases]
+'immutable_heads()' = 'builtin_immutable_heads() | (trunk().. & ~mine())'
 'closest_bookmark(to)' = 'heads(::to & bookmarks() & ~trunk())'
 'closest_pushable(to)' = 'heads(::to & mutable() & ~trunk() & ~description(exact:"") & (~empty() | merges()))'
-'bases' = 'trunk() | present(develop)'
+'bases' = 'trunk() | present(develop) | present(main)'
 'mybranches' = 'bookmarks() & mine()'
 'branchesandheads' = 'mybranches | (heads(trunk()::) & mine())'
 'base(to)' = 'trunk() | ::to & bookmarks() & ~trunk() & ~closest_bookmark(@)'
+'parent' = 'trunk() | ::@ & bookmarks() & ~trunk() & ~closest_bookmark(@)'
 'curbranch' = 'latest(mybranches::@- & mybranches)'
 'nextbranch' = 'roots(@:: & branchesandheads)'
 'my_other_bookmarks' = 'mybranches & ~(curbranch::@)'
 'my_other_bookmark_heads' = 'heads(my_other_bookmarks::)'
 'my_leaves' = 'heads(mine() & mutable())'
 'my_other_leaves' = 'my_leaves & my_other_bookmarks::'
+# clean_log: the tight daily view for bare `jj` (default-command). Same accordion
+# as revsets.log but folds far field to on-bookmark leaves only (my_other_leaves),
+# hiding loose strays. Use explicit `jj log` (revsets.log) to see + clean those.
+'clean_log' = 'latest(curbranch::@, 30) | @::nextbranch | @ | @- | children(@) | ancestors(@, 3) | my_other_bookmarks | my_other_leaves | (bases & my_bookmark_ranges) | bases'
+# stale: periodic-cleanup candidates. Old orphan work (no bookmark downstream,
+# not @ or its stack, 3wk+) + any of my empty mutable commits. Excludes @,
+# bookmarks, live stacks by construction. Preview: `jj log -r stale`.
+# Nuke (reversible via `jj undo`): `jj abandon -r stale`. Bookmark keepers first.
+'stale' = '(mine() & mutable() & ~@ & ~(@::) & ~(::bookmarks()) & committer_date(before:"3 weeks ago")) | (empty() & mine() & mutable() & ~@ & ~bookmarks())'
 'my_bookmark_ranges' = 'mybranches::'
-'recent()' = 'mine() & committer_date(after:"1 week ago") & ~empty()'
-'feature_branches()' = "bookmarks() ~ (trunk() | main)"
-'current_feature_branch()' = "feature_branches() & ::@"
-'other_feature_branches()' = "feature_branches() & ~::@"
-'current_branch_history()' = "connected(main.. current_feature_branch()) | connected(main..@)"
-'other_branches_summary()' = "ancestors(other_feature_branches(), 4) | descendants(other_feature_branches())"
+'recent' = 'mine() & committer_date(after:"1 week ago") & ~empty()'
+'feature_branches' = "bookmarks() ~ (trunk() | main)"
+'current_feature_branch' = "feature_branches & ::@"
+'other_feature_branches' = "feature_branches & ~::@"
+'current_branch_history' = "connected(main.. current_feature_branch) | connected(main..@)"
+'other_branches_summary' = "ancestors(other_feature_branches, 4) | descendants(other_feature_branches)"
 
 [aliases]
 base = ["log", "-r", "base(@)", "-T", "bookmarks", "--no-graph", "--limit", "1"]
-my_log = ["log", "-T", "my_default_log"]
+my_log = ["log", "-r", "clean_log", "-T", "my_default_log"]
 l = [
   "log",
   "-r",
-  "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(trunk() | main, 3) | @::, 30)",
+  "latest(@ | ancestors(bookmarks(), 3) | ancestors(@, 15) | ancestors(bases, 3) | @::, 30)",
 ]
-s = ["status"]
+s = ["diff", '--no-pager', '-s', '-r', 'main..@']
 retrunk = ["rebase", "-d", "trunk()"]
 lr = ["log", "-r", "recent()"]
 e = ["edit"]
@@ -92,9 +106,6 @@ push = [
   fi
   """,
 ]
-
-[commit]
-sign = true
 
 [ui]
 pager = "cat"
@@ -151,20 +162,24 @@ committer = "#94e2d5"
 "node working_copy" = "bright green"
 "elided" = { fg = "#f2cdcd", italic = true }
 
+# Per-machine override: conf.d/z-local.toml (see README, SSH section)
 [signing]
-behavior = "own"
-key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOIidIqt1fDMmhx1KUyCyKduIJCcJMhQk+f5vd6JEjsO"
+behavior = "keep"
+key = "~/.ssh/id_ed25519_GitHubSigning"
 backend = "ssh"
 
 [core]
 excludesfile = "~/.gitignore"
 
+[snapshot]
+auto-update-stale = true
+
 [signing.backends.ssh]
-program = "ssh-sign-wrapper.sh"
-allowed_signers = "~/.ssh/allowed_signers"
+allowed-signers = "~/.ssh/allowed_signers"
 
 [git]
 sign-on-push = true
+abandon-unreachable-commits = false
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
 [templates]
@@ -193,7 +208,6 @@ patterns = [
   "glob:'**/*.ts'",
   "glob:'**/*.tsx'",
   "glob:'**/*.json'",
-  "glob:'**/*.md'",
   "glob:'**/values.yaml'",
   "glob:'**/values/*.yaml'",
   "glob:'**/*.css'",

@@ -9,15 +9,13 @@ Code/User/mcp.json
 Code/User/snippets/
 Code/User/sync/
 Code/User/workspaceStorage/
-atuin/atuin-receipt.json
 dot-local/bin/claude
 dot-local/bin/fabric
-dot-local/bin/webi
+dot-local/bin/mise
 fabric/.env
 fish/completions/*
 !fish/completions/fabric.fish
 !fish/completions/ghpr.fish
-!fish/completions/nvm.fish
 fish/conf.d/fish_frozen_key_bindings.fish
 fish/conf.d/fzf.fish
 fish/fish_variables
@@ -44,3 +42,32 @@ tmux/plugins/
 zed/conversations/
 zed/prompts/
 hunk/state.json
+jj/tests
+herdr/session.json
+herdr/release-notes.json
+herdr/session-history.json
+herdr/plugins.json
+herdr/.plugins.lock
+herdr/plugins/github/
+dot-local/bin/herdr
+
+# herdr rewrites this on every integration update; managed there, not here.
+ai/dot-claude/hooks/herdr-agent-state.sh
+
+# Codex runtime state. On machines still carrying the old layout, ~/.codex is a
+# symlink into ai/dot-codex, so Codex writes its databases, caches, session logs,
+# and system-installed skills straight into the repo, and it invents new ones on
+# every upgrade. Ignore the directory and allow back only the three seed files;
+# a new config file needs a line here before it can be tracked.
+ai/dot-codex/*
+!ai/dot-codex/config.toml
+!ai/dot-codex/herdr-agent-state.sh
+!ai/dot-codex/hooks.json
+
+# ~/.config/atuin is the whole atuin/ dir symlinked in; atuin writes its own
+# runtime files (receipts, etc.) alongside config.toml. Only track the config
+# and themes.
+atuin/*
+!atuin/config.toml
+!atuin/themes/
+kitty/__pycache__/

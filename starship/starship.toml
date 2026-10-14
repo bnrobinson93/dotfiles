@@ -7,7 +7,6 @@ ${custom.jj}\
 $git_branch\
 $git_commit\
 $git_state\
-$git_metrics\
 $git_status\
 $line_break\
 $package\
@@ -23,19 +22,12 @@ palette = "catppuccin_mocha"
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"
 
-[cmd_duration]
-disabled = true
-
 [directory]
 style = "green"
 truncation_length = 3
 truncation_symbol = "…/"
 truncate_to_repo = true
 # fish_style_pwd_dir_length = 1
-
-[gcloud]
-detect_env_vars = ["GCP_PROJECT", "CLOUDSDK_CORE_PROJECT"]
-timeout = 500
 
 [git_state]
 format = '[\($state( $progress_current of $progress_total)\) ]($style)'
@@ -46,9 +38,6 @@ symbol = " "
 style = 'sky'
 format = """on [$symbol$branch(:$remote_branch)]($style) """
 only_attached = true
-
-[git_metrics]
-disabled = true
 
 [git_status]
 conflicted = '[󰀨 ](red)'
@@ -111,40 +100,8 @@ base = "#1e1e2e"
 mantle = "#181825"
 crust = "#11111b"
 
-# Disable slow/unused modules for better performance
-[aws]
-disabled = true
-
-[docker_context]
-disabled = true
-
-[kubernetes]
-disabled = true
-
-[terraform]
-disabled = true
-
-[azure]
-disabled = true
-
-[battery]
-disabled = true
-
-[time]
-disabled = true
-
-[username]
-disabled = true
-
-[hostname]
-disabled = true
-
-[memory_usage]
-disabled = true
-
-[python]
-disabled = true
-
+# No per-module disabled=true blocks needed: `format` above is an explicit
+# allowlist, so modules not listed there never run.
 [custom.jj]
 command = '''
 jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 --template '

@@ -1,0 +1,11 @@
+[Unit]
+Description=Auto-unlock GNOME Keyring
+Before=herdr.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/unlock-keyring
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

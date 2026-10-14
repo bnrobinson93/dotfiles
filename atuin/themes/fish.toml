@@ -1,0 +1,13 @@
+# Catppuccin's atuin theme sets no Syntax* colors, so these come from
+# fish/conf.d/fish_frozen_theme.fish. Fish colors $VAR with its operator color.
+[theme]
+name = "fish"
+parent = "catppuccin-mocha-mauve"
+
+[colors]
+SyntaxCommand = "#89b4fa"
+SyntaxFlag = "#a6e3a1"
+SyntaxString = "#a6e3a1"
+SyntaxVariable = "#f5c2e7"
+SyntaxOperator = "#f5c2e7"
+SyntaxComment = "#7f849c"

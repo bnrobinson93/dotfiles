@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ryan Review"
+  short_description: "Senior PR review in Ryan style"
+  default_prompt: "Use $ryan-review to review this PR with Hunk and Ponytail."

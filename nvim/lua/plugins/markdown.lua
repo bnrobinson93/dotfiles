@@ -12,7 +12,7 @@ return {
         unchecked = { icon = " " },
         checked = { icon = "󰄳 ", scope_highlight = "@markup.strikethrough" },
         custom = {
-          canceled = { raw = "[-]", rendered = " ", highlight = "DiagnosticSignError" },
+          canceled = { raw = "[-]", rendered = " ", scope_highlight = "CmpItemAbbrDeprecated" },
           in_progress = { raw = "[/]", rendered = " ", highlight = "DiagnosticSignHint" },
           partial = { raw = "[~]", rendered = " ", highlight = "DiagnosticSignHint" },
           important = { raw = "[!]", rendered = "󰓏 ", highlight = "DiagnosticSignWarn" },

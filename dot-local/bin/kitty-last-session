@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# kitty-last-session — switch to the previously focused live session.
+#
+# Not `goto_session -1`: kitty's session history is never pruned when a session
+# closes, so it lands on a dead name and rings the bell instead of falling
+# further back. Ordering live windows by last focus keeps that from happening.
+
+set -euo pipefail
+
+# session:. is kitty's own notion of the active session, which — unlike
+# is_focused — does not go empty when the compositor focuses another app.
+active=$(kitten @ ls --match 'session:.' |
+  jq -r '[ .[].tabs[].windows[].session_name ][0] // ""')
+
+target=$(kitten @ ls | jq -r --arg active "$active" '
+  [ .[].tabs[].windows[] | select(.session_name != "")
+    | {name: .session_name, at: .last_focused_at} ]
+  | group_by(.name)
+  | map({name: .[0].name, at: (map(.at) | max)})
+  | sort_by(-.at)
+  | map(.name) | map(select(. != $active))
+  | .[0] // ""
+')
+
+[[ -n "$target" ]] || exit 0
+
+# goto_session, not focus-window: only goto_session records the switch in
+# kitty's session history, which tab_bar_filter and most_recent_session read.
+path=$(kitty-session-path "$target")
+kitten @ action goto_session "$path"

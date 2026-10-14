@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Vault search for Omarchycast, wired in as a dynamic plugin source.
+#
+# Omarchycast's own notes provider reads a single directory -- providers/notes.rs
+# calls read_dir, not a recursive walk -- so pointing it at an Obsidian vault
+# finds only the handful of files in the root. This walks the whole tree instead
+# and hands the results back through the documented extension point, so nothing
+# in the daemon has to be forked to get vault-wide search.
+#
+# Usage: omarchycast-vault <obsidian|editor> [query...]
+#
+# The daemon appends the typed query as the final argument and reads one JSON
+# object per line, under a 700 ms budget and a 64 KB output cap. Filtering
+# therefore happens here rather than in the daemon: fd walks 1700 files in about
+# 6 ms, and only the surviving rows are ever printed.
+
+set -euo pipefail
+
+mode="${1:-obsidian}"
+shift || true
+query="${*:-}"
+
+vault="${OBSIDIAN_VAULT_ROOT:-$HOME/Documents/Vault}"
+[[ -d $vault ]] || exit 0
+vault_name="$(basename "$vault")"
+
+# The daemon shows at most 32 dynamic rows (MAX_DYNAMIC_ITEMS), so there is no
+# point ranking or encoding more than that.
+limit=32
+
+cd "$vault"
+
+# .obsidian, .git and friends are skipped by fd's own hidden-file default, which
+# is what we want -- plugin state is not a note.
+mapfile -t candidates < <(fd -e md -e canvas -e base --type file --strip-cwd-prefix)
+((${#candidates[@]})) || exit 0
+
+if [[ -n $query ]]; then
+	# fzf --filter ranks by the same fuzzy algorithm the picker uses, which beats
+	# a substring grep on a vault where the meaningful part of a name is usually
+	# in the middle. Fall back when fzf is absent rather than returning nothing.
+	if command -v fzf >/dev/null 2>&1; then
+		mapfile -t matches < <(printf '%s\n' "${candidates[@]}" | fzf --filter "$query" | head -n "$limit")
+	else
+		mapfile -t matches < <(printf '%s\n' "${candidates[@]}" | grep -i -F -- "$query" | head -n "$limit")
+	fi
+else
+	# An empty query is the "show me where I was" case, so answer with the most
+	# recently touched notes rather than an alphabetical slice.
+	mapfile -t matches < <(printf '%s\n' "${candidates[@]}" | xargs -d '\n' ls -td -- 2>/dev/null | head -n "$limit")
+fi
+
+((${#matches[@]})) || exit 0
+
+# One jq for the whole batch: 32 invocations would spend more time on process
+# startup than the search itself.
+printf '%s\n' "${matches[@]}" | jq -Rc \
+	--arg mode "$mode" \
+	--arg vault "$vault" \
+	--arg name "$vault_name" '
+  . as $relative
+  | ($relative | sub("\\.(md|canvas|base)$"; "")) as $title
+  | ($relative | split("/")) as $parts
+  | (if ($parts | length) > 1 then ($parts[:-1] | join("/")) else $name end) as $folder
+  | {
+      title: ($parts[-1] | sub("\\.(md|canvas|base)$"; "")),
+      subtitle: $folder,
+      accessory: (if $mode == "editor" then "Editor" else "Obsidian" end),
+      exec: (
+        if $mode == "editor"
+        then ["omarchy-launch-editor", ($vault + "/" + $relative)]
+        else ["obsidian", "obsidian://open?vault=" + ($name | @uri) + "&file=" + ($title | @uri)]
+        end
+      )
+    }
+'

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learn Preferences"
+  short_description: "Route feedback to style or project memory"
+  default_prompt: "Use $learn-preferences to route this coding feedback to shared style or project memory."

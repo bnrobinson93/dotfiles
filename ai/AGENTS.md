@@ -1,52 +1,38 @@
 # AI Entry Point
 
-Shared instruction entry point for Claude, Codex, and OpenCode.
+Shared by Claude, Codex, OpenCode, and Pi. Hooks only. Pull the thread a task needs and leave
+the rest unread.
 
-## Communication Style
+## Always on
 
-- Terse like caveman. Technical substance exact. Only fluff die.
-- Drop: articles, filler (just/really/basically), pleasantries, hedging.
-- Fragments OK. Short synonyms.
-- Code unchanged.
-- Pattern: [thing] [action] [reason]. [next step].
-- ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
-- Code/commits/PRs: normal.
-- Off: "stop caveman" / "normal mode".
+- Answer short, in Brad's voice. No preamble, no recap of what he just said, no narrating tool
+  calls. `unslop` runs over every reply; `writing-voice` when the prose is his to publish.
+- Text no human reads is a different budget. Compress subagent prompts and their reports hard,
+  and on Claude reach for the `cavecrew` agents, which return findings already compressed.
+- Dev servers already run under `pnpm` or `go`. Ask for their output instead of starting a
+  second one.
+- Repos are JJ-first. Before mutating files, run `jj workspace root`; if that fails, run
+  `git rev-parse --show-toplevel` as its own command. Chaining the two defeats allowlists.
+- Personal environment and workflow setup lives in dotfiles, never in a repository Brad does
+  not own.
 
-## Running Development Servers
+## Threads
 
-Dev server already running with `pnpm` or `go`. Can provide output if needed.
+| Task | Pull |
+| --- | --- |
+| Writing or changing code | `code-quality` |
+| Code finished, before handback | `simplify` (gate, not optional) |
+| Inspecting or mutating a repo | `vcs` |
+| Committing, pushing, filing a PR | `commit-and-pr` |
+| Reviewing a diff | `ryan-review` (backend), `sara-review` (frontend) |
+| Reading or writing review comments | `tuicr`, `hunk-review` |
+| Brad states a reusable rule or corrects code | `learn-preferences` |
+| Brad says remember this | `remember-context` |
+| Issues, specs, Jira, domain docs | `load-engineering-context` |
+| Prose Brad will publish or share | `writing-voice`, then `unslop` |
+| Any other human-facing text | `unslop` |
+| GitHub API calls | `gh-api` |
+| Datadog | `dd` |
+| Reproducing a browser bug | `browser-debug` |
 
-## Shared Memory
-
-For durable project/user memory, read: `~/.claude/projects/-Users-brad-robinson--dotfiles/memory/MEMORY.md`
-
-Note that "-Users-brad-robinson--dotfiles" is taken from `ls -1d ~/.dotfiles | sed 's/\./-/g; s/\//-/g'` so it may differ between machines
-
-Follow links from that MEMORY.md when relevant.
-
-When user asks to remember a decision, code nuance, workflow, or location:
-
-- Add/update a focused file in that `memory/` dir.
-- Add one bullet to `MEMORY.md` linking it.
-- Capture Why, Applies to, and Failure mode when useful.
-
-## VCS - Version Control
-
-I generally work in JJ VCS, as such, assume that you're in a JJ workspace by default. Before starting work that would mutate files, unless I already stated that it's git vs jj, detected whether in a JJ or git repo, so that you're grounded in reality. Refer to VCS.md (at root, e.g. ~/.claude or ~/.codex) for details. To check which VCS is in use, you can use `(jj workspace root 2&>/dev/null && echo JJ) || (git rev-parse --show-toplevel 2&>/dev/null && echo GIT) || echo NEITHER` in bash. JJ = JJ repo, GIT = git repo, NEITHER = not tracked via a VCS.
-
-## Writing Voice
-
-Before writing or editing long-form prose, documentation, decision docs, READMEs, or publishable code comments, MUST read WritingVoice.md (at root, e.g. ~/.claude or ~/.codex). Applies when prose matters or user will share the artifact. Does not apply to caveman-mode chat, terse status updates, or routine code.
-
-## Code Quality
-
-When coding, consider CodeQuality.md (at root, e.g. ~/.claude or ~/.codex)
-
-## Skills
-
-skills/<name>/SKILL.md (at root, e.g. ~/.dotfiles/ai/skills) for named or clearly applicable local skills. Read the specific skill only when needed.
-
-## Caveman
-
-caveman.md (at root, e.g. ~/.claude or ~/.codex) for explicit caveman mode usage.
+Reference material these skills point at lives under `~/.dotfiles/ai/`.

@@ -6,6 +6,6 @@ function bookmark
     end
 
     if jj workspace root >/dev/null 2>&1
-        jj log -r 'closest_bookmark(@)' -T 'bookmarks.map(|b| b.name())' -G
+        jj ghbranch
     end
 end

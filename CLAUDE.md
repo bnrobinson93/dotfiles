@@ -11,14 +11,20 @@ This is a dotfiles repository managing a complete Linux development environment 
 ### Deployment & Installation
 
 ```bash
+# Preferred: mise tasks work from anywhere
+mise run stow     # deploy non-AI symlinks (config, ~/.local, zsh, ssh)
+mise run skills   # deploy AI config and install/update skills and plugins
+mise run update   # update everything via topgrade
+
+# Manual equivalents:
 # Deploy configs to ~/.config
 stow -v2 .
 
 # Deploy local scripts to ~/.local
 stow -v2 -t ~/.local -S dot-local --dotfiles
 
-# Deploy home directory configs (zsh or fish, gitmux)
-stow -v2 -t ~ -S zsh gitmux --dotfiles  # For zsh
+# Deploy home directory configs (zsh)
+stow -v2 -t ~ -S zsh --dotfiles  # For zsh
 # OR for fish (config goes to ~/.config/fish automatically with default stow target)
 stow -v2 .  # fish included in default deployment
 
@@ -71,7 +77,7 @@ nvim +LazyExtras
 ```bash
 # Record terminal session and convert to GIF
 asciinema rec demo.cast
-agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/Pictures/demo.gif && rm demo.cast
+agg --theme nord --font-size 16 --font-family "Recursive Mono Casual,Symbols Nerd Font Mono" demo.cast ~/Pictures/demo.gif && rm demo.cast
 ```
 
 ## Architecture & Key Concepts
@@ -80,14 +86,79 @@ agg --theme nord --font-size 16 --font-family "DankMono Nerd Font" demo.cast ~/P
 
 Each top-level directory (except special cases) is a **stow package** that gets symlinked:
 
-- **Target: `~/.config/`** (default via `.stowrc`): alacritty, atuin, bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
+- **Target: `~/.config/`** (default via `.stowrc`): bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
 - **Target: `~/.local/`**: dot-local package (contains bin/ with custom scripts)
-- **Target: `~/`**: zsh, gitmux (use `--dotfiles` flag to convert `dot-*` to `.*)
+- **Target: `~/`**: zsh (use `--dotfiles` flag to convert `dot-*` to `.*)
 
 The `.stowrc` file defines:
 - Default target: `~/.config`
 - `--dotfiles` mode (dot-prefixed files become hidden)
 - Ignore patterns: `dot-local`, `nvim.lazy`, `resources`, `zsh` (zsh goes to ~ instead)
+
+### Omarchy Desktop (v4)
+
+The desktop is Omarchy 4 on Arch + Hyprland. The bar, menu, notifications, lock screen,
+OSD, polkit agent, and idle daemon all run inside one Quickshell process
+(`omarchy-shell`); waybar, walker, mako, hyprlock, and hypridle are gone.
+
+- **`hypr/`** — Hyprland v4 reads `hyprland.lua`, not `hyprland.conf`. Only `.lua` files
+  are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
+  portal's). The Lua config holds only what differs from the v4 defaults under
+  `/usr/share/omarchy/default/hypr/` — read those before adding an override.
+- **`omarchy/`** — `extensions/omarchy-menu.jsonc` only. Deploy with `stow -v2 .`, never
+  `stow omarchy`, or stow folds the directory and Omarchy's generated state lands in the
+  repo.
+- **`~/.config/omarchy/shell.json` is the shell's own state, and nothing here tracks it.**
+  The bar layout, per-widget settings, idle timeouts and plugin enablement all live in
+  that one file, and everything writes to it: the shell persists reordering and widget
+  settings on ordinary interaction, `omarchy bar` and `omarchy plugin` edit it, and
+  Omarchy's migrations patch it in place when upstream defaults move (see
+  `/usr/share/omarchy/migrations/` — `1785344985.sh` adds the agents widget to existing
+  bars, `1786099804.sh` renames `model-usage`). Change the bar with the CLI or by
+  right-clicking it; do not reintroduce a tracked copy or a generator, because either one
+  fights the CLI and throws away whatever was set since it last ran.
+- `mise run omarchy-plugins` installs the personal plugins — `idle-ladder`,
+  `menu-button`, `orientation` — from `github.com/bnrobinson93/omarchy-<id>`, since those
+  live in their own repos rather than Omarchy's registry. Third-party plugins are
+  installed by hand with `omarchy plugin add`. `install.sh` runs the task (skipped off
+  Omarchy) before `mise run stow`; `mise run stow` deliberately does *not*, since it is a
+  network call only a fresh machine needs.
+- Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
+  module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
+  over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
+- Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
+
+### Shared AI Config (`ai/`)
+
+`update-skills.sh` (`mise run skills`) stows `ai/` into four harness roots: `~/.claude`,
+`~/.codex`, `~/.config/opencode`, and `~/.pi/agent`. One payload, four agents, so anything
+added here must work without harness-specific paths.
+
+- **`ai/AGENTS.md`** (with `CLAUDE.md` symlinked to it) is injected into every prompt, so it
+  stays hooks-only: a few always-true facts and a trigger-to-skill table. Detail belongs in a
+  skill, never here.
+- **`ai/skills/<name>/SKILL.md`** — frontmatter `name` must equal the directory name. Claude
+  keys off the directory and the other harnesses key off the frontmatter, so a mismatch makes a
+  skill unreachable from one of them.
+- **Skill anatomy** follows the shared convention: `SKILL.md`, plus `references/` for docs
+  loaded on demand, `scripts/` for deterministic code, `agents/openai.yaml` for the Codex
+  display name and default prompt. Point at a reference as `~/.dotfiles/ai/...`, the one path
+  that resolves from every harness root. All trigger wording belongs in the description; the
+  body only loads once the skill has fired.
+- **One rule, one home.** `code-quality/references/` owns the standing bar, `simplify` owns
+  learned cross-project preferences and enforces the bar over a finished diff, project memory
+  owns repository and domain facts. `learn-preferences` routes new rules between them.
+- **A skill its upstream publishes belongs in `SKILLS` in `update-skills.sh`, not in
+  `ai/skills/`.** The vendored copy of tuicr's skill drifted for months and shipped none of the
+  wrapper scripts it told agents to run.
+- **`ai` stows with `--no-folding`.** Folded, `~/.claude/skills` is one symlink back into
+  `ai/skills`, and every managed skill the skills CLI installs for Claude Code lands in this
+  repo. Same hazard as `stow omarchy`.
+- **`ai/dot-claude/`** and **`ai/dot-pi/`** are the only harness-specific packages. Codex's
+  `config.toml`, `hooks.json`, and `herdr-agent-state.sh` under `ai/dot-codex/` are seeds
+  copied by hand; nothing deploys them, because Codex and Herdr rewrite those files in place.
+
+Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
 
 ### Neovim Plugin Architecture
 
@@ -128,15 +199,13 @@ Modular Lua config split into 4 files:
 
 #### Zsh (Traditional)
 
-**Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup
+**Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup; mise resolves project runtime versions
 - `dot-zshrc` - Main config with lazy-load functions for:
-  - nvm (Node.js version manager)
   - cargo (Rust toolchain)
-  - rbenv (Ruby version manager)
   - kubectl (Kubernetes CLI)
   - go (Go toolchain)
 - `dot-zshenv` - Environment variables
-- Integrations: Atuin (history), carapace (completions), Starship (prompt), zap (plugin manager)
+- Integrations: Starship (prompt), zap (plugin manager)
 
 #### Fish (Modern Alternative)
 
@@ -145,13 +214,13 @@ Modular Lua config split into 4 files:
 - `conf.d/` - Auto-loaded configuration modules:
   - `00-env.fish` - Environment variables
   - `01-paths.fish` - PATH configuration (uses fish_add_path)
-  - `02-tools.fish` - Tool integrations (starship, atuin, zoxide, etc.)
+  - `02-tools.fish` - Tool integrations (starship, zoxide, mise, etc.)
   - `03-abbreviations.fish` - Abbreviations (better than aliases)
 - `functions/` - Auto-loaded functions (la, ll, rec, ignore, bookmark, etc.)
 - Persistent fish functions must live in repo path `fish/functions/`; do not create one-off files only in `~/.config/fish/functions`, because `install.sh` removes `~/.config/fish` before restowing.
-- **Setup**: Install fisher plugin manager, then `fisher install jorgebucaran/nvm.fish`
-- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Atuin, Starship
-- **Performance**: 4-10x faster startup than zsh (~30-50ms vs ~200-500ms)
+- **Setup**: Install fisher plugin manager, then `fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent` (runtimes come from mise, not nvm)
+- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Starship
+- **Performance**: the aarch64 Pi that runs the nightly cron lands near 41ms for fish and 45ms for zsh (measured 2026-10-14 on an idle box; the x86 laptop is faster still, and has fewer of these tools absent). **A mise shim costs ~21ms per exec on aarch64**, because it re-enters mise to resolve the tool before exec'ing: `atuin uuid` is 25ms through `~/.local/share/mise/shims/atuin` against 5ms for the same binary under `installs/`. That matters because atuin's generated init execs atuin once per start to mint `ATUIN_SESSION` and again from its preexec hook for every command, so on fish it is 31ms of the startup number *and* 21ms of per-command input latency. Which of the two atuin binaries a shell reaches is accidental, not configured — see the `fish_user_paths` note in `01-paths.fish`. Pointing `$PATH` at the install directory ahead of the shims takes fish back to 37ms, but do not generalise that to every `mise bin-paths` entry: it would shadow the project-local versions the shims exist to resolve. `nightly-dotfiles.sh` benchmarks right after a sync and stow. Its warm-up start keeps cache regeneration out of the average but not topgrade's own disk churn, so the cron reading runs high and inconsistently — on 2026-10-14 it reported 66ms/69ms where an idle re-measure minutes later gave 41ms/73ms. Treat it as a prompt to go measure, not as the measurement: re-measure with `hyperfine` on an idle box, and profile zsh with `zmodload zsh/zprof` under a scratch `ZDOTDIR` symlinked at `zsh/dot-zsh*`. Benchmark a candidate config under a scratch `XDG_CONFIG_HOME`: copying over `~/.config/fish/...` writes *through* the stow symlinks and edits the `~/.dotfiles` working copy. A scratch config still writes its caches to the real `~/.cache/fish`, which `02-tools.fish` hardcodes past `XDG_CACHE_HOME`, so expect a benchmark run to regenerate them. Kept fast by never running `tool init | source` directly: generated init scripts are cached via `__cache_gen` (`fish/functions/`, and `dot-zshrc` carries the same helper under the same name), completions lazy-load from `fish_complete_path`, and mise uses shims instead of `activate`. New tool integrations must follow the same pattern, and must cache the init a tool *runs* rather than a bootstrap stub that re-invokes it — starship needs `--print-full-init`, or the cache holds a 67-byte stub and buys nothing. So nothing on the startup path may *invoke* a mise-managed tool, and `__cache_gen` cannot key staleness on the shim either, since a shim is a symlink to the mise binary and stops moving when the tool is upgraded. It stamps against mise's shims directory instead, which every install reshims.
 
 ### Version Control Dual Setup
 
@@ -160,9 +229,9 @@ Modular Lua config split into 4 files:
 - Auto-redirect HTTPS → SSH for git URLs
 - Aliases: `l` (log), `s` (status), `c` (commit), `ac` (add+commit), `acp` (add+commit+push)
 
-**Jujutsu** (secondary):
-- Modern VCS alternative with advanced revset queries
-- SSH signing via custom wrapper (`ssh-sign-wrapper.sh`)
+**Jujutsu** (primary in practice):
+- Modern VCS with advanced revset queries
+- SSH signing with stock ssh-keygen against `~/.ssh/id_ed25519_GitHubSigning`; per-machine override via `conf.d/z-local.toml` (e.g. op-ssh-sign)
 - Complex bookmark and push logic in config/config.toml
 
 ### Tmux Integration
@@ -185,15 +254,15 @@ When modifying or adding scripts:
 - After changes, restow: `stow -v2 -R -t ~/.local dot-local --dotfiles`
 
 Key scripts:
-- `tmux-sessionizer` - Project picker with fzf (integrated into Wezterm & Tmux)
-- `ssh-sign-wrapper.sh` - SSH signing for git/jj commits
-- `fix-jj-signing.sh` - Jujutsu signing key management
+- `herdr-select` / `sesh-select` / `tmux-sessionizer` - Project pickers with fzf (roots shared via `~/.config/search-paths.txt`)
+- `ssh-setup-github.sh` - Generate SSH key, upload to GitHub, update allowed_signers
 - `battery_check.sh` - Battery monitoring
+- `nightly-dotfiles.sh` - Unattended nightly upkeep, run from cron; see its header comment for what it does
 
 ## Theme Consistency
 
 **Primary Theme**: Catppuccin Mocha
-- Applied across: Neovim, Starship, Tmux, K9s, Lazygit, Alacritty, Wezterm
+- Applied across: Neovim, Starship, Tmux, K9s, Lazygit, Wezterm, Ghostty, Kitty
 - Secondary: Tokyo Night (available in Neovim, experimental)
 
 When adding new tools, prefer Catppuccin Mocha theme for consistency.
@@ -216,10 +285,15 @@ sudo update-locale LANG=en_US.UTF8
 
 ## Security & Signing
 
-- **Git commits**: GPG-signed by default
-- **Jujutsu commits**: SSH-signed via `ssh-sign-wrapper.sh`
-- **1Password integration**: SSH agent socket at `~/.1password/agent.sock`
-- **GitHub signing**: Configured in git config
+- **Git + Jujutsu commits**: SSH-signed with stock ssh-keygen using `~/.ssh/id_ed25519_GitHubSigning` (repo default, personal Linux)
+- **1Password mode (per-machine)**: override signing in `~/.gitlocal` / `~/.config/jj/conf.d/z-local.toml` pointing at `op-ssh-sign`; connections via 1Password agent per `~/.ssh/config`
+- **Verification**: both VCSs check `~/.ssh/allowed_signers`
+- **Unresolved — the two shells disagree about the 1Password agent on Linux.** `dot-zshenv`
+  exports `SSH_AUTH_SOCK` to `~/.1password/agent.sock` whenever it exists and `dot-zshrc`
+  defaults `USE_1PASSWORD_SSH=1` on every platform, so zsh opts in. `fish/conf.d/00-env.fish`
+  sets that default only on Darwin, so on Linux fish takes the opt-out branch and *unsets* an
+  inherited 1Password socket. Fish matches the documented default above, zsh does not; which
+  one moves is a decision, not a cleanup.
 
 ## File Editing Conventions
 

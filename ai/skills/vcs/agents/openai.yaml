@@ -1,0 +1,4 @@
+interface:
+  display_name: "Version Control"
+  short_description: "JJ-first repo inspection and mutation"
+  default_prompt: "Use $vcs to work this repository's history."

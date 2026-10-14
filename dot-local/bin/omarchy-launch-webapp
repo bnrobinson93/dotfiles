@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# Launch the passed in URL as a web app in the default browser (or chromium if the default doesn't support --app).
+# Launch the passed in URL as a web app, in Helium rather than Chromium.
+#
+# Overrides /usr/bin/omarchy-launch-webapp — see uwsm/env.d/50-local-bin for the
+# PATH prepend that makes this file win inside the graphical session. The only
+# change from the stock script is the fallback browser: Zen is the default
+# browser here and has no --app mode, so web apps fall through, and they should
+# land in Helium instead of Chromium.
 
 browser=$(xdg-settings get default-web-browser)
 
 case $browser in
-google-chrome* | brave* | microsoft-edge* | opera* | vivaldi* | helium* | zen*) ;;
+google-chrome* | brave* | microsoft-edge* | opera* | vivaldi* | helium*) ;;
 *) browser="helium.desktop" ;;
 esac
 

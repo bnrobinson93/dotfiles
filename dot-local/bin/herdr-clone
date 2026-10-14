@@ -11,6 +11,7 @@ repo=${repo#ssh://git@github.com/}
 repo=${repo%.git}
 repo=${repo#/}
 repo=${repo%/}
+repo=${repo##*/}
 
 if [[ ! "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
   printf "Expected GitHub repo as owner/repo. Got: %s\n" "$repo" >&2
