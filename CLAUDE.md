@@ -146,8 +146,9 @@ added here must work without harness-specific paths.
   that resolves from every harness root. All trigger wording belongs in the description; the
   body only loads once the skill has fired.
 - **One rule, one home.** `code-quality/references/` owns the standing bar, `simplify` owns
-  learned cross-project preferences and enforces the bar over a finished diff, project memory
-  owns repository and domain facts. `learn-preferences` routes new rules between them.
+  learned cross-project code preferences and enforces the bar over a finished diff,
+  `think-like-brad` owns cross-project judgment outside the code-quality bar, project memory owns
+  repository and domain facts. `learn-preferences` routes new rules between them.
 - **A skill its upstream publishes belongs in `SKILLS` in `update-skills.sh`, not in
   `ai/skills/`.** The vendored copy of tuicr's skill drifted for months and shipped none of the
   wrapper scripts it told agents to run.

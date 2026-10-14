@@ -45,7 +45,7 @@ for, a config knob with no caller, an argument the callee could compute.
 
 Complete when each offender is fixed or named in the report with its reason for staying.
 
-## 4. Learned preferences
+## 4. Learned code preferences
 
 Apply every rule below to the diff.
 
@@ -59,9 +59,6 @@ Apply every rule below to the diff.
 - Task wrappers should declare and forward child-command options directly, so callers reach the
   child's flags without a `--` separator.
 
-- Keep personal environment and workflow overrides in dotfiles or ignored local config. A
-  shared repository's tracked behavior stays shaped by the team, not by one machine.
-
 - Keep security fixes focused on the requested behavior. Do not add logger injection, logging-only
   tests, or other observability seams unless the logging behavior is part of the contract; they
   expand API surface and test complexity without strengthening the guard.
@@ -72,10 +69,6 @@ Apply every rule below to the diff.
 
 - Keep small, task-local predicates in the owning module until reuse or isolation justifies a
   shared utility; extracting a one-caller helper adds navigation without reducing duplication.
-
-- Keep issue tickets focused on the problem, fix, and acceptance criteria. Use brief implementation
-  hints when useful, but omit QA history, background, and explicit exclusions because unlisted
-  work is already out of scope.
 
 - When one function accepts multiple equivalent input forms, keep the dispatcher thin and split
   form-specific resolution into named helpers so each path reads clearly.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Think Like Brad"
+  short_description: "Brad's cross-project working preferences"
+  default_prompt: "Use $think-like-brad before putting a solution to paper or giving PR feedback."
