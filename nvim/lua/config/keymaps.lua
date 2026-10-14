@@ -2,7 +2,6 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 vim.keymap.del("n", "H") -- I want "high" to work
 vim.keymap.del("n", "L") -- I want "low" to work
-vim.keymap.del("n", "<leader>n") -- use noice's instead as it's highlightable
 vim.keymap.del("n", "<leader>l") -- use :Lazy
 vim.keymap.del("n", "<leader>L") -- when do I care about the lazy changelog??
 vim.keymap.del("n", "<leader>K") -- `man` is fine
