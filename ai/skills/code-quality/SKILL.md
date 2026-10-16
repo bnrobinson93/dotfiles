@@ -26,6 +26,10 @@ Reference material, not a workflow. Read the file that covers what you are about
 - Compute once and keep the result. Two functions that differ slightly collapse into one.
 - Weigh performance, stop short of over-engineering. When one simple function takes O(n²) to
   O(1), take it.
+- Route UI colors through the design system's theme tokens. Use `useTheme`, theme callbacks, or
+  exported token APIs; introduce a literal hex only when Brad explicitly requests it. Let themed
+  components supply their defaults, adding local styling only for behavior or geometry the theme
+  cannot express.
 
 Meeting this bar while writing is cheaper than being walked back to it. When the change is
 finished, run `simplify` over the diff before you report the work done. That pass is part of

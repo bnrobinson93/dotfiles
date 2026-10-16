@@ -30,6 +30,8 @@ through the change; revisit it only when new facts invalidate it.
 
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Shared
   repository behavior should be shaped by team needs, not one machine.
+- Keep local JJ bookmarks aligned with their GitHub refs when rebasing; use the remote bookmark as
+  the destination so the resulting stack matches the published base and any merged main history.
 - Keep issue tickets focused on the problem, fix, and acceptance criteria. Use brief implementation
   hints when useful; omit QA history, background, and explicit exclusions because unlisted work is
   already out of scope.
