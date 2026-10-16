@@ -31,6 +31,9 @@ if [[ -o interactive ]]; then
   done
   unset _uu
 
+  # `sudo ` trails a space so the next word still alias-expands to nala.
+  type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt=nala; }
+
   alias clera=clear
   alias cler=clear
   alias claer=clear
@@ -132,8 +135,6 @@ if [[ -o interactive ]] && type atuin >/dev/null 2>&1; then
   bindkey -M viins '^r' atuin-search-viins
   bindkey -M vicmd '/' atuin-search
 fi
-
-type nala >/dev/null 2>&1 && { alias sudo='sudo '; alias apt="nala"; }
 
 if type asciinema >/dev/null 2>&1 && type agg >/dev/null 2>&1; then
   function rec {

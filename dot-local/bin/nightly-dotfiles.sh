@@ -27,7 +27,9 @@
 
 set -uo pipefail
 
-export PATH="$HOME/.local/bin:$HOME/opt/bin:/usr/local/bin:/usr/bin:/bin"
+# Shims last: the names ahead of them must keep resolving to the same binary, and the
+# review's --allowed-tools below assumes mise-managed hyperfine and shellcheck resolve.
+export PATH="$HOME/.local/bin:$HOME/opt/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.local/share/mise/shims"
 export GH_REPO="${GH_REPO:-bnrobinson93/dotfiles}"
 DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 LOG_DIR="$HOME/opt/log"
