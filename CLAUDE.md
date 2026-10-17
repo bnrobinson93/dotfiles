@@ -93,7 +93,13 @@ Each top-level directory (except special cases) is a **stow package** that gets 
 The `.stowrc` file defines:
 - Default target: `~/.config`
 - `--dotfiles` mode (dot-prefixed files become hidden)
-- Ignore patterns: `dot-local`, `nvim.lazy`, `resources`, `zsh` (zsh goes to ~ instead)
+- A denylist of `--ignore` patterns. `stow .` walks the whole repo root, so **anything there
+  that is not a config package lands in `~/.config` until a line is added here** — packages
+  with their own target (`zsh`, `dot-local`, `starship`) and repo metadata alike (`.jj`,
+  `.github`, `tests/`, `install.sh`). `CLAUDE.md` and `AGENTS.md` stay off the list, and a new
+  pattern must match a single basename, because `update-skills.sh` stows `ai/` with the repo
+  root as its cwd: these ignores reach that run too, and would drop the payload every harness
+  reads.
 
 ### Omarchy Desktop (v4)
 
@@ -307,7 +313,6 @@ sudo update-locale LANG=en_US.UTF8
 ### Stow Packages
 - Keep package-specific files in subdirectories
 - Use `dot-*` prefix for files that should become `.filename` in home directory
-- Update `.stowrc` if adding new ignore patterns
 - Test with `stow -n` (dry-run) before actual deployment
 
 ### Shell Scripts

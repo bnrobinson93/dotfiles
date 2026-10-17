@@ -15,3 +15,14 @@
 --ignore=starship
 --ignore=systemd
 --ignore=shell.*\.json
+--ignore=.github
+--ignore=.jj
+--ignore=.vscode
+--ignore=docs
+--ignore=reference
+--ignore=tests
+--ignore=ai-cleanup.sh
+--ignore=colortest.sh
+--ignore=install.sh
+--ignore=update-skills.sh
+--ignore=nerd_fonts.txt
