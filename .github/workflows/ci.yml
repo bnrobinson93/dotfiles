@@ -45,6 +45,18 @@ jobs:
           sudo apt-get install -y -q jq
           tests/test-ai-tools.sh
 
+      - name: Stow ignores do not reach the ai/ payload
+        # stow reads .stowrc from the cwd, so the ignore list written for `stow .` also
+        # applies to update-skills.sh's `stow -d . ai`. A pattern matching a name inside
+        # ai/ silently drops what every harness reads, and the smoke job never stows ai/.
+        run: |
+          sudo apt-get install -y -q stow
+          mkdir -p /tmp/harness-root
+          stow -n -v3 --no-folding -t /tmp/harness-root ai >/tmp/ai-stow.log 2>&1
+          for entry in 'LINK: AGENTS.md' 'LINK: CLAUDE.md' 'MKDIR: skills'; do
+            grep -qF "$entry" /tmp/ai-stow.log || { echo "ai/ would not deploy: $entry"; exit 1; }
+          done
+
   smoke:
     name: Stow + smoke test
     runs-on: ubuntu-latest

@@ -2,11 +2,13 @@
 # nightly-dotfiles.sh — unattended dotfiles upkeep, meant for cron on the always-on box.
 #
 #   1. jj sync                 (fetch + rebase the main checkout onto trunk)
-#   2. mise run stow           (redeploy symlinks from $DOTFILES; failures logged, not fatal)
-#   3. verify Claude settings  (read-only; alerts if a hook/statusLine target is missing)
-#   4. shell startup benchmark (fish vs zsh; measured, not guessed, fed into the review)
-#   5. claude -p               (review the tree in a throwaway workspace, make changes)
-#   6. jj git push + gh pr     (only when step 5 actually changed something)
+#   2. mise install + upgrade  (land tools declared in mise/config.toml; move `latest` pins)
+#   3. restart herdr           (picks up a new binary from step 2)
+#   4. mise run stow           (redeploy symlinks from $DOTFILES; failures logged, not fatal)
+#   5. verify Claude settings  (read-only; alerts if a hook/statusLine target is missing)
+#   6. shell startup benchmark (fish vs zsh; measured, not guessed, fed into the review)
+#   7. claude -p               (review the tree in a throwaway workspace, make changes)
+#   8. jj git push + gh pr     (only when step 7 actually changed something)
 #
 # This script is tracked in the dotfiles repo (dot-local/bin/) and stowed to
 # ~/.local/bin, which is on cron's PATH ahead of the system dirs. That means it can
@@ -78,9 +80,17 @@ if ! jj sync 2>&1 | grep -v '^Hint:'; then
   alert "jj sync failed on the main checkout"
 fi
 
-echo "--- mise update ---"
-if ! TOPGRADE_NO_CONFIRM=1 mise update 2>&1 | tail -20; then
-  echo "mise update reported a failure (see above); continuing"
+# Built-ins, not `mise run update`: that task shells out to topgrade, which comes from brew,
+# so on a box without brew it exits 127 and nothing updates. Both are needed — `install`
+# lands a tool whose pin is exact and missing, `upgrade` moves the `latest` pins.
+echo "--- mise install ---"
+if ! mise install -y 2>&1 | tail -20; then
+  echo "mise install reported a failure (see above); continuing"
+fi
+
+echo "--- mise upgrade ---"
+if ! mise upgrade -y 2>&1 | tail -20; then
+  echo "mise upgrade reported a failure (see above); continuing"
 fi
 
 echo "--- restart herdr ---"
@@ -104,8 +114,9 @@ echo "--- shell startup benchmark ---"
 bench_shell() {
   local bin="$1" n=7 total=0 start end
   command -v "$bin" >/dev/null 2>&1 || { echo "$bin: not installed"; return; }
-  # topgrade ran above, so the first start regenerates every cached tool init; timed,
-  # that one-off divides into the average as phantom drift.
+  # Every upgrade reshims mise, and __cache_gen stamps against that directory, so the first
+  # start regenerates every cached tool init; timed, that one-off divides into the average
+  # as phantom drift.
   "$bin" -i -c exit >/dev/null 2>&1
   for _ in $(seq 1 "$n"); do
     start=$(date +%s%N)
