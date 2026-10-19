@@ -36,6 +36,30 @@
 # Usage: jj log -r stack_base
 "stack_base" = "roots(branch_off+::@)"
 
+# foreign_bookmarks - Bookmarks whose target commits you did not author.
+# What: Includes local and remote bookmarks for reducing foreign history.
+# When: Used by stack_view to keep older foreign history out of the view.
+# Usage: jj log -r foreign_bookmarks
+"foreign_bookmarks" = "(bookmarks() | remote_bookmarks()) ~ mine()"
+
+# foreign_history - Foreign bookmark ancestors hidden from stack_view.
+# What: Commits strictly below a foreign bookmark, excluding commits you authored.
+# When: Used to reduce the view without hiding the bookmark itself.
+# Usage: jj log -r foreign_history
+"foreign_history" = "(::foreign_bookmarks ~ foreign_bookmarks) ~ mine()"
+
+# merge_side_branches - Non-trunk ancestors of the related stack.
+# What: Includes merge side branches without older trunk history.
+# When: Used by stack_view to show related merge parents.
+# Usage: jj log -r merge_side_branches
+"merge_side_branches" = "::(stack_base::) ~ ::trunk()"
+
+# stack_view - The comprehensive graph around @.
+# What: Trunk, the fork point, every related-stack thread, and merge side branches.
+# When: Use to see the complete graph needed to understand a rebase.
+# Usage: jj log -r stack_view
+"stack_view" = "trunk() | present(@) | branch_off | ((stack | merge_side_branches) ~ foreign_history)"
+
 # stack - All commits in your current stack
 # What: Every commit from stack_base to the current position and beyond.
 # When: Use to view, rebase, or operate on your entire stack.

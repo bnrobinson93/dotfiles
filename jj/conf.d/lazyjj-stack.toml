@@ -17,11 +17,11 @@
 # VIEW STACKS
 # =============================================================================
 
-# stack-view - View your current stack of commits
-# What: Shows all commits in your stack along with trunk for context.
-# When: Use frequently to visualize your work and its relationship to trunk.
+# stack-view - View the whole related stack around @
+# What: Shows trunk, the fork point, every related-stack thread, and merge side branches.
+# When: Use to see the complete graph needed to understand a rebase.
 # Usage: jj stack-view
-stack-view = ["log", "-r", "stack | trunk() | present(@)"]
+stack-view = ["log", "-r", "stack_view"]
 
 # stack-files - View stack with file changes listed
 # What: Shows stack commits with a summary of changed files per commit.
@@ -49,7 +49,7 @@ stacks-all-files = ["log", "-r", "stacks", "-s"]
 # What: Edits the head commit of your stack.
 # When: Use to return to the top after editing commits lower in the stack.
 # Usage: jj stack-top
-stack-top = ["new", "heads(stack)"]
+stack-top = ["edit", "heads(stack)"]
 
 # =============================================================================
 # STACK MAINTENANCE
