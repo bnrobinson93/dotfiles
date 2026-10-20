@@ -50,7 +50,8 @@ Complete when each offender is fixed or named in the report with its reason for 
 Apply every rule below to the diff.
 
 - Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should read
-  as states, not commands.
+  as states, not commands. Name shared abstractions and specialized adapters so their roles are
+  obvious; avoid near-identical names that obscure which one callers should use.
 
 - Combine overlapping types, functions, constants, or behavioral instructions. In generated
   prompts, place authoritative guidance after bulky source material so examples cannot drown it

@@ -42,4 +42,6 @@ holds.
 - Favor behavior-focused assertions (structured output, user-visible outcomes, stable
   contracts) over asserting that a string blob contains incidental copy. In React, assert what
   the user sees and does (Testing Library), not state or props.
+- Test user-visible CSS behavior when it carries the requirement, such as truncation; skip tests
+  for incidental markup or styling when only the appearance matters.
 - Do not add BDD tests unless Brad explicitly asks. Leave acceptance-suite ownership to QA. When the BDD suite already exercises a handler's real boundary, prefer adding a scenario over changing production signatures or introducing a test-only interface just to unit-test it.
