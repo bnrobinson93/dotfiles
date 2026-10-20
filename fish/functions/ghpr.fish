@@ -183,6 +183,36 @@ function __ghpr_find_pr --no-scope-shadowing
     return 0
 end
 
+function __ghpr_parse_ai_output --no-scope-shadowing --argument-names output
+    set parsed_title ""
+    set parsed_body ""
+    set -l awk_parser '
+        function is_separator(line) {
+            return line ~ /^[[:space:]]*---[[:space:]]*$/
+        }
+        {
+            if (!separated && is_separator($0)) {
+                separated = 1
+                next
+            }
+            if (want == "title" && !separated && $0 !~ /^[[:space:]]*$/) title = $0
+            if (want == "body" && separated) {
+                if (!started && $0 ~ /^[[:space:]]*$/) next
+                started = 1
+                print
+            }
+        }
+        END {
+            if (want == "title" && separated && title != "") print title
+        }
+    '
+
+    set parsed_title (printf "%s\n" "$output" | awk -v want=title "$awk_parser" | string collect | string trim)
+    set parsed_body (printf "%s\n" "$output" | awk -v want=body "$awk_parser" | string collect)
+
+    test -n "$parsed_title" -a -n "$parsed_body"
+end
+
 function __ghpr_generate_description --no-scope-shadowing
     set -l branch_type ""
     set -l branch_ticket ""
@@ -237,6 +267,8 @@ function __ghpr_generate_description --no-scope-shadowing
 
     set pr_title ""
     set pr_body ""
+    set -l parsed_title ""
+    set -l parsed_body ""
     set use_fill false
 
     set pr_title $custom_title
@@ -301,20 +333,20 @@ PR guidance (authoritative for the title and description):
 $pr_guidance
 
 Output format (required - do not deviate):
-TITLE: <conventional commit title>
-BODY:
-<PR description>"
+<conventional commit title>
+---
+<PR description as Markdown>
+
+Do not wrap the output in a code fence. The `---` line is the only separator."
 
         set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
 
         if test -n "$ai_output"
-            set -l ai_title (string match -r -g 'TITLE: (.+)' $ai_output)
-            set -l ai_body (printf "%s" "$ai_output" | awk '/^BODY:/{found=1; next} found{print}' | string collect)
-
-            if test -n "$ai_title" -a -z "$custom_title"
-                set pr_title (string trim -- $ai_title)
+            __ghpr_parse_ai_output "$ai_output"
+            if test -n "$parsed_title" -a -z "$custom_title"
+                set pr_title $parsed_title
             end
-            set pr_body "$ai_body"
+            set pr_body "$parsed_body"
         end
     end
 
@@ -328,6 +360,14 @@ BODY:
     end
 
     test -n "$pr_body"
+end
+
+function __ghpr_render_body --argument-names body
+    if type -q glow
+        printf "%s\n" "$body" | glow -
+    else
+        printf "%s\n" "$body"
+    end
 end
 
 function __ghpr_preview --no-scope-shadowing
@@ -352,7 +392,7 @@ function __ghpr_preview --no-scope-shadowing
     else
         echo "Body:"
         echo "────────────────────────────────────────────────────"
-        printf "%s\n" $pr_body
+        __ghpr_render_body "$pr_body"
         echo "────────────────────────────────────────────────────"
     end
 
@@ -386,11 +426,14 @@ function __ghpr_ensure_pushed --no-scope-shadowing
 end
 
 function __ghpr_create_pr --no-scope-shadowing
+    set -l parsed_title ""
+    set -l parsed_body ""
+
     __ghpr_ensure_pushed
     or return 1
 
     if not __ghpr_generate_description
-        echo "⚠ OpenCode failed to generate output, will use --fill"
+        echo "⚠ OpenCode did not return a complete PR description; will use --fill"
         set use_fill true
     end
 
@@ -409,10 +452,7 @@ function __ghpr_create_pr --no-scope-shadowing
                 break
             case e E
                 set -l temp_file (mktemp)
-                printf "TITLE: %s\n\nBODY:\n" "$pr_title" >$temp_file
-                if test -n "$pr_body"
-                    printf "%s\n" "$pr_body" >>$temp_file
-                end
+                printf "%s\n\n---\n\n%s\n" "$pr_title" "$pr_body" >$temp_file
 
                 # Split to handle editors with args (e.g. "code --wait")
                 set -l editor_cmd
@@ -426,25 +466,16 @@ function __ghpr_create_pr --no-scope-shadowing
 
                 $editor_cmd -- $temp_file
 
-                set -l edited_title (awk '
-                    /^TITLE:[[:space:]]*/ {
-                        sub(/^TITLE:[[:space:]]*/, "", $0)
-                        print
-                        exit
-                    }' $temp_file | string trim | string collect)
-
-                set -l edited_body (awk '
-                    /^BODY:[[:space:]]*$/ { found=1; next }
-                    found { print }' $temp_file | string collect)
-
+                set -l edited_output (string collect <$temp_file)
+                __ghpr_parse_ai_output "$edited_output"
                 rm $temp_file
 
-                if test -n "$edited_title"
-                    set pr_title $edited_title
+                if test -n "$parsed_title"
+                    set pr_title $parsed_title
                 end
 
-                if test -n "$edited_body"
-                    set pr_body $edited_body
+                if test -n "$parsed_body"
+                    set pr_body $parsed_body
                     set use_fill false
                 else
                     set pr_body ""
@@ -458,7 +489,7 @@ function __ghpr_create_pr --no-scope-shadowing
                 else
                     echo "Updated Body:"
                     echo "────────────────────────────────────────────────────"
-                    printf "%s\n" $pr_body
+                    __ghpr_render_body "$pr_body"
                     echo "────────────────────────────────────────────────────"
                 end
                 echo ""
