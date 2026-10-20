@@ -12,9 +12,7 @@ Code/User/workspaceStorage/
 dot-local/bin/claude
 dot-local/bin/fabric
 dot-local/bin/mise
-fabric/.env
 fish/completions/*
-!fish/completions/fabric.fish
 !fish/completions/ghpr.fish
 fish/conf.d/fish_frozen_key_bindings.fish
 fish/conf.d/fzf.fish

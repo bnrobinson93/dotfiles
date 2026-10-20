@@ -60,7 +60,7 @@ o.bind("XF86WebCam", "Toggle camera", os.getenv("HOME") .. "/.local/bin/toggle-c
 -- matches nothing.
 o.bind("XF86Launch1", "Toggle screen annotation", "wayscriber --daemon-toggle")
 o.bind("SUPER + D", "Toggle screen annotation", "wayscriber --daemon-toggle")
-o.bind("SUPER + ALT + L", "Toogle annotation on working screen", "wayscriber --light-toggle")
+o.bind("SUPER + ALT + L", "Toggle annotation on working screen", "wayscriber --light-toggle")
 o.bind("SUPER + ALT + D", "Temporary annotation tools in light mode", "wayscriber --light-draw-toggle")
 
 -- Tablet mode. The hinge switch is a real input device -- `hyprctl devices`

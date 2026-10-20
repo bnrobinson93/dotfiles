@@ -70,11 +70,6 @@ if test -s $HOME/.config/envman/load.fish
 end
 
 set -gx fzf_preview_dir_cmd eza --all --color=always
-set -gx FZF_DEFAULT_OPTS "\
---height=50% \
---layout=reverse \
---border top \
---color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
---color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
---color=selected-bg:#45475A \
---color=border:#6C7086,label:#CDD6F4"
+# WARN: fzf exits 2 on a missing FZF_DEFAULT_OPTS_FILE, so unguarded this loses
+# fzf itself on an unstowed machine, not just its theme.
+test -f $HOME/.config/fzf/opts && set -gx FZF_DEFAULT_OPTS_FILE $HOME/.config/fzf/opts
