@@ -251,7 +251,8 @@ Modular Lua config split into 4 files:
   - tmux-resurrect (session persistence)
   - tmux-continuum (auto-restore)
   - tmux-battery (status bar)
-- **Sessionizer binding**: Ctrl+A f (runs tmux-sessionizer script)
+- **Session pickers**: Ctrl+F (no prefix) runs `sesh-select`, Ctrl+A O runs `sesh-select all`.
+  Ctrl+A D/C/V run `tmux-sessionizer` against `~/.dotfiles`, `~/Documents/code`, and the Vault.
 
 ### Custom Scripts (`dot-local/bin/`)
 

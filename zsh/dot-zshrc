@@ -113,14 +113,9 @@ if type zoxide >/dev/null 2>&1; then
 fi
 
 export fzf_preview_dir_cmd="eza --all --color=always"
-export FZF_DEFAULT_OPTS="\
---height=50% \
---layout=reverse \
---border top \
---color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
---color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
---color=selected-bg:#45475A \
---color=border:#6C7086,label:#CDD6F4"
+# WARN: fzf exits 2 on a missing FZF_DEFAULT_OPTS_FILE, so unguarded this loses
+# fzf itself on an unstowed machine, not just its theme.
+[[ -f "$HOME/.config/fzf/opts" ]] && export FZF_DEFAULT_OPTS_FILE="$HOME/.config/fzf/opts"
 
 # fzf for path fill only (^T file, Alt-C cd, **<Tab> completion). Its script
 # also claims ^R; Atuin gets the final binding below. Safe to cache: its output
