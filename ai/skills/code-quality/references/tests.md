@@ -39,9 +39,13 @@ holds.
 - Assert intermediate states inside the workflow that causes them rather than adding isolated
   tests for incidental loading or transition states.
 - Skip regression tests for bugs unlikely to recur unless the flow justifies the maintenance.
-- Favor behavior-focused assertions (structured output, user-visible outcomes, stable
-  contracts) over asserting that a string blob contains incidental copy. In React, assert what
-  the user sees and does (Testing Library), not state or props.
-- Test user-visible CSS behavior when it carries the requirement, such as truncation; skip tests
-  for incidental markup or styling when only the appearance matters.
+- Favor positive, behavior-focused assertions (structured output, user-visible outcomes, stable
+  contracts) over assertions that only prove an implementation detail or the absence of a visual
+  state. In React, assert what the user sees and does (Testing Library), not state or props.
+- Do not keep or extract a production function solely to unit-test it. Prefer readable inline logic
+  and exercise it through the caller's behavior when the function has no independent reuse or
+  contract.
+- Treat CSS and DOM assertions used to tune a design as construction checks, not final coverage.
+  Keep them only when the styling itself is a durable behavior contract, such as truncation or
+  accessibility.
 - Do not add BDD tests unless Brad explicitly asks. Leave acceptance-suite ownership to QA. When the BDD suite already exercises a handler's real boundary, prefer adding a scenario over changing production signatures or introducing a test-only interface just to unit-test it.
