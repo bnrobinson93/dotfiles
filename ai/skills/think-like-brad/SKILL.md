@@ -28,6 +28,9 @@ through the change; revisit it only when new facts invalidate it.
   routing.
 - Default to boring, maintainable solutions. Propose a bold solution when it meaningfully wins;
   boring is the default, not the ceiling.
+- For design-driven UI, use Figma for visual truth and the live prototype for user-facing wording;
+  do not infer either source from the other. Prefer a design-system size variant when it is close
+  enough to the design rather than hardcoding local width, height, and padding.
 
 ## Workflow and environment
 
@@ -42,6 +45,10 @@ through the change; revisit it only when new facts invalidate it.
   already out of scope.
 
 ## Reviewing someone else's PR
+
+Default to Sara's frontend expertise on refactors, cleanup, readability, and design-system fit.
+Adopt her concrete recommendations unless product requirements, design evidence, or an external
+contract gives a specific reason not to; do not push back with generic implementation arguments.
 
 Frame each item as a clarifying question, then offer a concrete fix when one exists. The
 question leaves room for context the author has; the fix makes the comment actionable. Name a

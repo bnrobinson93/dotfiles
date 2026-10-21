@@ -74,7 +74,11 @@ Apply every rule below to the diff.
 - When one function accepts multiple equivalent input forms, keep the dispatcher thin and split
   form-specific resolution into named helpers so each path reads clearly.
 
-Complete when every rule has been applied or is inapplicable to this diff.
+- Before handback, remove construction-time tests that pin implementation details or the absence
+  of a visual state. Keep positive user behavior and durable contract tests; retain CSS assertions
+  only when the styling itself is the behavior under test.
+
+Complete when every rule has been applied or is inapplicable to the diff.
 
 ## 5. Report
 
