@@ -64,7 +64,75 @@ function test_find_pr --no-scope-shadowing
     not set -q GIT_DIR
 end
 
+function test_parse_ai_output --no-scope-shadowing
+    set -l parsed_title ""
+    set -l parsed_body ""
+    set -l markdown_output (printf "%s\n" \
+        "I will format this as Markdown." \
+        "feat(web): PEP-6214 add workspace owner filter" \
+        "---" \
+        "" \
+        "### Proposed Changes" \
+        "" \
+        "Users can now filter the workspace list by ownership." \
+        "" \
+        "---" \
+        "" \
+        "This rule belongs to the Markdown body." | string collect)
+    set -l expected_body (printf "%s\n" \
+        "### Proposed Changes" \
+        "" \
+        "Users can now filter the workspace list by ownership." \
+        "" \
+        "---" \
+        "" \
+        "This rule belongs to the Markdown body." | string collect)
+
+    __ghpr_parse_ai_output "$markdown_output"
+    or return 1
+    test "$parsed_title" = "feat(web): PEP-6214 add workspace owner filter"
+    or return 1
+    test "$parsed_body" = "$expected_body"
+    or return 1
+
+    set -l roundtrip (printf "%s\n\n---\n\n%s\n" "$parsed_title" "$parsed_body" | string collect)
+    __ghpr_parse_ai_output "$roundtrip"
+    or return 1
+    test "$parsed_title" = "feat(web): PEP-6214 add workspace owner filter" -a "$parsed_body" = "$expected_body"
+    or return 1
+
+    set -l title_only (printf "%s\n" \
+        "feat: keep this title" \
+        "---" | string collect)
+    if __ghpr_parse_ai_output "$title_only"
+        return 1
+    end
+    test "$parsed_title" = "feat: keep this title" -a -z "$parsed_body"
+    or return 1
+
+    set -l missing_separator (printf "%s\n" \
+        "I will format this as Markdown." \
+        "feat: title without a body" | string collect)
+    if __ghpr_parse_ai_output "$missing_separator"
+        return 1
+    end
+    test -z "$parsed_title" -a -z "$parsed_body"
+    or return 1
+
+    set -l whitespace_body (printf "%s\n" \
+        "feat: whitespace body" \
+        "---" \
+        "   " | string collect)
+    if __ghpr_parse_ai_output "$whitespace_body"
+        return 1
+    end
+    test "$parsed_title" = "feat: whitespace body" -a -z "$parsed_body"
+end
+
 test_read_skill_body $argv[2]
+or return 1
+
+test_parse_ai_output
 or return 1
 
 test_find_pr
