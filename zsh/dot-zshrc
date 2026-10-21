@@ -41,13 +41,13 @@ if [[ -o interactive ]]; then
   alias ...='cd ../..'
   alias ....='cd ../../..'
 
-  # Auto-load SSH keys
-  if command -v ssh-add >/dev/null 2>&1; then
+  # WARN: with no agent socket, ssh-add still forks and fails — 5ms of every start.
+  if [[ -S ${SSH_AUTH_SOCK:-} ]] && command -v ssh-add >/dev/null 2>&1; then
     ssh-add -q ~/.ssh/id_ed25519_GitHub ~/.ssh/id_ed25519_GitHubSigning 2>/dev/null
   fi
 
-  # Load GitHub CLI token from file
-  [[ -f ~/.config/gh/auth_token ]] && export GH_TOKEN="$(cat ~/.config/gh/auth_token)"
+  # $(<file), not $(cat file): the fork costs 1.1ms, the builtin 0.04ms.
+  [[ -f ~/.config/gh/auth_token ]] && export GH_TOKEN="$(<~/.config/gh/auth_token)"
 fi
 
 # Regenerate a cached init only after the tool is upgraded, so no shell start pays

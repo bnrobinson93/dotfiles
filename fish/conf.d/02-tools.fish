@@ -2,14 +2,14 @@ if not status is-interactive
     exit
 end
 
-# Auto-load SSH keys on startup
-if type -q ssh-add
+# WARN: with no agent socket, ssh-add still forks and fails — 5.5ms of every start.
+if type -q ssh-add; and test -S "$SSH_AUTH_SOCK"
     ssh-add -q ~/.ssh/id_ed25519_GitHub ~/.ssh/id_ed25519_GitHubSigning 2>/dev/null
 end
 
-# Load GitHub CLI token from file
+# `read`, not `cat`: the fork costs 1.1ms, the builtin 0.04ms.
 if test -f ~/.config/gh/auth_token
-    set -gx GH_TOKEN (cat ~/.config/gh/auth_token)
+    read -gx GH_TOKEN <~/.config/gh/auth_token
 end
 
 set -l cache_dir $HOME/.cache/fish

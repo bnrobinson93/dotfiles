@@ -22,7 +22,9 @@ set -gx TRY_PATH $HOME/Documents/code/tries
 set -gx HOMEBREW_AUTO_UPDATE_SECS (math 4 \* 60 \* 60)
 
 # SSH signing (1Password); SSH auth stays scoped by ~/.ssh/config.
-if test (uname) = Darwin; and not set -q USE_1PASSWORD_SSH
+# Each `uname` is a ~0.6ms fork on the startup path.
+set -l os (uname)
+if test "$os" = Darwin; and not set -q USE_1PASSWORD_SSH
     set -gx USE_1PASSWORD_SSH 1
 end
 if test "$USE_1PASSWORD_SSH" = 1
@@ -41,7 +43,7 @@ else
     if set -q SSH_AUTH_SOCK; and string match -q '*/.1password/agent.sock' -- $SSH_AUTH_SOCK
         set -e SSH_AUTH_SOCK
     end
-    if test (uname) = Darwin; and not set -q SSH_AUTH_SOCK
+    if test "$os" = Darwin; and not set -q SSH_AUTH_SOCK
         set -l lsock (launchctl getenv SSH_AUTH_SOCK 2>/dev/null)
         if test -n "$lsock"
             set -gx SSH_AUTH_SOCK $lsock
