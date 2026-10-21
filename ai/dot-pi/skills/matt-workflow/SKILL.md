@@ -9,7 +9,7 @@ Coordinate three explicit handoffs through `subagent`; use `initialContext: "emp
 
 1. Pin the pre-work VCS fixed point and effort name.
 2. Start `grill-me-with-docs` in a new named session such as `matt-grill-<effort>`. Relay its single question to the user, then continue the same child session with each answer. This phase completes only when it returns ready document paths and the user approves them.
-3. Run `implement` ephemerally. Pass the approved document paths, fixed point, acceptance criteria, exclusions, and relevant user decisions. Do not clone parent history.
+3. Run `implement` ephemerally. Pass the approved document paths, fixed point, acceptance criteria, exclusions, and relevant user decisions. Do not clone parent history. Before implementation is complete, run the repository's canonical checks. For Data Harbor, the gate is `make web-test` (one-shot frontend lint, typecheck, and tests) plus the documented `pnpm --dir web build`.
 4. Run `code-review` ephemerally. Pass the same fixed point and spec paths. It performs Standards and Spec reviews in further fresh contexts.
 5. Return implementation verification plus the two review axes. Keep unresolved findings explicit.
 
