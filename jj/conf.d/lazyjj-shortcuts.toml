@@ -40,7 +40,7 @@ pro = ["pr-open"]
 sprs = ["pr-stack-create"]
 prs = ["pr-stack-summary"]
 uprs = ["pr-stack-update"]
-prmd = ["pr-stack-md"]   # Deprecated, use prf/prfs
+prmd = ["pr-stack-md"]
 
 # =============================================================================
 # CLAUDE SHORTCUTS (from lazyjj-claude.toml)
