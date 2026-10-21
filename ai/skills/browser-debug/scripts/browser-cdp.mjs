@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, delimiter, join } from "node:path";
+import { basename, delimiter, dirname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 
 const port = Number(process.env.BROWSER_DEBUG_PORT || 9222);
@@ -275,6 +275,43 @@ async function metrics() {
   }
 }
 
+async function screenshot(outputPath, selector) {
+  await launch();
+  const cdp = await connect();
+  try {
+    await cdp.send("Page.enable");
+    const capture = { format: "png", fromSurface: true };
+
+    if (selector) {
+      await cdp.send("Runtime.enable");
+      const result = await cdp.send("Runtime.evaluate", {
+        expression: `(() => {
+          const element = document.querySelector(${JSON.stringify(selector)});
+          if (!element) return null;
+          element.scrollIntoView({ block: "center", inline: "nearest" });
+          const { left: x, top: y, width, height } = element.getBoundingClientRect();
+          return { x, y, width, height };
+        })()`,
+        returnByValue: true,
+      });
+      const bounds = result.result.value;
+      if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+        throw new Error(`selector not visible: ${selector}`);
+      }
+      capture.captureBeyondViewport = true;
+      capture.clip = { ...bounds, scale: 1 };
+    }
+
+    const { data } = await cdp.send("Page.captureScreenshot", capture);
+    const destination = resolve(outputPath);
+    await mkdir(dirname(destination), { recursive: true });
+    await writeFile(destination, Buffer.from(data, "base64"));
+    return { path: destination, selector: selector ?? null };
+  } finally {
+    cdp.close();
+  }
+}
+
 function usage() {
   console.error(`Usage:
   browser-cdp.mjs launch [url]
@@ -283,7 +320,8 @@ function usage() {
   browser-cdp.mjs observe <url> [seconds]
   browser-cdp.mjs dom [selector]
   browser-cdp.mjs eval <expression>
-  browser-cdp.mjs metrics`);
+  browser-cdp.mjs metrics
+  browser-cdp.mjs screenshot <path> [selector]`);
   process.exitCode = 2;
 }
 
@@ -304,6 +342,7 @@ try {
     result = await evaluate(expression);
   } else if (command === "eval" && args.length) result = await evaluate(args.join(" "));
   else if (command === "metrics") result = await metrics();
+  else if (command === "screenshot" && args[0]) result = await screenshot(args[0], args[1]);
   else {
     usage();
     result = undefined;
