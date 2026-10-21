@@ -26,4 +26,11 @@ fi
 grep -Fq "not owned by browser-debug" "$test_root/output" || \
   fail "browser debug returned wrong ownership error"
 
-printf 'PASS: browser debug rejects foreign CDP endpoints\n'
+if node "$repo_dir/ai/skills/browser-debug/scripts/browser-cdp.mjs" \
+  >"$test_root/usage" 2>&1; then
+  fail "browser debug usage unexpectedly succeeded"
+fi
+grep -Fq "screenshot <path> [selector]" "$test_root/usage" || \
+  fail "browser debug usage omitted screenshot command"
+
+printf 'PASS: browser debug rejects foreign CDP endpoints and documents screenshots\n'

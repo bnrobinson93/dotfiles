@@ -18,6 +18,7 @@ Resolve `scripts/browser-cdp.mjs` relative to this file. It uses Node's standard
 node scripts/browser-cdp.mjs launch http://localhost:3000
 node scripts/browser-cdp.mjs observe http://localhost:3000 3
 node scripts/browser-cdp.mjs dom '#app'
+node scripts/browser-cdp.mjs screenshot /tmp/page.png '#app'
 node scripts/browser-cdp.mjs metrics
 ```
 
@@ -28,6 +29,7 @@ Available commands:
 - `pages`: list inspectable pages.
 - `observe <url> [seconds]`: navigate while recording console, exceptions, responses, and failed requests.
 - `dom [selector]`: return current page HTML or one element's `outerHTML`.
+- `screenshot <path> [selector]`: save a PNG of the viewport or a visible element.
 - `eval <expression>`: evaluate JavaScript in the current page and return its value.
 - `metrics`: return Chromium performance metrics plus Navigation Timing.
 
