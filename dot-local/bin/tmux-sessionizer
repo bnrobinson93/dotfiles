@@ -21,9 +21,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-filter_cmd=(cat)
+# WARN: fd ends a directory with a slash, so the strip has to come before the
+# exclusions — anchored on a trailing slash they match nothing and every agent
+# workspace shows up in the picker.
+filter_cmd=(sed 's:/*$::')
 if [[ $show_all -eq 0 ]]; then
-  filter_cmd=(grep -Ev '(-ai|-ai[0-9]+|-exp|-explore)$')
+  filter_cmd=(sed -E 's:/*$::; /-(ai[0-9]*|orch[^/]*|exp|explore)$/d')
 fi
 
 if [[ -z "$selected_folder" ]]; then
