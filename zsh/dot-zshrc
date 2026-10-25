@@ -102,7 +102,7 @@ else
   [[ -o interactive ]] && alias ls="ls --color=tty"
   function la { ls -larth --color=always "$@"; }
   function ll { ls -lrth --color=always "$@"; }
-  function lt { ls -larth --color=always "$@"; }
+  function lt { ls -larth --color=always "$@" | tail -15; }
   function lss { ls -lrth --color=always "$@" | less -erXF; }
   function l { ls -lrha --color=always "$@"; }
 fi
