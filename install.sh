@@ -30,7 +30,7 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise gh jq topgrade dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise jq topgrade dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
@@ -95,13 +95,14 @@ fi
 chsh -s "$(which fish)"
 
 echo Getting the nice to haves...
-brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat hunk
+brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat
 
 echo "Deploying AI config and updating skills/plugins..."
 "$PWD/update-skills.sh" || true
 
-echo Installing Herdr...
-curl -fsSL https://herdr.dev/install.sh | sh
+# WARN: mise owns herdr; the installer at herdr.dev writes ~/.local/bin/herdr,
+# which stow may have folded into a symlink back at dot-local/bin.
+echo Setting up Herdr integrations...
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
   herdr integration install codex

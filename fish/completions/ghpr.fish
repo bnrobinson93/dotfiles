@@ -26,3 +26,4 @@ complete -c ghpr -s B -l base -d "Override base branch" -r
 complete -c ghpr -s t -l title -d "Override PR title" -r
 complete -c ghpr -s b -l bookmark -x -d "Use JJ bookmark" -a '(__ghpr_completion_bookmark_names)'
 complete -c ghpr -s r -l revision -x -d "Resolve bookmark from JJ revision" -a '(__ghpr_completion_recent_revisions)'
+complete -c ghpr -s l -l label -x -d "Labels for the PR (comma-separated)"
