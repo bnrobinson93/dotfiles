@@ -10,10 +10,9 @@ const port = Number(process.env.BROWSER_DEBUG_PORT || 9222);
 const endpoint = `http://127.0.0.1:${port}`;
 const ownerFile = join(tmpdir(), `browser-debug-${port}.json`);
 // Preference order, first hit wins. Absolute paths are macOS app bundles; bare names resolve
-// against PATH on Linux.
+// against PATH on Linux. Helium is the preferred Chromium QA browser.
 const browserCandidates = [
   process.env.BROWSER_DEBUG_BINARY,
-  "/Applications/Arc.app/Contents/MacOS/Arc",
   "/Applications/Helium.app/Contents/MacOS/Helium",
   "helium",
   "/Applications/Chromium.app/Contents/MacOS/Chromium",

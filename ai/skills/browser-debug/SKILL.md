@@ -24,7 +24,7 @@ node scripts/browser-cdp.mjs metrics
 
 Available commands:
 
-- `launch [url]`: start the first available browser with remote debugging. It walks one preference list covering both machines: Arc, Helium, Chromium, Chrome, Brave, Edge, as `/Applications` bundles on the Mac and as `PATH` binaries on Linux.
+- `launch [url]`: start the first available browser with remote debugging. It walks one preference list covering both machines: Helium, Chromium, Chrome, Brave, and Edge, as `/Applications` bundles on the Mac and as `PATH` binaries on Linux.
 - `status`: show browser endpoint and product.
 - `pages`: list inspectable pages.
 - `observe <url> [seconds]`: navigate while recording console, exceptions, responses, and failed requests.

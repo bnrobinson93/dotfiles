@@ -36,10 +36,13 @@ through the change; revisit it only when new facts invalidate it.
 
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Shared
   repository behavior should be shaped by team needs, not one machine.
-- For local visual testing, use the already-open Arc window rather than launching an isolated
-  browser profile.
+- For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
+  the isolated Helium profile and ask for authentication before continuing. Zen is the daily
+  browser, but Helium is the Chromium QA target.
 - Keep local JJ bookmarks aligned with their GitHub refs when rebasing; use the remote bookmark as
   the destination so the resulting stack matches the published base and any merged main history.
+- Name JJ bookmarks and branches with `<type>/<ticket>-<short-kebab-summary>` (for example,
+  `feat/PEP-6057-add-copy-links`) instead of relying on auto-generated `temp/...` names.
 - Keep issue tickets focused on the problem, fix, and acceptance criteria. Use brief implementation
   hints when useful; omit QA history, background, and explicit exclusions because unlisted work is
   already out of scope.
@@ -49,6 +52,8 @@ through the change; revisit it only when new facts invalidate it.
 Default to Sara's frontend expertise on refactors, cleanup, readability, and design-system fit.
 Adopt her concrete recommendations unless product requirements, design evidence, or an external
 contract gives a specific reason not to; do not push back with generic implementation arguments.
+Treat a quick SME or author draft as design evidence, not a drop-in patch. Review its behavioral
+tradeoffs against the current contract before applying it wholesale.
 
 Frame each item as a clarifying question, then offer a concrete fix when one exists. The
 question leaves room for context the author has; the fix makes the comment actionable. Name a

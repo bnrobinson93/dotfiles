@@ -53,6 +53,9 @@ Apply every rule below to the diff.
   as states, not commands. Name shared abstractions and specialized adapters so their roles are
   obvious; avoid near-identical names that obscure which one callers should use.
 
+- Do not make a generic helper type-safe by defaulting its concrete type through an unsafe cast.
+  Require the enum or configuration that determines the concrete type at the call site.
+
 - When translating an already-imported generated enum into an external string such as a URL value,
   derive the string from the enum instead of duplicating a literal. Keep the generated contract as
   the source of truth.
@@ -64,6 +67,9 @@ Apply every rule below to the diff.
 - Task wrappers should declare and forward child-command options directly, so callers reach the
   child's flags without a `--` separator.
 
+- When wrapping a design-system component, intersect its props instead of duplicating them, and
+  let documented defaults do the work. Keep only behavior-specific props and overrides.
+
 - Keep security fixes focused on the requested behavior. Do not add logger injection, logging-only
   tests, or other observability seams unless the logging behavior is part of the contract; they
   expand API surface and test complexity without strengthening the guard.
@@ -74,9 +80,14 @@ Apply every rule below to the diff.
 
 - Keep small, task-local predicates in the owning module until reuse or isolation justifies a
   shared utility; extracting a one-caller helper adds navigation without reducing duplication.
+  Keep one-use visual wrappers inline; extract shared components or hooks when a behavior has a
+  real second consumer or needs isolation. Prefer CSS media queries for presentational responsive
+  behavior; keep matchMedia state in JavaScript only when CSS cannot express the behavior.
 
 - When one function accepts multiple equivalent input forms, keep the dispatcher thin and split
   form-specific resolution into named helpers so each path reads clearly.
+
+- Revert formatting-only changes when the reviewed behavior is unchanged.
 
 - Before handback, remove construction-time tests that pin implementation details or the absence
   of a visual state. Keep positive user behavior and durable contract tests; retain CSS assertions
