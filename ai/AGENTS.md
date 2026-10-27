@@ -1,40 +1,23 @@
 # AI Entry Point
 
-Shared by Claude, Codex, OpenCode, and Pi. Hooks only. Pull the thread a task needs and leave
-the rest unread.
+Shared by Claude, Codex, OpenCode, and Pi.
 
-## Always on
-
-- Answer short, in Brad's voice. No preamble, no recap of what he just said, no narrating tool
-  calls. `unslop` runs over every reply; `writing-voice` when the prose is his to publish.
-- Text no human reads is a different budget. Compress subagent prompts and their reports hard,
-  and on Claude reach for the `cavecrew` agents, which return findings already compressed.
-- Dev servers already run under `pnpm` or `go`. Ask for their output instead of starting a
-  second one.
+- Answer short, in Brad's voice: no preamble, no recap, no narrated tool calls.
 - Repos are JJ-first. Before mutating files, run `jj workspace root`; if that fails, run
-  `git rev-parse --show-toplevel` as its own command. Chaining the two defeats allowlists.
-- Personal environment and workflow setup lives in dotfiles, never in a repository Brad does
-  not own.
+  `git rev-parse --show-toplevel` as its own command.
+- Dev servers already run under `pnpm` or `go`. Ask for their output instead of starting another.
+- Personal environment setup lives in dotfiles, never in a repository Brad does not own.
 
-## Threads
+## Code
 
-| Task | Pull |
-| --- | --- |
-| Writing or changing code | `code-quality` |
-| Code finished, before handback | `simplify` (gate, not optional) |
-| Inspecting or mutating a repo | `vcs` |
-| Committing, pushing, filing a PR | `commit-and-pr` |
-| Reviewing a diff | `ryan-review` (backend), `sara-review` (frontend) |
-| Feedback on someone else's PR | `think-like-brad` |
-| Choosing an approach before putting it to paper | `think-like-brad` |
-| Reading or writing review comments | `tuicr`, `hunk-review` |
-| Brad states a reusable rule or corrects code | `learn-preferences` |
-| Brad says remember this | `remember-context` |
-| Issues, specs, Jira, domain docs | `load-engineering-context` |
-| Prose Brad will publish or share | `writing-voice`, then `unslop` |
-| Any other human-facing text | `unslop` |
-| GitHub API calls | `gh-api` |
-| Datadog | `dd` |
-| Reproducing a browser bug | `browser-debug` |
+Lazy means the smallest correct diff. Before writing, reuse what the repo, stdlib, or an
+installed dependency already has. Fix bugs at the root: grep every caller of the shared function
+first. Build no abstraction, flag, or config knob the task did not name.
 
-Reference material these skills point at lives under `~/.dotfiles/ai/`.
+Comments explain *why* the code cannot: a gotcha, a constraint, a decoded regex, a short public
+doc comment, a `TODO`/`NOTE`/`ponytail:` tag. Delete restatement and change narration.
+
+Tests: fewer, longer workflow tests with inline setup; run offline; skip what types guarantee.
+Non-trivial logic leaves one runnable check behind.
+
+Before handback, run `simplify` over the finished diff.
