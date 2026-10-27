@@ -5,9 +5,8 @@ set -euo pipefail
 
 BLACKLIST_PATTERNS=(
   '^code$'
-  '-ai'
-  '-exp$'
-  '-orch'
+  # Suffixes jj hands an agent workspace: -ai, -ai2, -orchestrator, -exp, -explore.
+  '-(ai[0-9]*|orch.*|exp|explore)$'
 )
 
 PINNED_DIRS=(
