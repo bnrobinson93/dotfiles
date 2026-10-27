@@ -1,104 +1,107 @@
 ---
 name: simplify
 description: >-
-  Last gate before handback: enforce the house bar over the finished diff, comments first. Run
-  it after the final edit of a coding task, before saying the work is done, before filing a PR,
-  and whenever Brad asks to simplify, tidy, or clean up a change. Skipping it is a defect, not
-  a judgment call.
+  Last gate before handback: enforce the house code-quality bar over the finished diff, comments
+  first. Run it after the final edit of a coding task, before saying the work is done, before
+  filing a PR, and whenever Brad asks to simplify, tidy, or clean up a change. Skipping it is a
+  defect, not a judgment call.
 ---
 
 # Simplify
 
-The last pass before handback. Everything checked here should already be true when the code was
-written; it usually is not. Fix it, then report what you fixed.
+The last pass before handback, and the whole house bar in one place. Work first; this pass makes
+the finished diff meet the bar, then reports.
 
-## 1. Fix the scope
+## Steps
 
-Read the whole change before editing any of it.
+1. **Scope.** The boundary is the code this task touched; a violation elsewhere is one line in
+   the report. Made every edit this session: read the diff from context. Otherwise run
+   `jj diff` (`git diff` in a git repo). Complete when you have read every hunk.
+2. **Comments first.** Hold each comment against the closed list below. Complete when every
+   comment in the diff is on it.
+3. **The rest of the bar**, below, plus `references/tests.md` where the diff touches tests.
+   Fix each offender inside the boundary. Complete when each offender is fixed or named in the
+   report with its reason for staying.
+4. **Report** what you deleted and why in a line or two.
 
-- JJ repo: `jj diff --summary`, then `jj diff` for the files it names. When the work spans
-  several changes, use `jj diff -f 'trunk()'`.
-- Git repo: `git diff` and `git diff --cached`, or diff against the parent branch when the work
-  spans commits.
-- "Staged" is not the boundary. The boundary is the code this task touched.
-- Keep every edit inside that boundary. A violation in an untouched file is one line in the
-  report.
+## The bar
 
-Complete when you have read every hunk in the diff.
+## Laziness
 
-## 2. Comments
+Lazy means efficient, not careless: the diff's best outcome is getting shorter. After reading
+the task and tracing the real flow end to end, stop at the first rung that holds:
 
-This is where the bar slips most, so it goes first. Read
-`~/.dotfiles/ai/skills/code-quality/references/comments.md` and hold each comment in the diff
-against its closed list. What survives is a gotcha, a one-or-two-line public interface note
-where the language expects one, a constraint code cannot hold, a decoded regex, or a canonical
-tag. Everything else goes, restatement and change narration first.
+1. Does this need to be built at all?
+2. Does a helper, type, or pattern already in this codebase cover it? Reuse it.
+3. Does the standard library, a native platform feature, or an installed dependency cover it?
+4. Can it be one line?
+5. Only then write the minimum code that works.
 
-Complete when every comment in the diff is on that list.
+- **Bug fix means root cause.** A report names a symptom. Grep every caller of the function you
+  are about to touch: one guard in the shared function beats a guard in every caller, and
+  patching only the ticket's path leaves the sibling callers broken.
+- Build the abstraction when it was asked for. Delete placeholder knobs, future-facing APIs, and
+  CLI flags nobody asked for; a flag arrives when a caller needs to vary that input.
+- Deletion over addition, boring over clever, fewest files possible. Between two same-size
+  stdlib approaches take the edge-case-correct one.
+- Mark an intentional simplification with a `ponytail:` comment naming its ceiling (global lock,
+  O(n²) scan, naive heuristic) and the upgrade path.
+- Compute values from data already in scope instead of passing a redundant argument. One concept
+  gets one authoritative home that consumers reuse.
+- Laziness stops at trust-boundary validation, error handling that prevents data loss,
+  security, accessibility, hardware calibration, and anything explicitly requested.
+- Non-trivial logic leaves ONE runnable check behind: the smallest thing that fails if the logic
+  breaks. No frameworks, no fixtures; a trivial one-liner needs none.
 
-## 3. The rest of the bar
+## Naming and shape
 
-Check the diff against `~/.dotfiles/ai/skills/code-quality/references/laziness.md`, and against
-`~/.dotfiles/ai/skills/code-quality/references/tests.md` where it touches tests. The frequent
-offenders: code that reimplements a helper already in the repo, an abstraction nobody asked
-for, a config knob with no caller, an argument the callee could compute.
-
-Complete when each offender is fixed or named in the report with its reason for staying.
-
-## 4. Learned code preferences
-
-Apply every rule below to the diff.
-
-- Use relevant, precise names. Prefer `isConfigured` over `complete`; boolean names should read
-  as states, not commands. Name shared abstractions and specialized adapters so their roles are
-  obvious; avoid near-identical names that obscure which one callers should use.
-
-- Do not make a generic helper type-safe by defaulting its concrete type through an unsafe cast.
-  Require the enum or configuration that determines the concrete type at the call site.
-
-- When translating an already-imported generated enum into an external string such as a URL value,
-  derive the string from the enum instead of duplicating a literal. Keep the generated contract as
-  the source of truth.
-
-- Combine overlapping types, functions, constants, or behavioral instructions. In generated
-  prompts, place authoritative guidance after bulky source material so examples cannot drown it
-  out.
-
-- Task wrappers should declare and forward child-command options directly, so callers reach the
-  child's flags without a `--` separator.
-
-- When wrapping a design-system component, intersect its props instead of duplicating them, and
-  let documented defaults do the work. Keep only behavior-specific props and overrides.
-
-- Keep security fixes focused on the requested behavior. Do not add logger injection, logging-only
-  tests, or other observability seams unless the logging behavior is part of the contract; they
-  expand API surface and test complexity without strengthening the guard.
-
-- Group related settings in one object and derive aggregate predicates from its values instead of
-  maintaining a growing chain of per-setting checks; adding a setting should not require parallel
-  updates to every aggregate condition.
-
-- Keep small, task-local predicates in the owning module until reuse or isolation justifies a
-  shared utility; extracting a one-caller helper adds navigation without reducing duplication.
-  Keep one-use visual wrappers inline; extract shared components or hooks when a behavior has a
-  real second consumer or needs isolation. Prefer CSS media queries for presentational responsive
-  behavior; keep matchMedia state in JavaScript only when CSS cannot express the behavior.
-
-- When one function accepts multiple equivalent input forms, keep the dispatcher thin and split
-  form-specific resolution into named helpers so each path reads clearly.
-
+- Names carry the meaning. Booleans read as states (`isConfigured`, `lastWasDash`), never
+  `complete` or `dash`. Shared abstractions and specialized adapters get names that show which
+  one callers use.
+- Extend the existing test fake or type (`Omit`, a union) rather than hand-rolling a parallel one.
+- Flatten ternaries to one level, then use an `if` or a lookup. Compute once and keep the
+  result; two near-identical functions become one.
+- Take O(n²) to O(1) when one simple function does it, and stop short of over-engineering.
+- Derive an external string (a URL value) from an already-imported generated enum; the generated
+  contract stays the source of truth.
+- Group related settings in one object and derive aggregate predicates from its values, so a new
+  setting needs no parallel edit to every condition.
+- Keep a one-caller predicate or one-use visual wrapper in its owning module until a real second
+  consumer or a need for isolation justifies extracting it. Express presentational responsive
+  behavior in CSS media queries; keep `matchMedia` state in JavaScript only when CSS cannot.
+- Wrapping a design-system component: intersect its props instead of duplicating them, let its
+  documented defaults do the work, and keep only behavior-specific props and overrides.
+- A generic helper takes the enum or configuration that fixes its concrete type at the call
+  site, never an unsafe-cast default.
 - Revert formatting-only changes when the reviewed behavior is unchanged.
+- A function that accepts several equivalent input forms keeps a thin dispatcher and one named
+  helper per form.
+- Task wrappers declare and forward child-command options directly, so callers skip the `--`.
+- Security fixes stay on the requested behavior: no logger injection or logging-only tests
+  unless logging is part of the contract.
+- Merge overlapping types, functions, constants, and prompt instructions. In generated prompts,
+  put the authoritative guidance after the bulky source material.
+- Route UI colors through the design system's theme tokens (`useTheme`, theme callbacks,
+  exported token APIs). A literal hex needs Brad's explicit request. Let themed components
+  supply their defaults and add local styling only for behavior or geometry the theme cannot
+  express.
 
-- Before handback, remove construction-time tests that pin implementation details or the absence
-  of a visual state. Keep positive user behavior and durable contract tests; retain CSS assertions
-  only when the styling itself is the behavior under test.
+## Comments
 
-Complete when every rule has been applied or is inapplicable to the diff.
+Say it in the code: rename, or extract the confusing expression into a named chunk. A comment
+is the last resort and explains *why*; the code explains *what*. This list is closed, and a
+comment outside it gets deleted:
 
-## 5. Report
+- **Gotchas**: non-obvious code that breaks core behavior if changed. Name the consequence, not
+  the mechanics.
+- **Public interfaces**, one or two lines, where the language expects it (Go doc comments).
+- **Constraints code cannot hold**: ordering rationale, a security constraint, an external
+  contract, a thread-safety or long-running warning.
+- **A regex**, decoded in plain words.
+- **Canonical tags**: `TODO`, `NOTE`, `INFO`, `WARN`, `HACK`, `PERF`, `FIX`, `ponytail`.
+- **Copyright headers** the repo requires.
 
-Name what you deleted and why, in a line or two.
-
-Keep this list to rules that hold across unrelated repositories. SDK, service, API, schema,
-architecture, and business decisions belong in project memory, and `learn-preferences` routes
-them there.
+When the same *why* lives at its real home (the function, an ADR, a spec), the call site stays
+quiet. Delete on sight: restatement of code or types, mumbling and author's notes, changelog
+entries, long javadoc where types would do, block quotes around one line, position markers,
+closing-brace labels, commented-out code, and comments about code elsewhere.

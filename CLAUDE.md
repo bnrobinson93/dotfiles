@@ -1,334 +1,77 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Repository Overview
-
-This is a dotfiles repository managing a complete Linux development environment using **GNU Stow** for symlink management. The configuration supports Neovim (LazyVim-based), Wezterm, Tmux, and both Zsh and Fish shells with extensive tooling integration.
-
-## Common Commands
-
-### Deployment & Installation
-
-```bash
-# Preferred: mise tasks work from anywhere
-mise run stow     # deploy non-AI symlinks (config, ~/.local, zsh, ssh)
-mise run skills   # deploy AI config and install/update skills and plugins
-mise run update   # update everything via topgrade
-
-# Manual equivalents:
-# Deploy configs to ~/.config
-stow -v2 .
-
-# Deploy local scripts to ~/.local
-stow -v2 -t ~/.local -S dot-local --dotfiles
-
-# Deploy home directory configs (zsh)
-stow -v2 -t ~ -S zsh --dotfiles  # For zsh
-# OR for fish (config goes to ~/.config/fish automatically with default stow target)
-stow -v2 .  # fish included in default deployment
-
-# Set shell as default
-chsh -s /bin/zsh   # For zsh
-# OR
-chsh -s $(which fish)  # For fish
-
-# Reload tmux config
-tmux source-file ${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf
-
-# Rebuild bat cache (needed after theme changes)
-bat cache --build
-
-# Run automated setup script
-./install.sh
-```
-
-### Testing Changes
-
-```bash
-# Test a specific stow package (dry-run)
-stow -v2 -n <package-name>
-
-# Restow (update symlinks after changes)
-stow -v2 -R <package-name>
-
-# Remove symlinks
-stow -v2 -D <package-name>
-```
-
-### Neovim
-
-```bash
-# Launch Neovim
-nvim
-
-# Check LazyVim health
-nvim +checkhealth
-
-# Update plugins
-nvim +Lazy
-
-# Sync LazyVim extras
-nvim +LazyExtras
-```
-
-### Recording Demos
-
-```bash
-# Record terminal session and convert to GIF
-asciinema rec demo.cast
-agg --theme nord --font-size 16 --font-family "Recursive Mono Casual,Symbols Nerd Font Mono" demo.cast ~/Pictures/demo.gif && rm demo.cast
-```
-
-## Architecture & Key Concepts
-
-### Stow Package Structure
-
-Each top-level directory (except special cases) is a **stow package** that gets symlinked:
-
-- **Target: `~/.config/`** (default via `.stowrc`): bat, fish, git, jj, k9s, kitty, lazygit, nvim, tmux, wezterm, etc.
-- **Target: `~/.local/`**: dot-local package (contains bin/ with custom scripts)
-- **Target: `~/`**: zsh (use `--dotfiles` flag to convert `dot-*` to `.*)
-
-The `.stowrc` file defines:
-- Default target: `~/.config`
-- `--dotfiles` mode (dot-prefixed files become hidden)
-- A denylist of `--ignore` patterns. `stow .` walks the whole repo root, so **anything there
-  that is not a config package lands in `~/.config` until a line is added here** — packages
-  with their own target (`zsh`, `dot-local`, `starship`) and repo metadata alike (`.jj`,
-  `.github`, `tests/`, `install.sh`). `CLAUDE.md` and `AGENTS.md` stay off the list, and a new
-  pattern must match a single basename, because `update-skills.sh` stows `ai/` with the repo
-  root as its cwd: these ignores reach that run too, and would drop the payload every harness
-  reads.
-
-### Omarchy Desktop (v4)
-
-The desktop is Omarchy 4 on Arch + Hyprland. The bar, menu, notifications, lock screen,
-OSD, polkit agent, and idle daemon all run inside one Quickshell process
-(`omarchy-shell`); waybar, walker, mako, hyprlock, and hypridle are gone.
-
-- **`hypr/`** — Hyprland v4 reads `hyprland.lua`, not `hyprland.conf`. Only `.lua` files
-  are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
-  portal's). The Lua config holds only what differs from the v4 defaults under
-  `/usr/share/omarchy/default/hypr/` — read those before adding an override.
-- **`omarchy/`** — `extensions/omarchy-menu.jsonc` only. Deploy with `stow -v2 .`, never
-  `stow omarchy`, or stow folds the directory and Omarchy's generated state lands in the
-  repo.
-- **`~/.config/omarchy/shell.json` is the shell's own state, and nothing here tracks it.**
-  The bar layout, per-widget settings, idle timeouts and plugin enablement all live in
-  that one file, and everything writes to it: the shell persists reordering and widget
-  settings on ordinary interaction, `omarchy bar` and `omarchy plugin` edit it, and
-  Omarchy's migrations patch it in place when upstream defaults move (see
-  `/usr/share/omarchy/migrations/` — `1785344985.sh` adds the agents widget to existing
-  bars, `1786099804.sh` renames `model-usage`). Change the bar with the CLI or by
-  right-clicking it; do not reintroduce a tracked copy or a generator, because either one
-  fights the CLI and throws away whatever was set since it last ran.
-- `mise run omarchy-plugins` installs the personal plugins — `idle-ladder`,
-  `menu-button`, `orientation` — from `github.com/bnrobinson93/omarchy-<id>`, since those
-  live in their own repos rather than Omarchy's registry. Third-party plugins are
-  installed by hand with `omarchy plugin add`. `install.sh` runs the task (skipped off
-  Omarchy) before `mise run stow`; `mise run stow` deliberately does *not*, since it is a
-  network call only a fresh machine needs.
-- Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
-  module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
-  over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
-- Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
-
-### Shared AI Config (`ai/`)
-
-`update-skills.sh` (`mise run skills`) stows `ai/` into four harness roots: `~/.claude`,
-`~/.codex`, `~/.config/opencode`, and `~/.pi/agent`. One payload, four agents, so anything
-added here must work without harness-specific paths.
-
-- **`ai/AGENTS.md`** (with `CLAUDE.md` symlinked to it) is injected into every prompt, so it
-  stays hooks-only: a few always-true facts and a trigger-to-skill table. Detail belongs in a
-  skill, never here.
-- **`ai/skills/<name>/SKILL.md`** — frontmatter `name` must equal the directory name. Claude
-  keys off the directory and the other harnesses key off the frontmatter, so a mismatch makes a
-  skill unreachable from one of them.
-- **Skill anatomy** follows the shared convention: `SKILL.md`, plus `references/` for docs
-  loaded on demand, `scripts/` for deterministic code, `agents/openai.yaml` for the Codex
-  display name and default prompt. Point at a reference as `~/.dotfiles/ai/...`, the one path
-  that resolves from every harness root. All trigger wording belongs in the description; the
-  body only loads once the skill has fired.
-- **One rule, one home.** `code-quality/references/` owns the standing bar, `simplify` owns
-  learned cross-project code preferences and enforces the bar over a finished diff,
-  `think-like-brad` owns cross-project judgment outside the code-quality bar, project memory owns
-  repository and domain facts. `learn-preferences` routes new rules between them.
-- **A skill its upstream publishes belongs in `SKILLS` in `update-skills.sh`, not in
-  `ai/skills/`.** The vendored copy of tuicr's skill drifted for months and shipped none of the
-  wrapper scripts it told agents to run.
-- **`ai` stows with `--no-folding`.** Folded, `~/.claude/skills` is one symlink back into
-  `ai/skills`, and every managed skill the skills CLI installs for Claude Code lands in this
-  repo. Same hazard as `stow omarchy`.
-- **`ai/dot-claude/`** and **`ai/dot-pi/`** are the only harness-specific packages. Codex's
-  `config.toml`, `hooks.json`, and `herdr-agent-state.sh` under `ai/dot-codex/` are seeds
-  copied by hand; nothing deploys them, because Codex and Herdr rewrite those files in place.
-
-Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
-
-### Neovim Plugin Architecture
-
-**Base**: LazyVim framework with modular plugin system
-
-**Structure**:
-- `init.lua` - Entry point that loads `lua/config/lazy.lua`
-- `lua/config/` - Core configuration
-  - `lazy.lua` - Plugin manager setup
-  - `keymaps.lua` - Custom keybindings
-  - `options.lua` - Editor options
-  - `autocmds.lua` - Autocommands
-- `lua/plugins/` - **18 individual plugin files**, each returns a plugin spec table
-  - Plugins are lazy-loaded by default
-  - Custom configs override LazyVim defaults
-  - Use `enabled = false` to disable LazyVim plugins
-- `snippets/` - LuaSnip snippets (all.json, markdown.json)
-- `utils/` - External tool configs (.eslintrc.json, .markdownlint.json, .zizmor.yaml)
-
-**Key Plugin Categories**:
-- **Completion**: blink.cmp with emoji integration
-- **Linting**: nvim-lint (ESLint, markdownlint-cli2, actionlint, zizmor)
-- **UI**: Noice, which-key, Catppuccin colorscheme
-- **Version Control**: hunk.nvim for interactive diff editing
-- **Note-taking**: obsidian.nvim (vault at `~/Documents/Vault`)
-- **AI**: Copilot + Copilot Chat
-- **Markdown**: render-markdown.nvim with checkbox support
-
-### Wezterm Configuration
-
-Modular Lua config split into 4 files:
-- `wezterm.lua` - Main config (Catppuccin Mocha theme, Ctrl+A leader key)
-- `sessionizer.lua` - Project picker using fzf (Ctrl+A f)
-- `workspace_manager.lua` - Tmux-like workspace switching
-- `tabbar.lua` - Custom tab bar with workspace indicators
-
-### Shell Configuration
-
-#### Zsh (Traditional)
-
-**Lazy Loading Pattern**: Heavy tools are deferred to avoid slow shell startup; mise resolves project runtime versions
-- `dot-zshrc` - Main config with lazy-load functions for:
-  - cargo (Rust toolchain)
-  - kubectl (Kubernetes CLI)
-  - go (Go toolchain)
-- `dot-zshenv` - Environment variables
-- Integrations: Starship (prompt), zap (plugin manager)
-
-#### Fish (Modern Alternative)
-
-**Modular Configuration**: Split into organized files for maintainability
-- `config.fish` - Main entry point (minimal, loads conf.d/)
-- `conf.d/` - Auto-loaded configuration modules:
-  - `00-env.fish` - Environment variables
-  - `01-paths.fish` - PATH configuration (uses fish_add_path)
-  - `02-tools.fish` - Tool integrations (starship, zoxide, mise, etc.)
-  - `03-abbreviations.fish` - Abbreviations (better than aliases)
-- `functions/` - Auto-loaded functions (la, ll, rec, ignore, bookmark, etc.)
-- Persistent fish functions must live in repo path `fish/functions/`; do not create one-off files only in `~/.config/fish/functions`, because `install.sh` removes `~/.config/fish` before restowing.
-- **Setup**: Install fisher plugin manager, then `fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent` (runtimes come from mise, not nvm)
-- Integrations: Native syntax highlighting, autosuggestions, vi-mode, Starship
-- **Performance**: the aarch64 Pi that runs the nightly cron lands near 28ms for fish and 34ms for zsh (measured idle 2026-10-31; the x86 laptop is faster still, and has fewer of these tools absent). The 35ms/39ms recorded against 2026-10-22 was never an idle number — it came from the cron's pre-`--warmup` harness, n=7 straight off `mise upgrade`'s cold page cache — and 28/34 reproduces under hyperfine 1.20, 2.0, and that same old harness, so treat a reading near 35 as a regression and not a return to normal. **A mise shim no longer costs anything measurable** (mise 2026.10.8, re-measured 2026-10-31): through `shims/`, `atuin uuid` is 2.3ms and `vivid --version` 0.69ms, both within 2% of the same binary under `installs/`, against a 0.40ms fork+exec floor. That tax was ~21ms per exec until mise grew a fast shim path, so a tool invocation on the startup path now costs only whatever the tool itself costs. `atuin uuid` is still worth skipping (2.3ms of a 28ms start, for a value atuin treats as opaque), while pointing `$PATH` at an install directory ahead of the shims buys nothing and still shadows the project-local versions the shims exist to resolve. `mise hook-env` costs 22.4ms a spawn, so shims beat `activate` by more than ever. `nightly-dotfiles.sh` benchmarks with `hyperfine --warmup 3` right after a sync and stow, so each cron reading carries its own σ: a wide one means topgrade's disk churn has not settled and the number is not drift. Re-measure with `hyperfine` on an idle box, and profile zsh with `zmodload zsh/zprof` under a scratch `ZDOTDIR` symlinked at `zsh/dot-zsh*`. Profile fish with `fish --profile-startup <file>`, not `--profile`, which only covers the `-c` command; what it finds now is forks, not sourced init. **Both shells were paying 5ms a start for an `ssh-add` that cannot succeed without `$SSH_AUTH_SOCK`**, plus ~1ms to `cat` the gh token; guarding the first and reading the second in-shell took ~6ms off each on 2026-10-21, and the baseline above already includes that, so do not subtract it twice. Benchmark a candidate config under a scratch `XDG_CONFIG_HOME`: copying over `~/.config/fish/...` writes *through* the stow symlinks and edits the `~/.dotfiles` working copy. A scratch config still writes its caches to the real `~/.cache/fish`, which `02-tools.fish` hardcodes past `XDG_CACHE_HOME`, so expect a benchmark run to regenerate them. Kept fast by never running `tool init | source` directly: generated init scripts are cached via `__cache_gen` (`fish/functions/`, and `dot-zshrc` carries the same helper under the same name), completions lazy-load from `fish_complete_path`, and mise uses shims instead of `activate`. New tool integrations must follow the same pattern, and must cache the init a tool *runs* rather than a bootstrap stub that re-invokes it — starship needs `--print-full-init`, or the cache holds a 67-byte stub and buys nothing. So nothing on the startup path may *invoke* a tool — not for the shim's sake now, but because the cheapest of these still costs 2-9ms against a 28ms budget — and `__cache_gen` cannot key staleness on the shim either, since a shim is a symlink to the mise binary and stops moving when the tool is upgraded. It stamps against mise's shims directory instead, which every install reshims.
-
-### Version Control Dual Setup
-
-**Git** (primary):
-- GPG signing enabled by default
-- Auto-redirect HTTPS → SSH for git URLs
-- Aliases: `l` (log), `s` (status), `c` (commit), `ac` (add+commit), `acp` (add+commit+push)
-
-**Jujutsu** (primary in practice):
-- Modern VCS with advanced revset queries
-- SSH signing with stock ssh-keygen against `~/.ssh/id_ed25519_GitHubSigning`; per-machine override via `conf.d/z-local.toml` (e.g. op-ssh-sign)
-- Complex bookmark and push logic in config/config.toml
-
-### Tmux Integration
-
-- **Prefix**: Ctrl+A (screen-like, matches Wezterm)
-- **Vi-mode**: hjkl navigation
-- **Plugins** (via TPM):
-  - catppuccin/tmux (theme)
-  - tmux-yank (clipboard integration)
-  - tmux-resurrect (session persistence)
-  - tmux-continuum (auto-restore)
-  - tmux-battery (status bar)
-- **Session pickers**: Ctrl+F (no prefix) runs `sesh-select`, Ctrl+A O runs `sesh-select all`.
-  Ctrl+A D/C/V run `tmux-sessionizer` against `~/.dotfiles`, `~/Documents/code`, and the Vault.
-
-### Custom Scripts (`dot-local/bin/`)
-
-When modifying or adding scripts:
-- Use absolute paths where possible
-- Mark shell scripts executable: `chmod +x <script>`
-- After changes, restow: `stow -v2 -R -t ~/.local dot-local --dotfiles`
-
-Key scripts:
-- `herdr-select` / `kitty-select` / `sesh-select` / `tmux-sessionizer` / `vscode-sessionizer` - Project pickers with fzf. All five take their roots from `search-paths`, the only reader of `~/.config/search-paths.txt`; call it rather than re-inlining the parse, or a fix lands in one picker and misses four.
-- `ssh-setup-github.sh` - Generate SSH key, upload to GitHub, update allowed_signers
-- `battery_check.sh` - Battery monitoring
-- `nightly-dotfiles.sh` - Unattended nightly upkeep, run from cron; see its header comment for what it does
-
-## Theme Consistency
-
-**Primary Theme**: Catppuccin Mocha
-- Applied across: Neovim, Starship, Tmux, K9s, Lazygit, Wezterm, Ghostty, Kitty
-- Secondary: Tokyo Night (available in Neovim, experimental)
-
-When adding new tools, prefer Catppuccin Mocha theme for consistency.
-
-## Obsidian Integration
-
-- Vault location: `~/Documents/Vault`
-- Neovim keybinding: `<C-n>` to create new note
-- Template system for daily notes (see nvim/lua/plugins/obsidian.lua:52)
-- Markdown checkboxes rendered in Neovim via render-markdown.nvim
-
-## WSL Considerations
-
-When working on WSL, ensure locale is set:
-```bash
-sudo apt-get install language-pack-en language-pack-en-base manpages
-sudo update-locale LANG=en_US.UTF8
-# Restart terminal after
-```
-
-## Security & Signing
-
-- **Git + Jujutsu commits**: SSH-signed with stock ssh-keygen using `~/.ssh/id_ed25519_GitHubSigning` (repo default, personal Linux)
-- **1Password mode (per-machine)**: override signing in `~/.gitlocal` / `~/.config/jj/conf.d/z-local.toml` pointing at `op-ssh-sign`; connections via 1Password agent per `~/.ssh/config`
-- **Verification**: both VCSs check `~/.ssh/allowed_signers`
-- **Unresolved — the two shells disagree about the 1Password agent on Linux.** `dot-zshenv`
-  exports `SSH_AUTH_SOCK` to `~/.1password/agent.sock` whenever it exists and `dot-zshrc`
-  defaults `USE_1PASSWORD_SSH=1` on every platform, so zsh opts in. `fish/conf.d/00-env.fish`
-  sets that default only on Darwin, so on Linux fish takes the opt-out branch and *unsets* an
-  inherited 1Password socket. Fish matches the documented default above, zsh does not; which
-  one moves is a decision, not a cleanup.
-
-## File Editing Conventions
-
-### Neovim Plugins
-- Each plugin goes in a separate file under `lua/plugins/`
-- Return a table with plugin spec (compatible with lazy.nvim)
-- Use `opts = {}` for simple config, `config = function()` for complex setup
-- Add `event`, `ft`, or `cmd` for lazy loading
-
-### Stow Packages
-- Keep package-specific files in subdirectories
-- Use `dot-*` prefix for files that should become `.filename` in home directory
-- Test with `stow -n` (dry-run) before actual deployment
-
-### Shell Scripts
-- Use `#!/usr/bin/env bash` for portability
-- Add descriptive comments for non-obvious logic
-- Test interactively before committing
-
-## LazyVim Extras Installed
-
-The following LazyVim extras are enabled (see Lazyvim.json):
-- coding.luasnip, coding.mini-surround
-- dap.core (debugging)
-- editor.harpoon2, editor.leap
-- formatting.prettier
-- lang.ansible, lang.docker, lang.git, lang.go, lang.json, lang.markdown, lang.python, lang.terraform, lang.toml, lang.typescript, lang.yaml
-- linting.eslint
-- ui.alpha (startup screen)
-- util.dot, util.mini-hipatterns
+Linux dotfiles deployed with GNU Stow. Deploy with `mise run stow` (configs, `~/.local`, zsh,
+ssh) and `mise run skills` (AI config, skills, plugins); `mise tasks` lists the rest.
+
+## Stow
+
+- Default target is `~/.config` (`.stowrc`); `dot-local` targets `~/.local`, `zsh` targets
+  `~`, both with `--dotfiles`. Dry-run with `stow -v2 -n <pkg>`.
+- `.stowrc` is a denylist and `stow .` walks the whole repo root, so anything new at the root
+  that is not a config package lands in `~/.config` until it gets an `--ignore` line. Each
+  pattern must match a single basename and must never match `CLAUDE.md` or `AGENTS.md`:
+  `update-skills.sh` stows `ai/` with the repo root as cwd, so these ignores reach that run too.
+- Persistent fish functions live in `fish/functions/`. `install.sh` deletes `~/.config/fish`
+  before restowing, so a file only there is lost.
+
+## Omarchy desktop (v4)
+
+Arch + Hyprland. Bar, menu, notifications, lock, OSD, polkit, and idle all run in one
+Quickshell process (`omarchy-shell`). Apply the `omarchy` skill for any `hypr/` or `omarchy/`
+edit.
+
+- `hypr/`: only `.lua` files are live (plus `hyprsunset.conf`, `xdph.conf`). They hold only
+  what differs from `/usr/share/omarchy/default/hypr/`; read that first.
+- `omarchy/` holds `extensions/omarchy-menu.jsonc` only. Deploy with `stow -v2 .`, never
+  `stow omarchy`, which folds the directory and pulls Omarchy's generated state into the repo.
+- `~/.config/omarchy/shell.json` is the shell's own state: the shell, `omarchy bar`,
+  `omarchy plugin`, and upstream migrations all write it. Change the bar through the CLI or
+  the bar's right-click menu; a tracked copy or generator would fight them.
+- Never edit `/usr/share/omarchy/`. Prefer an extension point (a `type: command` bar module, a
+  menu row, an `omarchy toggle` flag, a small `qs.Ui` plugin) over `omarchy plugin clone`.
+- Personal plugins come from `github.com/bnrobinson93/omarchy-<id>` via
+  `mise run omarchy-plugins`, which only a fresh machine needs.
+
+## Shared AI config (`ai/`)
+
+`update-skills.sh` stows `ai/` into `~/.claude`, `~/.codex`, `~/.config/opencode`, and
+`~/.pi/agent`, so everything here must work without harness-specific paths. Apply the
+`writing-for-agents` skill for any edit under `ai/`.
+
+- `ai/AGENTS.md` (`CLAUDE.md` links to it) loads on every prompt, coding or not, so it holds
+  only the short inline bar and a pointer to `simplify`. Eval: that plus one end-of-task
+  `simplify` skill matched a 16-row skill routing table on quality and speed.
+- A skill's frontmatter `name` equals its directory name; Claude keys off the directory, the
+  others off the frontmatter.
+- Point at reference material as `~/.dotfiles/ai/...`, the one path every harness resolves.
+- One rule, one home: `simplify` owns the full bar and every learned code preference,
+  `think-like-brad` owns judgment outside code, project memory owns repo facts.
+  `learn-preferences` routes new rules.
+- A skill its upstream publishes goes in `SKILLS` in `update-skills.sh`, not `ai/skills/`.
+- `ai` stows with `--no-folding`; folded, every skill the skills CLI installs lands in this repo.
+- `ai/dot-codex/` files are hand-copied seeds; Codex and Herdr rewrite them in place.
+
+## Shell startup
+
+Baseline on the aarch64 Pi: fish ~28ms, zsh ~34ms, idle (2026-10-31). A reading near 35 is a
+regression. Keep it that way:
+
+- Never `tool init | source` on the startup path. Cache generated init with `__cache_gen`
+  (same name in `fish/functions/` and `dot-zshrc`), and cache the init a tool *runs*, not a
+  stub that re-invokes it (starship needs `--print-full-init`).
+- Nothing on the startup path may exec a tool: the cheapest still costs 2-9ms against a 28ms
+  budget (a mise shim itself is free since mise 2026.10.8). `__cache_gen` stamps against mise's
+  shims directory, not the shim, because a shim stops moving when the tool is upgraded.
+- Benchmark a candidate under a scratch `XDG_CONFIG_HOME`; copying over `~/.config/fish`
+  writes through the stow symlinks into this repo. Profile fish with
+  `fish --profile-startup <file>`, zsh with `zmodload zsh/zprof` under a scratch `ZDOTDIR`.
+- Nightly cron readings run under `hyperfine`; a wide σ means disk churn, not drift.
+  Re-measure on an idle box before acting on one.
+
+## Signing
+
+Git and JJ commits are SSH-signed with `~/.ssh/id_ed25519_GitHubSigning`; per-machine
+overrides (1Password `op-ssh-sign`) go in `~/.gitlocal` and `~/.config/jj/conf.d/z-local.toml`.
+
+Unresolved: on Linux zsh opts into the 1Password agent (`dot-zshenv`, `dot-zshrc`) while fish
+opts out (`fish/conf.d/00-env.fish`). Which shell moves is Brad's decision, not a cleanup.
