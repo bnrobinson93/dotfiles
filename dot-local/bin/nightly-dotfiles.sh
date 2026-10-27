@@ -6,7 +6,7 @@
 #   3. restart herdr           (picks up a new binary from step 2)
 #   4. mise run stow           (redeploy symlinks from $DOTFILES; failures logged, not fatal)
 #   5. verify Claude settings  (read-only; alerts if a hook/statusLine target is missing)
-#   6. shell startup benchmark (fish vs zsh; measured, not guessed, fed into the review)
+#   6. shell startup benchmark (fish vs zsh under hyperfine, fed into the review)
 #   7. claude -p               (review the tree in a throwaway workspace, make changes)
 #   8. jj git push + gh pr     (only when step 7 actually changed something)
 #
@@ -109,24 +109,20 @@ if ! "$DOTFILES/update-skills.sh" --verify-claude-settings 2>&1; then
 fi
 
 echo "--- shell startup benchmark ---"
-# Measured, not guessed: CLAUDE.md records the baseline, and the review below is told
-# to flag drift against it rather than eyeball the configs.
-bench_shell() {
-  local bin="$1" n=7 total=0 start end
-  command -v "$bin" >/dev/null 2>&1 || { echo "$bin: not installed"; return; }
-  # Every upgrade reshims mise, and __cache_gen stamps against that directory, so the first
-  # start regenerates every cached tool init; timed, that one-off divides into the average
-  # as phantom drift.
-  "$bin" -i -c exit >/dev/null 2>&1
-  for _ in $(seq 1 "$n"); do
-    start=$(date +%s%N)
-    "$bin" -i -c exit >/dev/null 2>&1
-    end=$(date +%s%N)
-    total=$(( total + (end - start) ))
-  done
-  echo "$bin: $(( total / n / 1000000 ))ms avg (n=$n, interactive startup)"
-}
-BENCH_RESULTS="$(bench_shell fish; bench_shell zsh)"
+# WARN: --warmup is load-bearing. Every mise upgrade above reshims, __cache_gen stamps
+# against that directory, so each shell's first start regenerates every cached tool init.
+bench_cmds=()
+for bin in fish zsh; do
+  if command -v "$bin" >/dev/null 2>&1; then
+    bench_cmds+=("$bin -i -c exit")
+  else
+    echo "$bin: not installed"
+  fi
+done
+BENCH_RESULTS="unavailable"
+if [ ${#bench_cmds[@]} -gt 0 ] && command -v hyperfine >/dev/null 2>&1; then
+  BENCH_RESULTS="$(hyperfine --warmup 3 -N --style basic "${bench_cmds[@]}" 2>&1)"
+fi
 echo "$BENCH_RESULTS"
 
 open_pr=$(gh pr list --state open --json number,headRefName \
@@ -164,7 +160,7 @@ You are doing an unattended nightly review of this dotfiles repository. Follow A
 and CLAUDE.md. The working copy is a fresh commit on top of trunk; make your changes
 directly in the tree.
 
-Shell startup benchmark measured just before this run (interactive startup, avg of 7):
+Shell startup benchmark measured with hyperfine just before this run:
 __BENCH_RESULTS__
 
 Review the repo with these lenses:
