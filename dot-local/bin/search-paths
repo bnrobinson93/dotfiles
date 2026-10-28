@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# search-paths — print the project search roots, one per line, with ~ expanded.
+# The only reader of ~/.config/search-paths.txt; the pickers call this rather than
+# parsing the file, so its format has one home.
+
+config=${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt
+# WARN: exit 0, not 1. Unstowed, a picker gets no extra roots rather than an error
+# printed into its terminal.
+[ -f "$config" ] || exit 0
+
+sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "$config"

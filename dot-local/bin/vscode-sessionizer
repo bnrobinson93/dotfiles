@@ -2,7 +2,7 @@
 SEARCH_PATHS=()
 while IFS= read -r line; do
   SEARCH_PATHS+=("$line")
-done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
+done < <(search-paths)
 
 if type fd >/dev/null 2>&1; then
   found_dirs=$(fd . "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d)
