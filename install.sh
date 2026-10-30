@@ -30,7 +30,7 @@ elif test -d /opt/homebrew; then
 fi
 
 echo Installing brew libraries...
-brew install lazygit asciinema agg jj mise jq topgrade dlvhdr/formulae/diffnav
+brew install lazygit asciinema agg jj mise jq topgrade bat zoxide sesh dlvhdr/formulae/diffnav
 
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim

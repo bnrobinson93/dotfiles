@@ -25,7 +25,7 @@ Contains all the dotfiles that I use in my development environment.
 - Zoxide - `brew install zoxide`
 - mise - `brew install mise` (runtimes + task runner: `mise tasks`)
 - topgrade - `brew install topgrade` (one-command updater for everything)
-- sesh - `brew install joshmedeski/sesh/sesh`
+- sesh - `brew install sesh`
 - herdr - `brew install herdr`
 
 ## SSH & Commit Signing
