@@ -3,24 +3,22 @@
 # forever, and the order is whatever the machine's history produced.
 #
 # Static list instead of globbing $HOME for bin dirs - that scan cost 200ms+
-# on every shell start.
-set -l common_bin_dirs \
+# on every shell start. Later entries land ahead of earlier ones, and
+# fish_add_path drops a directory that does not exist.
+set -l bin_dirs \
     $HOME/go/bin \
     $HOME/.cargo/bin \
     $HOME/.docker/bin \
     $HOME/.rd/bin \
-    $HOME/.yarn/bin
+    $HOME/.yarn/bin \
+    $PNPM_HOME/bin \
+    $PNPM_HOME \
+    $HOME/.bun/bin \
+    $HOME/.local/bin \
+    /opt/homebrew/bin \
+    /home/linuxbrew/.linuxbrew/bin \
+    $HOME/.opencode/bin
 
-for dir in $common_bin_dirs
-    test -d $dir && fish_add_path $dir
+for dir in $bin_dirs
+    fish_add_path $dir
 end
-
-fish_add_path $PNPM_HOME/bin
-fish_add_path $PNPM_HOME
-fish_add_path $HOME/.bun/bin
-fish_add_path $HOME/.local/bin
-
-fish_add_path /opt/homebrew/bin
-fish_add_path /home/linuxbrew/.linuxbrew/bin
-
-fish_add_path $HOME/.opencode/bin

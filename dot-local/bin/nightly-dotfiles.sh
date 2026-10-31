@@ -103,7 +103,9 @@ if ! mise upgrade -y 2>&1 | tail -20; then
 fi
 
 echo "--- restart herdr ---"
-if ! systemctl --user restart herdr 2>&1; then
+# cron has no session bus, so `systemctl --user` needs XDG_RUNTIME_DIR to reach the
+# user manager. Scoped, not exported: without a user manager that directory is absent.
+if ! XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" systemctl --user restart herdr 2>&1; then
   echo "herdr restart failed (see above); continuing"
 fi
 
