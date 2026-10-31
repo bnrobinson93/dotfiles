@@ -1,7 +1,7 @@
 ---
 name: think-like-brad
 description: >-
-  Brad's cross-project judgment and working preferences outside the `simplify` bar. Use before
+  Brad's cross-project judgment and working preferences outside the `AGENTS.md` code bar. Use before
   putting a solution to paper when choosing among valid approaches, reviewing someone else's PR,
   architecting or scoping a solution, planning workflow or issue content, or asking for a subjective
   preference.

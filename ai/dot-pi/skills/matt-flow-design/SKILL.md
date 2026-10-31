@@ -5,7 +5,7 @@ description: Run the Matt workflow with Figma-assisted planning and browser scre
 
 # Matt flow with design QA
 
-Read `../matt-workflow/SKILL.md`, `~/.agents/skills/figma/SKILL.md`, `~/.pi/agent/skills/browser-debug/SKILL.md`, and `~/.pi/agent/skills/simplify/SKILL.md` before starting. The existing Matt workflow is the baseline. Keep it unchanged and add the design phase below.
+Read `../matt-workflow/SKILL.md`, `~/.agents/skills/figma/SKILL.md`, `~/.pi/agent/skills/browser-debug/SKILL.md`, before starting. The existing Matt workflow is the baseline. Keep it unchanged and add the design phase below.
 
 `$@` contains the effort name and, when available, a Figma file, frame, or layer URL. Exact node links, states, and viewports are useful but not required: discover them through Figma MCP when they are absent. Do not treat a file-level URL as a blocker.
 
@@ -51,7 +51,7 @@ Treat browser font rendering, antialiasing, and other renderer-only differences 
 
 Completion criterion: every requested state and viewport has been captured and compared, no material visual discrepancy remains, and any unavoidable or intentional deviation is named.
 
-After `design-qa` returns aligned, run `simplify` over the final diff. If it edits the visual scope, run the affected screenshot comparisons again and repeat `simplify` until it is clean. Then run the final repository gate: `make web-test` (the documented one-shot lint, typecheck, and frontend test target) and `pnpm --dir web build` (the documented frontend build). Do not advance to review while visual QA, simplify, or either check is unresolved.
+After `design-qa` returns aligned, reread the final diff against the `AGENTS.md` code bar. If it edits the visual scope, run the affected screenshot comparisons again and repeat the reread until it is clean. Then run the final repository gate: `make web-test` (the documented one-shot lint, typecheck, and frontend test target) and `pnpm --dir web build` (the documented frontend build). Do not advance to review while visual QA, the reread, or either check is unresolved.
 
 ## 5. Continue with Matt review
 

@@ -6,7 +6,7 @@ set -u
 # Pi is not a target: it reads ~/.agents/skills itself, where the CLI already installs.
 # caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
 # so it is not duplicated across ~/.agents and the plugin cache.
-# ponytail lives in the simplify skill; ryan-review/sara-review carry their own self-contained instincts.
+# ponytail lives in the AGENTS.md code bar; ryan-review/sara-review carry their own self-contained instincts.
 SKILLS=(
   "vercel-labs/skills#find-skills||shared"
   # hunk-review is no longer published by modem-dev/hunk; retain local install.

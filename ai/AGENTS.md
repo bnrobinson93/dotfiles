@@ -20,4 +20,4 @@ doc comment, a `TODO`/`NOTE`/`ponytail:` tag. Delete restatement and change narr
 Tests: fewer, longer workflow tests with inline setup; run offline; skip what types guarantee.
 Non-trivial logic leaves one runnable check behind.
 
-Before handback, run `simplify` over the finished diff.
+Before handback, reread your diff against this section and fix what slipped.
