@@ -7,7 +7,7 @@ list="sesh list --icons"
 SEARCH_PATHS=()
 while IFS= read -r line; do
   SEARCH_PATHS+=("$line")
-done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
+done < <(search-paths)
 quoted_search_paths=$(printf '%q ' "${SEARCH_PATHS[@]}")
 folder_cmd="{ printf '%s\n' ~/.dotfiles; fd . $quoted_search_paths -d 1 -t d -E .Trash; } | sed 's:/*$::' | awk 'NF && !seen[\$0]++'"
 

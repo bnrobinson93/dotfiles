@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # nightly-dotfiles.sh — unattended dotfiles upkeep, meant for cron on the always-on box.
 #
-#   1. jj sync                 (fetch + rebase the main checkout onto trunk)
+#   1. jj sync                 (fetch + rebase the main checkout onto trunk; alert on conflicts)
 #   2. mise install + upgrade  (land tools declared in mise/config.toml; move `latest` pins)
 #   3. restart herdr           (picks up a new binary from step 2)
 #   4. mise run stow           (redeploy symlinks from $DOTFILES; failures logged, not fatal)
@@ -78,6 +78,15 @@ trap cleanup EXIT
 echo "--- jj sync ---"
 if ! jj sync 2>&1 | grep -v '^Hint:'; then
   alert "jj sync failed on the main checkout"
+fi
+
+# ai/ is stowed out of this working copy, so a conflicted SKILL.md or AGENTS.md reaches
+# every agent on this box as raw conflict markers — step 7's own review included.
+# jj records a conflict in the commit and exits 0, so the sync above cannot see one;
+# `resolve --list` is the inverted one, erroring when @ is clean.
+if conflict_paths=$(jj resolve --list 2>/dev/null); then
+  echo "$conflict_paths"
+  alert "unresolved conflicts in the main checkout; stowed agent config is serving conflict markers"
 fi
 
 # Built-ins, not `mise run update`: that task shells out to topgrade, which comes from brew,

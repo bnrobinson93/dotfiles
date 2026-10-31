@@ -262,7 +262,7 @@ When modifying or adding scripts:
 - After changes, restow: `stow -v2 -R -t ~/.local dot-local --dotfiles`
 
 Key scripts:
-- `herdr-select` / `sesh-select` / `tmux-sessionizer` - Project pickers with fzf (roots shared via `~/.config/search-paths.txt`)
+- `herdr-select` / `kitty-select` / `sesh-select` / `tmux-sessionizer` / `vscode-sessionizer` - Project pickers with fzf. All five take their roots from `search-paths`, the only reader of `~/.config/search-paths.txt`; call it rather than re-inlining the parse, or a fix lands in one picker and misses four.
 - `ssh-setup-github.sh` - Generate SSH key, upload to GitHub, update allowed_signers
 - `battery_check.sh` - Battery monitoring
 - `nightly-dotfiles.sh` - Unattended nightly upkeep, run from cron; see its header comment for what it does

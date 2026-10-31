@@ -8,9 +8,8 @@ SESSION_DIR=${XDG_DATA_HOME:-$HOME/.local/share}/kitty/sessions
 
 BLACKLIST_PATTERNS=(
   '^code$'
-  '-ai'
-  '-exp$'
-  '-orch'
+  # Suffixes jj hands an agent workspace: -ai, -ai2, -orchestrator, -exp, -explore.
+  '-(ai[0-9]*|orch.*|exp|explore)$'
 )
 
 PINNED_DIRS=(
@@ -21,7 +20,7 @@ PINNED_DIRS=(
 SEARCH_PATHS=()
 while IFS= read -r line; do
   SEARCH_PATHS+=("$line")
-done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
+done < <(search-paths)
 
 is_blacklisted() {
   local name=$1

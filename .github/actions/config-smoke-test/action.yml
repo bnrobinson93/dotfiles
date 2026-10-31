@@ -19,7 +19,8 @@ runs:
           ~/.config/starship.toml \
           ~/.zshrc \
           ~/.ssh/config \
-          ~/.local/bin/tmux-sessionizer
+          ~/.local/bin/tmux-sessionizer \
+          ~/.local/bin/search-paths
         do
           test -e "$f" || { echo "MISSING: $f"; exit 1; }
           echo "ok: $f"

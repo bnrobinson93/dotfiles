@@ -17,7 +17,7 @@ PINNED_DIRS=(
 SEARCH_PATHS=()
 while IFS= read -r line; do
   SEARCH_PATHS+=("$line")
-done < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e "s|^~|$HOME|" "${XDG_CONFIG_HOME:-$HOME/.config}/search-paths.txt")
+done < <(search-paths)
 
 is_blacklisted() {
   local name=$1
