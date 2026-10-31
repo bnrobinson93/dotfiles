@@ -69,3 +69,6 @@ atuin/*
 !atuin/config.toml
 !atuin/themes/
 kitty/__pycache__/
+
+# herdr rewrites these on its own
+herdr/session-snapshots/
