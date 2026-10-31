@@ -29,7 +29,7 @@ ensure_agent() {
   # agent start returns before the agent registers with the server, so a
   # restart landing in that gap would otherwise see no agent yet and spawn
   # a duplicate workspace on top of this one — poll instead of trusting it.
-  herdr agent start "$label" --kind claude --pane "$pane"
+  herdr agent start "$label" --kind claude --pane "$pane" -- --remote-control
   for _ in $(seq 1 30); do
     has_agent "$cwd" && return 0
     sleep 1
