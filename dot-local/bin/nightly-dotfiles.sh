@@ -223,7 +223,7 @@ outcome and is preferred over churn.
 
 If multiple, completely different things are worth doing, create separate bookmarks and PRs against main.
 
-Before finalizing, invoke the simplify skill and apply it to every diff you are leaving behind.
+Before finalizing, reread every diff you are leaving behind against the Code section of AGENTS.md.
 It is a gate, not a judgment call, and its comments pass matters most: these nightly PRs keep
 arriving full of comments that narrate the change instead of earning their place.
 PROMPT
