@@ -39,12 +39,12 @@ edit.
 `writing-for-agents` skill for any edit under `ai/`.
 
 - `ai/AGENTS.md` (`CLAUDE.md` links to it) loads on every prompt, coding or not, so it holds
-  only the short inline bar and a pointer to `simplify`. Eval: that plus one end-of-task
-  `simplify` skill matched a 16-row skill routing table on quality and speed.
+  only the short inline code bar. Eval: it matched a 16-row skill routing table on quality and
+  ran fastest and cheapest; there is no code skill.
 - A skill's frontmatter `name` equals its directory name; Claude keys off the directory, the
   others off the frontmatter.
 - Point at reference material as `~/.dotfiles/ai/...`, the one path every harness resolves.
-- One rule, one home: `simplify` owns the full bar and every learned code preference,
+- One rule, one home: `ai/AGENTS.md` owns the code bar,
   `think-like-brad` owns judgment outside code, project memory owns repo facts.
   `learn-preferences` routes new rules.
 - A skill its upstream publishes goes in `SKILLS` in `update-skills.sh`, not `ai/skills/`.
