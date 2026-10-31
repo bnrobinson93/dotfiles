@@ -38,9 +38,8 @@ edit.
 `~/.pi/agent`, so everything here must work without harness-specific paths. Apply the
 `writing-for-agents` skill for any edit under `ai/`.
 
-- `ai/AGENTS.md` (`CLAUDE.md` links to it) loads on every prompt, coding or not, so it holds
-  only the short inline bar and a pointer to `simplify`. Eval: that plus one end-of-task
-  `simplify` skill matched a 16-row skill routing table on quality and speed.
+- The code bar loads only through the `simplify` skill description. Anything always-loaded
+  (`AGENTS.md`) is paid on every prompt, coding or not.
 - A skill's frontmatter `name` equals its directory name; Claude keys off the directory, the
   others off the frontmatter.
 - Point at reference material as `~/.dotfiles/ai/...`, the one path every harness resolves.
