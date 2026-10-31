@@ -20,16 +20,15 @@ __cache_gen $cache_dir/starship-full-init.fish starship starship init fish --pri
 and source $cache_dir/starship-full-init.fish
 
 # Shims instead of `activate`: activate runs `mise hook-env` at startup and on
-# every prompt (~17ms a spawn). We use no mise [env] blocks, so nothing is lost.
+# every prompt (22ms a spawn). We use no mise [env] blocks, so nothing is lost.
 fish_add_path $HOME/.local/share/mise/shims
 
 __cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
 and source $cache_dir/zoxide.fish
 
-# atuin's init mints the session id with `atuin uuid`, which goes through a mise
-# shim: 28ms against 4ms for the installed binary. atuin treats the id as an opaque
-# string and skips minting when one is set for this SHLVL, so mirror its condition
-# and hand it the kernel's. Darwin has no /proc and keeps the shim call.
+# atuin's init mints the session id with `atuin uuid`, a 2.3ms exec. atuin treats
+# the id as an opaque string and skips minting when one is set for this SHLVL, so
+# mirror its condition and hand it the kernel's. Darwin has no /proc and still execs.
 if not set -q ATUIN_SESSION; or test "$ATUIN_SHLVL" != "$SHLVL"
     if test -r /proc/sys/kernel/random/uuid
         set -gx ATUIN_SESSION (string replace -a - "" </proc/sys/kernel/random/uuid)
