@@ -33,6 +33,9 @@ set -uo pipefail
 # review's --allowed-tools below assumes mise-managed hyperfine and shellcheck resolve.
 export PATH="$HOME/.local/bin:$HOME/opt/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.local/share/mise/shims"
 export GH_REPO="${GH_REPO:-bnrobinson93/dotfiles}"
+# Cron skips the shell rc that exports this, and gh's keyring token is stale, so
+# every gh call 401s without it.
+[ -z "${GH_TOKEN:-}" ] && [ -f "$HOME/.config/gh/auth_token" ] && GH_TOKEN="$(cat "$HOME/.config/gh/auth_token")" && export GH_TOKEN
 DOTFILES="${DOTFILES:-$HOME/.dotfiles}"
 LOG_DIR="$HOME/opt/log"
 LOG="$LOG_DIR/nightly-dotfiles.log"
