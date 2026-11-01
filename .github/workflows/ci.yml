@@ -102,8 +102,10 @@ jobs:
           stow -v2 -t ~ -S zsh --dotfiles
           stow -v2 -t ~/.ssh -S dot-ssh --dotfiles
 
-          # tpm after stow so it lands inside the stowed tmux dir.
-          # GIT_CONFIG_GLOBAL=/dev/null: stowed https->ssh rewrite would break the clone.
-          GIT_CONFIG_GLOBAL=/dev/null git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
+          # Must match tmux.conf's TMUX_PLUGIN_MANAGER_PATH, or the config clones tpm
+          # itself at load time — under the stowed https->ssh rewrite, which
+          # GIT_CONFIG_GLOBAL=/dev/null only disables for this step.
+          GIT_CONFIG_GLOBAL=/dev/null git clone --depth 1 https://github.com/tmux-plugins/tpm \
+            ~/.local/share/tmux/plugins/tpm
 
       - uses: ./.github/actions/config-smoke-test
