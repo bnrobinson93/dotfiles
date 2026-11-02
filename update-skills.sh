@@ -144,6 +144,12 @@ deploy_local_ai() {
   # path segment, since stow places a package's contents directly into the target. The
   # plugin only reads that file, so the symlink is safe.
   try stow -R -d "$script_dir/ai" --no-folding -t "$xdg_config_home" dot-config || true
+  # stow -R only revisits files still in the package, so a skill deleted from ai/ leaves
+  # its links dangling in every root. Drop the ones that point back into ai/.
+  for root in "${roots[@]}"; do
+    find "$root/skills" -xtype l -lname '*/ai/*' -delete 2>/dev/null || true
+    find "$root/skills" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+  done
 }
 
 install_pi_packages() {
