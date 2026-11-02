@@ -20,8 +20,8 @@ __cache_gen $cache_dir/starship-full-init.fish starship starship init fish --pri
 and source $cache_dir/starship-full-init.fish
 
 # Shims instead of `activate`: activate runs `mise hook-env` at startup and on
-# every prompt (22ms a spawn). We use no mise [env] blocks, so nothing is lost.
-fish_add_path $HOME/.local/share/mise/shims
+# every prompt (22ms a spawn). `01-paths.fish` keeps the shims first, so nothing
+# is lost without activating mise.
 
 __cache_gen $cache_dir/zoxide.fish zoxide zoxide init fish
 and source $cache_dir/zoxide.fish
