@@ -32,6 +32,7 @@ pi = "latest"
 opencode = "latest"
 herdr = "latest"
 atuin = "18.23.0"
+pnpm = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
