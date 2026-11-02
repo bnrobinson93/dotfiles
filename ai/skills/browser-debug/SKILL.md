@@ -22,6 +22,8 @@ node scripts/browser-cdp.mjs screenshot /tmp/page.png '#app'
 node scripts/browser-cdp.mjs metrics
 ```
 
+If `status` says the endpoint is not owned by browser-debug, do not immediately launch another browser. Inspect `http://127.0.0.1:9222/json/version` and the process command line first. A surviving Helium process with an isolated `/tmp/browser-debug-*` profile is recoverable; restore the matching owner record or restart only that isolated process, then rerun `status` and `pages`. A user-owned Helium process is not ours to kill. The browser is ready only after `status` and `pages` both succeed.
+
 Available commands:
 
 - `launch [url]`: start the first available browser with remote debugging. It walks one preference list covering both machines: Helium, Chromium, Chrome, Brave, and Edge, as `/Applications` bundles on the Mac and as `PATH` binaries on Linux.

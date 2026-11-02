@@ -42,10 +42,16 @@ holds.
 - Favor positive, behavior-focused assertions (structured output, user-visible outcomes, stable
   contracts) over assertions that only prove an implementation detail or the absence of a visual
   state. In React, assert what the user sees and does (Testing Library), not state or props.
+- Exercise ordinary user gestures as behavior. When Enter, Space, click, Escape, or a native form
+  gesture is part of the supported path, cover that gesture through the user-facing flow and assert
+  the resulting visible state and side effect, not only the handler or submit function.
+- When removing visual styling during review, preserve the existing behavior unless the requirement
+  changed; keep a focused behavior test so style cleanup cannot delete the check.
 - Do not keep or extract a production function solely to unit-test it. Prefer readable inline logic
   and exercise it through the caller's behavior when the function has no independent reuse or
   contract.
 - Treat CSS and DOM assertions used to tune a design as construction checks, not final coverage.
   Keep them only when the styling itself is a durable behavior contract, such as truncation or
   accessibility.
-- Do not add BDD tests unless Brad explicitly asks. Leave acceptance-suite ownership to QA. When the BDD suite already exercises a handler's real boundary, prefer adding a scenario over changing production signatures or introducing a test-only interface just to unit-test it.
+- Keep BDD work to draft `@wip` acceptance items unless Brad explicitly asks for automation. Leave acceptance-suite ownership to QA. Do not tag BDD scenarios `@unit` or use them to describe or reference unit tests. When the BDD suite already exercises a handler's real boundary, prefer adding a scenario over changing production signatures or introducing a test-only interface just to unit-test it.
+- Keep integration coverage tagged as integration, never `@unit`; do not add unit tests to a change when the real boundary is already covered by integration tests.

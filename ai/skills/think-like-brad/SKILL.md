@@ -21,8 +21,9 @@ through the change; revisit it only when new facts invalidate it.
 - Explain reasoning when useful, ask only when a tradeoff is genuinely unclear, and change course
   when new facts change the answer.
 - Keep scope tight and call out scope creep when it appears.
-- Keep public-facing docs focused on caller-visible behavior and contract; put implementation
-  mechanics in internal docs or ADRs.
+- Keep public-facing docs focused on caller-visible behavior and contract. Do not publish internal
+  tickets, staging evidence, endpoint topology, backend implementation, or review/process notes;
+  put implementation mechanics and operational history in internal docs or ADRs.
 - Keep always-loaded agent entrypoints thin: put stable repository maps, commands, and area
   conventions in README/reference docs, leaving AGENTS files for agent-specific guardrails and
   routing.
@@ -39,10 +40,21 @@ through the change; revisit it only when new facts invalidate it.
 - For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
   the isolated Helium profile and ask for authentication before continuing. Zen is the daily
   browser, but Helium is the Chromium QA target.
+- In JJ worktrees, snapshot the source worktree with `jj`, `jj status`, or `jj diff -s` before
+  handing it to another workspace. In the target workspace, use `jj new <source-workspace>@` to
+  jump on top of that snapshot. The snapshot and the workspace handoff are separate steps.
 - Keep local JJ bookmarks aligned with their GitHub refs when rebasing; use the remote bookmark as
   the destination so the resulting stack matches the published base and any merged main history.
+- In a stacked effort, stabilize the upstream bookmark before iterating on downstream bookmarks;
+  downstream work may change while the earlier PR is still moving.
+- Treat pushing, replying to review comments, and resolving threads as a hard publication gate:
+  wait for Brad's explicit approval after the final review, even when the work appears ready.
+- Treat schema and migration changes as architectural scope, not routine cleanup. Do not add one to
+  close a low-severity edge case without first surfacing the tradeoff and getting approval; prefer
+  the smallest local fix or document the residual risk.
 - Name JJ bookmarks and branches with `<type>/<ticket>-<short-kebab-summary>` (for example,
-  `feat/PEP-6057-add-copy-links`) instead of relying on auto-generated `temp/...` names.
+  `feat/PEP-6057-add-copy-links`). Create or rename that bookmark before pushing. Never let a
+  ticketed effort ship under an auto-generated `temp/...` name.
 - Keep issue tickets focused on the problem, fix, and acceptance criteria. Use brief implementation
   hints when useful; omit QA history, background, and explicit exclusions because unlisted work is
   already out of scope.

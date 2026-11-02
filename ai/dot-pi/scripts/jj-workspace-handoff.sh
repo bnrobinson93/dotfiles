@@ -81,6 +81,9 @@ if [[ "$source_repo" != "$target_repo" ]]; then
   exit 1
 fi
 
+printf 'Snapshotting source workspace: %s\n' "$source_root"
+jj --no-pager -R "$source_root" status >/dev/null
+
 if [[ "$source_root" == "$target_root" ]]; then
   target_commit=$(jj --no-pager -R "$target_root" log -r @ --no-graph -T 'self.commit_id()')
   printf 'No-op: source and target are the same workspace (%s).\n' "$source_name"
@@ -107,13 +110,19 @@ fi
 
 printf 'Handoff: %s (%s) -> %s (%s)\n' "$source_name" "$source_root" "$target_name" "$target_root"
 printf 'Source revision: %s\n' "$source_commit"
-jj --no-pager -R "$target_root" edit "$source_commit"
+printf 'Creating target workspace revision on top of %s.\n' "$source_commit"
+if [[ -n "$revision_input" ]]; then
+  jj --no-pager -R "$target_root" new "$source_commit"
+else
+  jj --no-pager -R "$target_root" new "$source_name@"
+fi
 
 target_commit=$(jj --no-pager -R "$target_root" log -r @ --no-graph -T 'self.commit_id()')
-if [[ "$target_commit" != "$source_commit" ]]; then
-  printf 'handoff verification failed: target=%s source=%s\n' "$target_commit" "$source_commit" >&2
+target_parent=$(jj --no-pager -R "$target_root" log -r '@-' --no-graph -T 'self.commit_id()')
+if [[ "$target_parent" != "$source_commit" ]]; then
+  printf 'handoff verification failed: target parent=%s source=%s\n' "$target_parent" "$source_commit" >&2
   exit 1
 fi
 
-printf 'Verified target %s now points at %s.\n' "$target_name" "$target_commit"
-printf 'No jj commit performed; the handoff remains uncommitted.\n'
+printf 'Verified target %s at %s on top of %s.\n' "$target_name" "$target_commit" "$source_commit"
+printf 'No Git commit performed; the target workspace now has an empty JJ revision on top of the source snapshot.\n'

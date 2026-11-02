@@ -67,6 +67,12 @@ Apply every rule below to the diff.
 - Task wrappers should declare and forward child-command options directly, so callers reach the
   child's flags without a `--` separator.
 
+- Keep table and row callers thin when a wrapper owns context acquisition and its async/error
+  lifecycle. Do not split that orchestration back into each caller.
+
+- When a disabled state already communicates that an action is unavailable, do not add a spinner
+  unless the user needs progress information beyond the disabled state.
+
 - When wrapping a design-system component, intersect its props instead of duplicating them, and
   let documented defaults do the work. Keep only behavior-specific props and overrides.
 
