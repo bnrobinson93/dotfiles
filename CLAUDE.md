@@ -173,21 +173,23 @@ Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
 
 **Structure**:
 - `init.lua` - Entry point that loads `lua/config/lazy.lua`
-- `lua/config/` - Core configuration
-  - `lazy.lua` - Plugin manager setup
-  - `keymaps.lua` - Custom keybindings
-  - `options.lua` - Editor options
-  - `autocmds.lua` - Autocommands
-- `lua/plugins/` - **18 individual plugin files**, each returns a plugin spec table
+- `lua/config/` - Core configuration (lazy.nvim setup, options, keymaps, autocmds)
+- `lua/plugins/` - One file per plugin, each returning a lazy.nvim spec table
   - Plugins are lazy-loaded by default
   - Custom configs override LazyVim defaults
   - Use `enabled = false` to disable LazyVim plugins
-- `snippets/` - LuaSnip snippets (all.json, markdown.json)
-- `utils/` - External tool configs (.eslintrc.json, .markdownlint.json, .zizmor.yaml)
+- `lua/utils/project.lua` - Walks up for a tool's config file, a `package.json` key
+  included, so `conform.lua` and `linting.lua` can pick the formatter/linter a project
+  actually uses. `lua/plugins/fallback-config/` is what markdownlint falls back to when a
+  project ships none
+- `snippets/` - Vendored VS Code snippet packs. `snippets.lua` walks the tree, so adding a
+  pack is a directory drop with no config change
 
 **Key Plugin Categories**:
 - **Completion**: blink.cmp with emoji integration
-- **Linting**: nvim-lint (ESLint, markdownlint-cli2, actionlint, zizmor)
+- **Linting**: nvim-lint — biome by default, eslint_d only where a project has an eslint
+  config and no biome one; markdownlint-cli2 for markdown; actionlint and zizmor set per
+  buffer from `lua/config/autocmds.lua`
 - **UI**: Noice, which-key, Catppuccin colorscheme
 - **Version Control**: hunk.nvim for interactive diff editing
 - **Note-taking**: obsidian.nvim (vault at `~/Documents/Vault`)
@@ -279,7 +281,8 @@ When adding new tools, prefer Catppuccin Mocha theme for consistency.
 
 - Vault location: `~/Documents/Vault`
 - Neovim keybinding: `<C-n>` to create new note
-- Template system for daily notes (see nvim/lua/plugins/obsidian.lua:52)
+- Template system for daily notes: the `daily_notes` and `templates` opts in
+  `nvim/lua/plugins/obsidian.lua`
 - Markdown checkboxes rendered in Neovim via render-markdown.nvim
 
 ## WSL Considerations
@@ -323,12 +326,7 @@ sudo update-locale LANG=en_US.UTF8
 
 ## LazyVim Extras Installed
 
-The following LazyVim extras are enabled (see Lazyvim.json):
-- coding.luasnip, coding.mini-surround
-- dap.core (debugging)
-- editor.harpoon2, editor.leap
-- formatting.prettier
-- lang.ansible, lang.docker, lang.git, lang.go, lang.json, lang.markdown, lang.python, lang.terraform, lang.toml, lang.typescript, lang.yaml
-- linting.eslint
-- ui.alpha (startup screen)
-- util.dot, util.mini-hipatterns
+`nvim/lazyvim.json` holds the list; `:LazyExtras` writes it. `formatting.prettier` and
+`linting.eslint` are deliberately absent — `conform.lua` and `linting.lua` drive both tools
+by hand so that a project's biome config wins when it has one, and enabling either extra
+takes that choice away.

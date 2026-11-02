@@ -3,6 +3,9 @@
 --layout=reverse
 --border=top
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC
+# fzf's dark default paints hl green, so with only hl+ set a match reads red on the
+# current row and green on every other one. bg/bg+ stay out so the terminal shows through.
+--color=spinner:#F5E0DC,hl:#F38BA8
 --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8
 --color=selected-bg:#45475A
 --color=border:#6C7086,label:#CDD6F4

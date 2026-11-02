@@ -34,7 +34,6 @@ return {
           condition = function(_, ctx)
             return find_prettier_config(ctx.dirname) ~= nil
           end,
-          prepend_args = {},
         },
         ["markdownlint-cli2"] = {
           args = function(_, ctx)

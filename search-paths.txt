@@ -1,5 +1,6 @@
 # Project search roots shared by sessionizer pickers (tmux-sessionizer,
-# sesh-select, vscode-sessionizer, herdr-select). One path per line, ~ ok.
+# sesh-select, vscode-sessionizer, herdr-select, kitty-select). One path per
+# line, ~ ok.
 ~
 ~/Documents
 ~/Downloads
