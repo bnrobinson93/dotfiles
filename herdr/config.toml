@@ -94,6 +94,13 @@ type = "plugin_action"
 command = "yuucu.hunk.open-review"
 description = "Hunk review"
 
+# herdr plugin install jeffarese/herdr-bar
+[[keys.command]]
+key = "prefix+k"
+type = "plugin_action"
+command = "herdr-bar.open"
+description = "command bar"
+
 [experimental]
 # Experimental local Kitty graphics rendering for attached clients.
 # Requires a Kitty graphics-compatible outer terminal.
