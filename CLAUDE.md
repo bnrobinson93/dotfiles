@@ -253,6 +253,8 @@ Modular Lua config split into 4 files:
   - tmux-resurrect (session persistence)
   - tmux-continuum (auto-restore)
   - tmux-battery (status bar)
+  - tmux-sensible (a batch of defaults, each guarded — an option tmux.conf sets
+    itself still wins, even though `run tpm` comes after it)
 - **Session pickers**: Ctrl+F (no prefix) runs `sesh-select`, Ctrl+A O runs `sesh-select all`.
   Ctrl+A D/C/V run `tmux-sessionizer` against `~/.dotfiles`, `~/Documents/code`, and the Vault.
 
