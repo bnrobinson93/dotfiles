@@ -5,6 +5,7 @@ name = "Brad R"
 email = "31802085+bnrobinson93@users.noreply.github.com"
 
 [revsets]
+git-sign-on-push = "~signed() & mine()"
 # Used by explicit `jj log` — broad cleanup-audit view: shows ALL my mutable leaf
 # tips (my_leaves), incl loose/unbookmarked, so I can spot + clean up strays.
 # Bare `jj` uses the tighter `clean_log` instead (see aliases.my_log).
@@ -178,7 +179,6 @@ auto-update-stale = true
 allowed-signers = "~/.ssh/allowed_signers"
 
 [git]
-sign-on-push = true
 abandon-unreachable-commits = false
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 

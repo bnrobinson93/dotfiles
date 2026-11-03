@@ -3,3 +3,9 @@
 [url "ssh://git@github.com/virtru-corp/"]
 	insteadOf = https://go.pkg.virtru.com/
 
+# Go builds module zips with `git archive`, which runs LFS smudge and can blow
+# past Go's 500 MB zip cap. Pointers are what the module proxy would serve anyway.
+[filter "lfs"]
+	smudge = git-lfs smudge --skip -- %f
+	process = git-lfs filter-process --skip
+

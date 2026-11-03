@@ -21,22 +21,36 @@ through the change; revisit it only when new facts invalidate it.
 - Explain reasoning when useful, ask only when a tradeoff is genuinely unclear, and change course
   when new facts change the answer.
 - Keep scope tight and call out scope creep when it appears.
+- When a PR spans independent configuration areas, split the JJ changes when practical; if one PR is intentional, organize the description by area.
 - Keep public-facing docs focused on caller-visible behavior and contract. Do not publish internal
   tickets, staging evidence, endpoint topology, backend implementation, or review/process notes;
   put implementation mechanics and operational history in internal docs or ADRs.
+- For public SDKs, keep one-off decision evidence out of shipped benchmark tests when the benchmark
+  exists only to justify a removal. Run it privately and record concise, caveated results in the
+  ADR instead; the benchmark is process evidence, not part of the public contract.
 - Keep always-loaded agent entrypoints thin: put stable repository maps, commands, and area
   conventions in README/reference docs, leaving AGENTS files for agent-specific guardrails and
   routing.
 - Default to boring, maintainable solutions. Propose a bold solution when it meaningfully wins;
   boring is the default, not the ceiling.
+- When one shared UI behavior serves containers with materially different rendered widths, prefer a
+  centralized overflow-aware solution over a single character threshold when the extra complexity
+  buys correctness across those callers.
+- When an enhancement depends on a control being usable, omit the enhancement while that control is
+  disabled or loading rather than wrapping the disabled control just to preserve the enhancement.
+- Keep shared workflow setup, but split tests when one test asserts distinct behaviors and a failure
+  would otherwise be hard to localize.
+- When code has committed and pending versions of the same state, name those sources explicitly so
+  a reader cannot mistake which UI behavior each one drives.
 - For design-driven UI, use Figma for visual truth and the live prototype for user-facing wording;
   do not infer either source from the other. Prefer a design-system size variant when it is close
   enough to the design rather than hardcoding local width, height, and padding.
 
 ## Workflow and environment
 
-- Keep personal environment and workflow overrides in dotfiles or ignored local config. Shared
-  repository behavior should be shaped by team needs, not one machine.
+- Keep personal environment and workflow overrides in dotfiles or ignored local config. Machine-generated
+  tool output belongs in ignored include files, not stowed tracked config. Shared repository behavior
+  should be shaped by team needs, not one machine.
 - For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
   the isolated Helium profile and ask for authentication before continuing. Zen is the daily
   browser, but Helium is the Chromium QA target.
@@ -70,6 +84,9 @@ tradeoffs against the current contract before applying it wholesale.
 Frame each item as a clarifying question, then offer a concrete fix when one exists. The
 question leaves room for context the author has; the fix makes the comment actionable. Name a
 real tradeoff when the right answer depends on product or architecture context.
+
+Prefer explicit intermediate style or state variables over nested ternaries when deriving UI
+props; keep conditional composition readable at a glance.
 
 Keep posted comments short and conversational. A one-line question is enough when the cost is
 obvious, such as a type alias or wrapper that only adds maintenance. Use "just calling it out"

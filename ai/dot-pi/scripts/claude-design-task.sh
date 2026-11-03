@@ -40,8 +40,9 @@ claude_args=(
   --permission-prompts none
   --add-dir "$repo_root"
   --add-dir "$tmp_dir"
+  --add-dir /tmp
   --allowed-tools
-  'Read,Edit,Write,Glob,Grep,Bash(jj *),Bash(node *),Bash(BROWSER_DEBUG_BINARY=/Applications/Helium.app/Contents/MacOS/Helium node /Users/brad.robinson/.pi/agent/skills/browser-debug/scripts/browser-cdp.mjs launch *),Bash(BROWSER_DEBUG_BINARY=helium node /Users/brad.robinson/.pi/agent/skills/browser-debug/scripts/browser-cdp.mjs launch *),Bash(pnpm *),Bash(npm *),Bash(mise *),Bash(ls *),Bash(find *),Bash(rg *),Bash(grep *),Bash(mkdir *),Bash(mktemp *),Bash(rm *),Bash(realpath *),Bash(readlink *),Bash(pwd *),Bash(ps *),Bash(pgrep *),Bash(lsof *),Bash(sleep *),Bash(/Users/brad.robinson/.pi/agent/scripts/jj-workspace-handoff.sh *),mcp__plugin_figma_figma__*'
+  'Read,Edit,Write,Glob,Grep,Bash(jj *),Bash(node *),Bash(BROWSER_DEBUG_BINARY=/Applications/Helium.app/Contents/MacOS/Helium node /Users/brad.robinson/.pi/agent/skills/browser-debug/scripts/browser-cdp.mjs launch *),Bash(BROWSER_DEBUG_BINARY=helium node /Users/brad.robinson/.pi/agent/skills/browser-debug/scripts/browser-cdp.mjs launch *),Bash(pnpm *),Bash(npm *),Bash(mise *),Bash(curl *),Bash(ls *),Bash(find *),Bash(rg *),Bash(grep *),Bash(mkdir *),Bash(mktemp *),Bash(rm *),Bash(realpath *),Bash(readlink *),Bash(pwd *),Bash(ps *),Bash(pgrep *),Bash(lsof *),Bash(sleep *),Bash(/Users/brad.robinson/.pi/agent/scripts/jj-workspace-handoff.sh *),mcp__plugin_figma_figma__*'
 )
 if [[ -n "$design_system_dir" ]]; then
   claude_args+=(
