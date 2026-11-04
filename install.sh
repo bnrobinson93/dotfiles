@@ -112,6 +112,7 @@ if command -v herdr >/dev/null 2>&1; then
   herdr plugin install third774/herdr-last-workspace --yes     # Go to previous workspace
   herdr plugin install aarsh21/herdr-tab-title --yes           # auto label tab by program
   herdr plugin install yuucu/herdr-hunk --yes                  # Open hunk for review
+  herdr plugin install jeffarese/herdr-bar --yes               # command bar (prefix+k)
 fi
 
 if uname -a | grep -q "WSL"; then
