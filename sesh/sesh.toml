@@ -1,6 +1,8 @@
-# blacklist: regex patterns matched against session names
-# filters jj-agent workspace dirs and the bare ~/Documents/code dir
-blacklist = ["^code$", "-ai", "-exp$", "-orch"]
+# blacklist: regex patterns matched against session names, unanchored — ^code$ is
+# the bare ~/Documents/code dir, the rest the jj-agent workspace suffixes. Same
+# alternation herdr-select, kitty-select and tmux-sessionizer use; a bare "-ai"
+# hides real projects too, like vertex-ai-demo.
+blacklist = ["^code$", "-(ai[0-9]*|orch.*|exp|explore)$"]
 
 [[session]]
 name = "Vault"
