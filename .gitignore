@@ -72,3 +72,4 @@ kitty/__pycache__/
 
 # herdr rewrites these on its own
 herdr/session-snapshots/
+herdr/herdr-client.log
