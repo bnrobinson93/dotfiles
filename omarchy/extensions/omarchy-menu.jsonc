@@ -41,4 +41,7 @@
   // like the auto-rotate row above: the script ships in the `ticktick` plugin,
   // so the path is also the availability test.
   "task": {"icon":"","label":"Add Task","description":"Quick-add a TickTick task","aliases":["todo","ticktick"],"when":"test -x ~/.config/omarchy/plugins/ticktick/ticktick-add-launch","action":"~/.config/omarchy/plugins/ticktick/ticktick-add-launch"},
+
+  // The battery-fill service returns to the normal limit on unplug.
+  "trigger.hardware.fill-to-full": {"icon":"󰂅","label":"Fill battery","description":"Charge to 100% until unplugged","aliases":["charge","battery"],"when":"command -v asusctl","checked":"test -e ~/.local/state/battery-fill-limit","action":"~/.local/bin/battery-fill toggle"},
 }
