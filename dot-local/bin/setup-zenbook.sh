@@ -45,4 +45,7 @@ echo "==> Enabling touchpad_monitor service"
 sudo systemctl daemon-reload
 sudo systemctl enable --now touchpad_monitor.service
 
+echo "==> Enabling battery-fill service"
+systemctl --user enable --now "$HOME/.dotfiles/systemd/user/battery-fill.service"
+
 echo "==> Done"

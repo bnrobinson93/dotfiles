@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# One-time charge to 100% that returns to the normal limit on unplug. asusd's
+# oneshot is meant to do this itself, but its restore didn't fire here
+# (asusctl 6.5.0). The saved limit doubles as the "fill is active" flag.
+set -euo pipefail
+
+saved="$HOME/.local/state/battery-fill-limit"
+
+restore() {
+  asusctl battery limit "$(<"$saved")"
+  rm "$saved"
+}
+
+case "${1:-}" in
+toggle)
+  if [[ -e $saved ]]; then
+    restore
+  else
+    cat /sys/class/power_supply/BAT0/charge_control_end_threshold >"$saved"
+    asusctl battery oneshot
+  fi
+  ;;
+watch)
+  # upower's banner line runs one check at startup, which catches an unplug
+  # that happened while this service wasn't running.
+  upower --monitor | while read -r _; do
+    if [[ -e $saved && $(</sys/class/power_supply/AC0/online) == 0 ]]; then
+      restore
+    fi
+  done
+  ;;
+*)
+  echo "usage: battery-fill toggle|watch" >&2
+  exit 2
+  ;;
+esac

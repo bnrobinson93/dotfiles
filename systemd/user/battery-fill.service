@@ -1,0 +1,10 @@
+[Unit]
+Description=Return to the normal battery limit on unplug
+
+[Service]
+ExecStart=%h/.local/bin/battery-fill watch
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
