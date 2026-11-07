@@ -22,11 +22,11 @@ o.exec_on_start(after_notifications(o.launch_webapp("https://messages.google.com
 -- Draw on the screen
 o.launch_on_start("wayscriber --daemon")
 
--- Night light. hyprsunset.conf carries a full evening ramp, but the profiles
--- only run once hyprsunset itself is running, and nothing starts it at login:
--- omarchy.nightlight starts it lazily on the first toggle. Starting it here is
--- what Omarchy's own hyprsunset.conf recommends for a scheduled setup.
-o.launch_on_start("hyprsunset")
+-- Night light: sunsetr fades to the night temperature around local sunset.
+-- Omarchy's own nightlight toggle and bar indicator only speak hyprsunset, so
+-- the menu rows are rebound in omarchy-menu.jsonc and the bar uses the
+-- `nightlight` plugin in omarchy/plugins/ instead.
+o.launch_on_start("sunsetr")
 
 -- Touchscreen gestures. hyprgrass is a Hyprland plugin, installed through hyprpm
 -- rather than pacman, and nothing loads it at startup on its own. A one-shot CLI

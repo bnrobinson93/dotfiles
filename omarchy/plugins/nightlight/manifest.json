@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "nightlight",
+  "name": "Nightlight",
+  "version": "1.0.0",
+  "author": "Brad",
+  "description": "sunsetr nightlight toggle that behaves like a bar indicator",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Nightlight.qml"
+  },
+  "barWidget": {
+    "displayName": "Nightlight",
+    "description": "sunsetr nightlight toggle",
+    "category": "Status",
+    "defaultSection": "center",
+    "allowMultiple": false
+  }
+}
