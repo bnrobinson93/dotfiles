@@ -42,6 +42,18 @@
   // so the path is also the availability test.
   "task": {"icon":"","label":"Add Task","description":"Quick-add a TickTick task","aliases":["todo","ticktick"],"when":"test -x ~/.config/omarchy/plugins/ticktick/ticktick-add-launch","action":"~/.config/omarchy/plugins/ticktick/ticktick-add-launch"},
 
+  // Nightlight runs on sunsetr's schedule, not Omarchy's hyprsunset toggle. Off
+  // switches to the `day` preset; applying the active preset again resumes the
+  // schedule, so both rows run the same command.
+  "trigger.toggle.nightlight-on": {"label":"Nightlight Schedule","when":"[[ $(sunsetr preset active) == day ]]","action":"sunsetr preset day"},
+  "trigger.toggle.nightlight-off": {"label":"Nightlight Off","when":"[[ $(sunsetr preset active) != day ]]","action":"sunsetr preset day"},
+
+  // The stock hyprsunset rows, pointed at sunsetr. sunsetr hot-reloads its
+  // config, so editing needs no restart; it has no stock config to refresh to.
+  "setup.config.hyprsunset": {"label":"Sunsetr","action":"omarchy-launch-config-editor ~/.config/sunsetr/sunsetr.toml"},
+  "update.process.hyprsunset": {"label":"Sunsetr","action":"uwsm-app -- sunsetr restart"},
+  "update.config.hyprsunset": {"when":"false"},
+
   // The battery-fill service returns to the normal limit on unplug.
   "trigger.hardware.fill-to-full": {"icon":"󰂅","label":"Fill battery","description":"Charge to 100% until unplugged","aliases":["charge","battery"],"when":"command -v asusctl","checked":"test -e ~/.local/state/battery-fill-limit","action":"~/.local/bin/battery-fill toggle"},
 }

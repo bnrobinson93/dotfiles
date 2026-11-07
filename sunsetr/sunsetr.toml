@@ -1,0 +1,11 @@
+backend = "auto"
+transition_mode = "geo"
+
+night_temp = 2500
+night_gamma = 80
+day_temp = 6500
+day_gamma = 100
+
+# Birmingham, AL. `sunsetr geo` picks a closer city.
+latitude = 33.520661
+longitude = -86.802490

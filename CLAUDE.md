@@ -108,10 +108,10 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
 (`omarchy-shell`); waybar, walker, mako, hyprlock, and hypridle are gone.
 
 - **`hypr/`** — Hyprland v4 reads `hyprland.lua`, not `hyprland.conf`. Only `.lua` files
-  are live, plus `hyprsunset.conf` (hyprsunset's own config) and `xdph.conf` (the
-  portal's). The Lua config holds only what differs from the v4 defaults under
+  are live, plus `xdph.conf` (the portal's). The Lua config holds only what differs from the v4 defaults under
   `/usr/share/omarchy/default/hypr/` — read those before adding an override.
-- **`omarchy/`** — `extensions/omarchy-menu.jsonc` only. Deploy with `stow -v2 .`, never
+- **`omarchy/`** — `extensions/omarchy-menu.jsonc` and `plugins/nightlight` (the sunsetr
+  indicator; too small for its own `omarchy-<id>` repo). Deploy with `stow -v2 .`, never
   `stow omarchy`, or stow folds the directory and Omarchy's generated state lands in the
   repo.
 - **`~/.config/omarchy/shell.json` is the shell's own state, and nothing here tracks it.**
