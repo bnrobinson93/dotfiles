@@ -36,6 +36,15 @@ brad ALL=(ALL) NOPASSWD: /usr/bin/modprobe uvcvideo
 EOF
 sudo chmod 440 /etc/sudoers.d/brad-hardware
 
+# --- NVIDIA runtime suspend ---
+# The driver's default (0x03) only auto-suspends Ampere and newer; this GTX 1650
+# is Turing, so it stayed in D0 at ~4W idle until told 0x02. The initramfs
+# loads nvidia, so the option only lands after a rebuild and a reboot.
+echo "==> Enabling NVIDIA runtime suspend"
+echo "options nvidia NVreg_DynamicPowerManagement=0x02" |
+  sudo tee /etc/modprobe.d/nvidia-power.conf > /dev/null
+sudo limine-mkinitcpio
+
 # --- Packages ---
 echo "==> Installing packages"
 yay -S --needed --noconfirm grimblast-git
