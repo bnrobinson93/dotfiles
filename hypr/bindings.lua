@@ -16,12 +16,17 @@ o.bind("SUPER + SHIFT + C", "Calendar", { webapp = "https://calendar.google.com/
 hl.unbind("SUPER + SHIFT + E") -- was: Hey Email
 o.bind("SUPER + SHIFT + E", "Email", { webapp = "https://app.shortwave.com" })
 
--- Quick task capture. The launcher prompt walker used to own, now the TickTick
--- plugin's panel -- its quick-add field takes focus when the panel opens, so
--- one chord still lands a task. Ctrl+Shift+A is free in the defaults, which
--- reach for SUPER for everything. The IPC target belongs to the plugin, so the
--- binding is dead exactly when the plugin is not installed, which is right.
-o.bind("CTRL + SHIFT + A", "Add TickTick task", "omarchy-shell io.github.sotoaugusto.ticktick toggle")
+-- Quick task capture, from my own `ticktick` plugin rather than the third-party
+-- one in the bar: its prompt takes focus on open and passes symbols through
+-- intact. Only the script is used, so `ticktick` stays disabled and only its
+-- `ticktick-quick-add` overlay is enabled. Ctrl+Shift+A is free in the defaults,
+-- which reach for SUPER for everything. The binding is dead exactly when the
+-- plugin is not installed, which is right.
+o.bind(
+	"CTRL + SHIFT + A",
+	"Add TickTick task",
+	os.getenv("HOME") .. "/.config/omarchy/plugins/ticktick/ticktick-add-launch"
+)
 
 -- ASUS Zenbook function keys. The firmware emits a chord rather than a plain
 -- keysym for each of these, so reaching the use printed on the key means taking

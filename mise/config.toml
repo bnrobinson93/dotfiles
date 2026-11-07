@@ -78,7 +78,7 @@ run = "topgrade"
 description = "Install the personal shell plugins from their own repos"
 dir = "~/.dotfiles"
 run = """
-for id in idle-ladder menu-button orientation; do
+for id in idle-ladder menu-button orientation ticktick ticktick-quick-add; do
   if [ -d "$HOME/.config/omarchy/plugins/$id" ]; then continue; fi
   omarchy plugin add "https://github.com/bnrobinson93/omarchy-$id.git" --yes
 done
