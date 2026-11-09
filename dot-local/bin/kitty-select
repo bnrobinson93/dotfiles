@@ -17,10 +17,13 @@ PINNED_DIRS=(
   ~/Documents/Vault
 )
 
+search_paths_command=$HOME/.local/bin/search-paths
 SEARCH_PATHS=()
-while IFS= read -r line; do
-  SEARCH_PATHS+=("$line")
-done < <(search-paths)
+if [[ -x $search_paths_command ]]; then
+  while IFS= read -r line; do
+    SEARCH_PATHS+=("$line")
+  done < <("$search_paths_command")
+fi
 
 is_blacklisted() {
   local name=$1
@@ -109,7 +112,9 @@ directory_rows() {
 folder_rows() {
   {
     printf "%s\n" "${PINNED_DIRS[@]}"
-    fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
+    if ((${#SEARCH_PATHS[@]})); then
+      fd . "${SEARCH_PATHS[@]}" -d 1 -t d -E .Trash
+    fi
   } | sed 's:/*$::' |
     awk 'NF && !seen[$0]++' |
     while IFS= read -r path; do
