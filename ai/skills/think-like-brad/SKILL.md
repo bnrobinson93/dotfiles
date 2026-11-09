@@ -51,6 +51,11 @@ through the change; revisit it only when new facts invalidate it.
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Machine-generated
   tool output belongs in ignored include files, not stowed tracked config. Shared repository behavior
   should be shaped by team needs, not one machine.
+- On macOS work machines, preserve the paid-model quality target for AI-assisted developer
+  workflows; when a paid model fails, switch to another paid model rather than falling back to a
+  free model.
+- When a workflow names a provider and model to preserve, do not silently substitute another model
+  because the named route fails; surface the routing problem and get approval for a fallback.
 - For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
   the isolated Helium profile and ask for authentication before continuing. Zen is the daily
   browser, but Helium is the Chromium QA target.

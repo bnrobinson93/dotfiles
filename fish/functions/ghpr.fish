@@ -252,7 +252,7 @@ function __ghpr_generate_description --no-scope-shadowing
     end
 
     set -l pr_guidance ""
-    set -l pr_skill ~/.config/opencode/skills/commit-and-pr/SKILL.md
+    set -l pr_skill ~/.dotfiles/ai/skills/commit-and-pr/SKILL.md
     if not test -f $pr_skill
         echo "Error: commit-and-pr skill not found at $pr_skill"
         return 1
@@ -260,7 +260,7 @@ function __ghpr_generate_description --no-scope-shadowing
     set pr_guidance (__ghpr_read_skill_body $pr_skill | string collect)
 
     set -l writing_voice ""
-    set -l voice_skill ~/.config/opencode/skills/writing-voice/SKILL.md
+    set -l voice_skill ~/.dotfiles/ai/skills/writing-voice/SKILL.md
     if test -f $voice_skill
         set writing_voice (__ghpr_read_skill_body $voice_skill | string collect)
     end
@@ -272,14 +272,10 @@ function __ghpr_generate_description --no-scope-shadowing
     set use_fill false
 
     set pr_title $custom_title
+    set -l pi_model anthropic/claude-sonnet-5-5
 
-    if type -q opencode
-        set -l oc_model opencode/big-pickle
-        if test (uname -s) = Darwin
-            set oc_model anthropic/claude-haiku-4-5
-        end
-
-        echo "✓ Generating PR title and body with OpenCode..."
+    if type -q pi
+        echo "✓ Generating PR title and body with Pi..."
 
         set -l max_diff_bytes 20000
         set -l max_commit_bytes 8000
@@ -339,15 +335,19 @@ Output format (required - do not deviate):
 
 Do not wrap the output in a code fence. The `---` line is the only separator."
 
-        set -l ai_output (printf "%s" $prompt | opencode run --model $oc_model --format default 2>/dev/null | string collect)
+        set -l ai_output (printf "%s" $prompt | pi --model $pi_model --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print | string collect)
+        set -l ai_status $pipestatus[2]
 
-        if test -n "$ai_output"
+        if test $ai_status -eq 0 -a -n "$ai_output"
             __ghpr_parse_ai_output "$ai_output"
             if test -n "$parsed_title" -a -z "$custom_title"
                 set pr_title $parsed_title
             end
             set pr_body "$parsed_body"
         end
+
+        test $ai_status -eq 0
+        or return 1
     end
 
     if test -z "$pr_title"
@@ -433,7 +433,7 @@ function __ghpr_create_pr --no-scope-shadowing
     or return 1
 
     if not __ghpr_generate_description
-        echo "⚠ OpenCode did not return a complete PR description; will use --fill"
+        echo "⚠ Pi did not return a complete PR description; will use --fill"
         set use_fill true
     end
 
@@ -577,7 +577,11 @@ function ghpr --description "Create GitHub PR with conventional commit format"
     if test "$desc_only" = true
         if not __ghpr_generate_description
             __ghpr_print_url
-            echo "Error: opencode is required and must generate a PR description with --desc-only"
+            if type -q pi
+                echo "Error: pi failed to generate a PR description"
+            else
+                echo "Error: pi is required and must generate a PR description with --desc-only"
+            end
             return 1
         end
         __ghpr_preview
