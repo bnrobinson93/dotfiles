@@ -10,8 +10,12 @@ mkdir -p "$test_root/bin"
 
 cat >"$test_root/bin/jj" <<'EOF'
 #!/usr/bin/env bash
-[[ "$*" == "git root" ]] || exit 1
-printf '/fake/repo/.git\n'
+case "$*" in
+  "git root") printf '/fake/repo/.git\n' ;;
+  diff*) printf 'diff\n' ;;
+  log*) printf 'commit message\n' ;;
+  *) exit 1 ;;
+esac
 EOF
 
 cat >"$test_root/bin/gh" <<'EOF'
@@ -26,8 +30,28 @@ fi
 [[ " $* " == *" --repo org/repo "* ]] || exit 1
 EOF
 
-chmod +x "$test_root/bin/gh" "$test_root/bin/jj"
+cat >"$test_root/bin/pi" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >"${GHPR_MODEL_ARGS_FILE:?}"
+if [[ -n "${GHPR_FAIL:-}" ]]; then
+  printf 'pi: boom\n' >&2
+  printf 'feat: partial title\n---\nPartial body\n'
+  exit 1
+fi
+printf 'feat: generated title\n---\nGenerated body\n'
+EOF
 
+chmod +x "$test_root/bin/gh" "$test_root/bin/jj" "$test_root/bin/pi"
+
+mkdir -p "$test_root/home/.dotfiles/ai/skills/commit-and-pr"
+cat >"$test_root/home/.dotfiles/ai/skills/commit-and-pr/SKILL.md" <<'EOF'
+---
+name: commit-and-pr
+description: test fixture
+---
+
+PR guidance.
+EOF
 cat >"$test_root/file-pr.md" <<'EOF'
 ---
 name: file-pr
@@ -137,6 +161,37 @@ or return 1
 
 test_find_pr
 ' "$repo_dir/fish/functions/ghpr.fish" "$test_root/file-pr.md" || exit 1
+
+model_args="$test_root/model-args"
+GHPR_MODEL_ARGS_FILE="$model_args" HOME="$test_root/home" \
+PATH="$test_root/bin:/usr/bin:/bin" "$fish_bin" --no-config -c '
+source $argv[1]
+
+set -l is_jj true
+set -l current_branch feat/example
+set -l ancestor_ref main
+set -l child_ref feat/example
+set -l recent_titles ""
+set -l custom_title ""
+set -l pr_title ""
+set -l pr_body ""
+
+__ghpr_generate_description
+or exit 1
+
+test "$pr_title" = "feat: generated title"
+or exit 1
+test "$pr_body" = "Generated body"
+
+set -gx GHPR_FAIL 1
+if __ghpr_generate_description
+    exit 1
+end
+test -z "$pr_title" -a -z "$pr_body"
+' "$repo_dir/fish/functions/ghpr.fish" 2>"$test_root/pi-error" || exit 1
+
+grep -qF -- '--model anthropic/claude-sonnet-5-5 --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print' "$model_args" || exit 1
+grep -qF 'pi: boom' "$test_root/pi-error" || exit 1
 
 commit_messages_line="$(grep -nF '## Commit Messages' "$repo_dir/fish/functions/ghpr.fish" | cut -d: -f1)"
 pr_guidance_line="$(grep -nF 'PR guidance (authoritative' "$repo_dir/fish/functions/ghpr.fish" | cut -d: -f1)"
