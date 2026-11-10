@@ -52,8 +52,9 @@ through the change; revisit it only when new facts invalidate it.
   tool output belongs in ignored include files, not stowed tracked config. Shared repository behavior
   should be shaped by team needs, not one machine.
 - On macOS work machines, preserve the paid-model quality target for AI-assisted developer
-  workflows; when a paid model fails, switch to another paid model rather than falling back to a
-  free model.
+  workflows; prefer the configured default paid model and do not upgrade to a newer or more
+  expensive model without a task-specific reason. When a paid model fails, switch to another paid
+  model rather than falling back to a free model.
 - When a workflow names a provider and model to preserve, do not silently substitute another model
   because the named route fails; surface the routing problem and get approval for a fallback.
 - For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
