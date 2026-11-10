@@ -53,6 +53,7 @@ through the change; revisit it only when new facts invalidate it.
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Machine-generated
   tool output belongs in ignored include files, not stowed tracked config. Shared repository behavior
   should be shaped by team needs, not one machine.
+- Put confirmation before destructive close actions when a persistent background session is the recovery path.
 - On macOS work machines, preserve the paid-model quality target for AI-assisted developer
   workflows; prefer the configured default paid model and do not upgrade to a newer or more
   expensive model without a task-specific reason. When a paid model fails, switch to another paid

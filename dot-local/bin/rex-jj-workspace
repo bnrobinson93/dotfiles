@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2016
+# The jq programs intentionally use jq variables named $name, $path, and $window_id.
+set -euo pipefail
+
+usage() {
+  printf 'usage: rex-jj-workspace new|remove|close-tab --session SESSION [--window WINDOW] [--rex-bin PATH]\n' >&2
+  exit 2
+}
+
+fail() {
+  printf '\n%s\n' "$1" >&2
+  printf 'Press enter to close. ' >&2
+  read -r _ || true
+  exit 1
+}
+
+command_name=${1:-}
+shift || true
+session=''
+window=''
+rex_bin_override=''
+
+while (($#)); do
+  case $1 in
+    --session)
+      [[ $# -ge 2 ]] || usage
+      session=$2
+      shift 2
+      ;;
+    --window)
+      [[ $# -ge 2 ]] || usage
+      window=$2
+      shift 2
+      ;;
+    --rex-bin)
+      [[ $# -ge 2 ]] || usage
+      rex_bin_override=$2
+      shift 2
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+[[ -n $session ]] || usage
+[[ $command_name == new || -n $window ]] || usage
+
+rex_bin=${REX_BIN:-${rex_bin_override:-$(command -v rex || true)}}
+jw_bin=${JW_BIN:-$(command -v jw || true)}
+jq_bin=${JQ_BIN:-$(command -v jq || true)}
+[[ -x $rex_bin ]] || fail 'rex was not found on PATH'
+[[ -x $jw_bin ]] || fail 'jw was not found on PATH'
+[[ -x $jq_bin ]] || fail 'jq was not found on PATH'
+
+open_workspace_window() {
+  local name=$1
+  local path=$2
+  local layout
+
+  layout=$(
+    "$jq_bin" -cn \
+      --arg name "$name" \
+      --arg path "$path" \
+      '{window_label: $name, layout: {block: {flavor: "com.superlogical.terminal.shell", options: {cwd: $path}}}}'
+  )
+
+  "$rex_bin" api call -s "$session" session.new_window "$layout" >/dev/null ||
+    fail "created the JJ workspace, but could not open its Rex tab"
+}
+
+new_workspace() {
+  local name path
+
+  printf 'New JJ workspace name: '
+  IFS= read -r name || exit 0
+  [[ -n $name ]] || exit 0
+
+  if ! "$jw_bin" add "$name"; then
+    fail "could not create JJ workspace $name"
+  fi
+
+  path=$("$jw_bin" path "$name") || fail "created $name, but could not find its path"
+  [[ -d $path ]] || fail "JJ reported a missing workspace path: $path"
+  open_workspace_window "$name" "$path"
+}
+
+remove_workspace() {
+  local root default_root name answer close_args
+
+  root=$("$jw_bin" root) || fail 'not inside a JJ workspace'
+  default_root=$("$jw_bin" path '^') || fail 'could not find the default JJ workspace'
+  [[ "$root" != "$default_root" ]] || fail 'refusing to remove the default JJ workspace'
+  name=$("$jw_bin" current) || fail 'could not identify the current JJ workspace'
+  [[ -n $name ]] || fail 'JJ returned an empty workspace name'
+
+  printf 'Remove JJ workspace %s at %s? [y/N] ' "$name" "$root"
+  IFS= read -r answer || exit 0
+  case $answer in
+    y|Y|yes|YES) ;;
+    *) exit 0 ;;
+  esac
+
+  # Leave the directory before jw removes it. The Rex tab closes immediately
+  # afterward, taking any other panes in this workspace with it.
+  cd "$default_root"
+  if ! "$jw_bin" remove "$name"; then
+    fail "could not remove JJ workspace $name"
+  fi
+
+  close_args=$("$jq_bin" -cn --arg window_id "$window" '{window_id: $window_id}')
+  "$rex_bin" api call -s "$session" session.close_window "$close_args" >/dev/null ||
+    fail "removed JJ workspace $name, but could not close its Rex tab"
+}
+
+close_tab() {
+  local answer close_args
+
+  printf 'Close this Rex tab and all its panes? [y/N] '
+  IFS= read -r answer || exit 0
+  case $answer in
+    y|Y|yes|YES) ;;
+    *) exit 0 ;;
+  esac
+
+  close_args=$("$jq_bin" -cn --arg window_id "$window" '{window_id: $window_id}')
+  "$rex_bin" api call -s "$session" session.close_window "$close_args" >/dev/null
+}
+
+case $command_name in
+  new) new_workspace ;;
+  remove) remove_workspace ;;
+  close-tab) close_tab ;;
+  *) usage ;;
+esac
