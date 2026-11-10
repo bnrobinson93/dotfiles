@@ -4,12 +4,19 @@
 list="sesh list --icons"
 
 # Shared roots (see ~/.config/search-paths.txt) — surfaces folders zoxide hasn't seen yet.
+search_paths_command=$HOME/.local/bin/search-paths
 SEARCH_PATHS=()
-while IFS= read -r line; do
-  SEARCH_PATHS+=("$line")
-done < <(search-paths)
-quoted_search_paths=$(printf '%q ' "${SEARCH_PATHS[@]}")
-folder_cmd="{ printf '%s\n' ~/.dotfiles; fd . $quoted_search_paths -d 1 -t d -E .Trash; } | sed 's:/*$::' | awk 'NF && !seen[\$0]++'"
+if [[ -x $search_paths_command ]]; then
+  while IFS= read -r line; do
+    SEARCH_PATHS+=("$line")
+  done < <("$search_paths_command")
+fi
+folder_cmd="{ printf '%s\n' ~/.dotfiles;"
+if ((${#SEARCH_PATHS[@]})); then
+  quoted_search_paths=$(printf '%q ' "${SEARCH_PATHS[@]}")
+  folder_cmd+=" fd . $quoted_search_paths -d 1 -t d -E .Trash;"
+fi
+folder_cmd+=" } | sed 's:/*$::' | awk 'NF && !seen[\$0]++'"
 
 if [[ "$1" == "all" ]]; then
   listcmd=$($list -b)

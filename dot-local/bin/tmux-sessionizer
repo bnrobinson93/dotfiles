@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
+search_paths_command=$HOME/.local/bin/search-paths
 SEARCH_PATHS=()
-while IFS= read -r line; do
-  SEARCH_PATHS+=("$line")
-done < <(search-paths)
+if [[ -x $search_paths_command ]]; then
+  while IFS= read -r line; do
+    SEARCH_PATHS+=("$line")
+  done < <("$search_paths_command")
+fi
 
 show_all=0
 selected_folder=""
@@ -29,7 +32,7 @@ if [[ $show_all -eq 0 ]]; then
   filter_cmd=(sed -E 's:/*$::; /-(ai[0-9]*|orch[^/]*|exp|explore)$/d')
 fi
 
-if [[ -z "$selected_folder" ]]; then
+if [[ -z "$selected_folder" ]] && ((${#SEARCH_PATHS[@]})); then
   if type fd >/dev/null 2>&1; then
     selected_folder=$(fd . "${SEARCH_PATHS[@]}" --min-depth 1 --max-depth 1 --type d | "${filter_cmd[@]}" | fzf)
   else
