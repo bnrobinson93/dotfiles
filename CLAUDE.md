@@ -124,11 +124,12 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   right-clicking it; do not reintroduce a tracked copy or a generator, because either one
   fights the CLI and throws away whatever was set since it last ran.
 - `mise run omarchy-plugins` installs the personal plugins — `idle-ladder`,
-  `menu-button`, `orientation` — from `github.com/bnrobinson93/omarchy-<id>`, since those
-  live in their own repos rather than Omarchy's registry. Third-party plugins are
-  installed by hand with `omarchy plugin add`. `install.sh` runs the task (skipped off
-  Omarchy) before `mise run stow`; `mise run stow` deliberately does *not*, since it is a
-  network call only a fresh machine needs.
+  `menu-button`, `orientation`, `ticktick`, `ticktick-quick-add` — from
+  `github.com/bnrobinson93/omarchy-<id>`, since those live in their own repos rather
+  than Omarchy's registry. Third-party plugins are installed by hand with
+  `omarchy plugin add`. `install.sh` runs the task (skipped off Omarchy) before
+  `mise run stow`; `mise run stow` deliberately does *not*, since it is a network call
+  only a fresh machine needs.
 - Never edit `/usr/share/omarchy/`. Prefer an extension point — a `type: command` bar
   module, a menu row, an `omarchy toggle` flag, or a small plugin subclassing `qs.Ui` —
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
