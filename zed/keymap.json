@@ -1,7 +1,5 @@
 [
-  // ==========================
-  // === PANE NAVIGATION ======
-  // ==========================
+  // Keep Vim for editing. Let Zed handle the workspace and project layer.
   {
     "context": "Pane && !Terminal",
     "bindings": {
@@ -20,153 +18,24 @@
       "ctrl-l": "workspace::ActivatePaneRight"
     }
   },
-  // ==========================
-  // ====== FILE TREE =========
-  // ==========================
-  {
-    "context": "vim_mode == normal && !ProjectPanel",
-    "bindings": {
-      "space e": "project_panel::ToggleFocus"
-    }
-  },
-  {
-    "context": "ProjectPanel",
-    "bindings": {
-      "A": "project_panel::NewDirectory",
-      "a": "project_panel::NewFile",
-      "c": "project_panel::Copy",
-      "d": "project_panel::Delete",
-      "enter": "project_panel::Open",
-      "p": "project_panel::Paste",
-      "q": "workspace::ToggleLeftDock",
-      "r": "project_panel::Rename",
-      "space e": "workspace::ToggleLeftDock",
-      "s": "project_panel::OpenSplitVertical",
-      "x": "project_panel::Cut"
-    }
-  },
-  // ==========================
-  // === Mini brackets =
-  // ==========================
-  {
-    "context": "vim_operator == a || vim_operator == i || vim_operator == cs",
-    "bindings": {
-      "b": "vim::MiniBrackets",
-      "q": "vim::MiniQuotes"
-    }
-  },
-  // ==========================
-  // === EDITOR (Normal mode) =
-  // ==========================
   {
     "context": "Editor && vim_mode == normal",
     "bindings": {
-      // Pane navigation (override VSCode base keymap at same specificity)
-      "ctrl-h": "workspace::ActivatePaneLeft",
-      "ctrl-j": "workspace::ActivatePaneDown",
-      "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-l": "workspace::ActivatePaneRight",
-      // File finding
-      "space space": "file_finder::Toggle",
-      "space ,": "file_finder::Toggle",
-      "ctrl-p": "file_finder::Toggle",
-      // Search / grep
-      "space s g": "workspace::NewSearch",
-      "space f g": "workspace::NewSearch",
-      // Symbols — buffer outline / workspace symbols
-      "space s s": "outline::Toggle",
-      "space s S": "project_symbols::Toggle",
-      // Code actions
-      "space c a": "editor::ToggleCodeActions",
-      "space c r": "editor::Rename",
-      // Go to
-      "space g r": "editor::FindAllReferences",
-      // Hover
-      "shift-k": "editor::Hover",
-      // Splits
-      "ctrl-w |": "pane::SplitRight",
-      "ctrl-w -": "pane::SplitDown",
-      // Harpoon → pinned tabs + tab index jumping
-      "space h": "tab_switcher::Toggle",
-      "space 1": ["pane::ActivateItem", 0],
-      "space 2": ["pane::ActivateItem", 1],
-      "space 3": ["pane::ActivateItem", 2],
-      "space 4": ["pane::ActivateItem", 3],
-      "space 5": ["pane::ActivateItem", 4],
-      // Dismiss search bar, hover/diagnostic popups, etc.
-      "escape": "editor::Cancel",
-      // Terminal toggle (override VSCode base keymap's comment-line binding)
-      "ctrl-/": "workspace::ToggleBottomDock",
-      // Sidebar toggle (override vim's scroll-back)
-      "ctrl-b": "workspace::ToggleLeftDock",
-      // Find in file (override vim's page-forward scroll)
-      "ctrl-f": "buffer_search::Deploy"
+      // Vim owns Ctrl-F in normal mode, so override it at the editor context.
+      "ctrl-f": ["task::Spawn", { "task_name": "Open Project" }],
+      // Esc still exits insert mode; in normal mode it closes the active file tab.
+      "escape": "pane::CloseActiveItem"
     }
   },
-  // ==========================
-  // === EDITOR (Visual mode) =
-  // ==========================
-  {
-    "context": "Editor && vim_mode == visual",
-    "bindings": {
-      // Select next occurrence (like VS Code ctrl-d)
-      "ctrl-d": ["editor::SelectNext", { "replace_newest": false }]
-    }
-  },
-  // ==========================
-  // ======= TERMINAL =========
-  // ==========================
   {
     "context": "Workspace",
     "bindings": {
-      "ctrl-/": "workspace::ToggleBottomDock",
-      "ctrl-b": "workspace::ToggleLeftDock"
-    }
-  },
-  {
-    "context": "Terminal",
-    "bindings": {
-      "ctrl-a h": "workspace::ActivatePaneLeft",
-      "ctrl-a j": "workspace::ActivatePaneDown",
-      "ctrl-j": "workspace::ActivatePaneDown",
-      "ctrl-a k": "workspace::ActivatePaneUp",
-      "ctrl-k": "workspace::ActivatePaneUp",
-      "ctrl-a l": "workspace::ActivatePaneRight",
-      "ctrl-l": "terminal::Clear",
-      "ctrl-a 0": ["pane::ActivateItem", 9],
-      "ctrl-a 1": ["pane::ActivateItem", 0],
-      "ctrl-a 2": ["pane::ActivateItem", 1],
-      "ctrl-a 3": ["pane::ActivateItem", 2],
-      "ctrl-a 4": ["pane::ActivateItem", 3],
-      "ctrl-a 5": ["pane::ActivateItem", 4],
-      "ctrl-a 6": ["pane::ActivateItem", 5],
-      "ctrl-a 7": ["pane::ActivateItem", 6],
-      "ctrl-a 8": ["pane::ActivateItem", 7],
-      "ctrl-a 9": ["pane::ActivateItem", 8],
-      "ctrl-a n": "pane::ActivateNextItem",
-      "ctrl-a c": "workspace::NewTerminal",
-      "ctrl-a p": "pane::ActivatePreviousItem",
-      "ctrl-a d": "pane::CloseActiveItem",
-      "ctrl-a x": "pane::CloseActiveItem"
-    }
-  },
-  // ==========================
-  // === SUGGESTIONS ==========
-  // ==========================
-  {
-    "context": "Editor && showing_completions",
-    "bindings": {
-      "ctrl-y": "editor::ConfirmCompletion"
-    }
-  },
-  // ==========================
-  // === OPEN PROJECT (task) ==
-  // ==========================
-  {
-    "context": "Workspace",
-    "bindings": {
+      // Use the same key to show and hide the file explorer.
+      "cmd-shift-e": "project_panel::Toggle",
+      // Keep the parent-folder finder for projects that are not open yet.
       "ctrl-shift-o": ["task::Spawn", { "task_name": "Open Project" }],
-      "ctrl-a L": "projects::OpenRecent"
+      // With two projects, previous project is the quick toggle between them.
+      "ctrl-b L": "multi_workspace::PreviousProject"
     }
   }
 ]

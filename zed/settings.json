@@ -38,13 +38,13 @@
   },
   "ui_font_family": ".ZedSans",
   "terminal": {
-    "font_family": "RecMonoLinear Nerd Font Mono",
+    "font_family": "RecMonoLinear Nerd Font Propo",
     "font_fallbacks": [
       "Symbols Nerd Font Mono"
     ],
-    "font_size": 16.0
+    "font_size": 13.0
   },
-  "base_keymap": "VSCode",
+  "base_keymap": "Zed",
   "git_panel": {
     "button": false
   },
