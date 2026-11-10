@@ -55,6 +55,7 @@ run = [
   "stow -v2 systemd",
   "systemctl --user daemon-reload",
   "systemctl --user enable --now herdr",
+  "systemctl --user enable --now omarchy-stayawake-lid-inhibit.path",
 ]
 
 [tasks.skills]

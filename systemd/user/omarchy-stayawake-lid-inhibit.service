@@ -1,0 +1,12 @@
+[Unit]
+Description=Hold a lid-switch suspend inhibitor while Stay Awake is on
+PartOf=graphical-session.target
+
+[Service]
+# Hold a handle-lid-switch block inhibitor for as long as the stay-awake state
+# file exists, then let it go. systemd-inhibit holds the inhibitor for the life
+# of its child, and the child polls until the file is removed. The .path unit
+# starts this when the file appears; the poll handles it going away, since a
+# .path unit only triggers on appearance. logind rechecks a closed lid the
+# moment the inhibitor drops, so clearing Stay Awake with the lid shut suspends.
+ExecStart=/usr/bin/systemd-inhibit --what=handle-lid-switch --mode=block --who="Stay Awake" --why="Stay Awake toggle is on" /usr/bin/bash -c 'while [[ -f "$1" ]]; do sleep 2; done' _ %h/.local/state/omarchy/indicators/stay-awake

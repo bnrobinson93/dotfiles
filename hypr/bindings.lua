@@ -79,6 +79,21 @@ local tablet_mode = (os.getenv("HOME") or "") .. "/.local/bin/tablet-mode"
 o.bind("switch:on:Intel HID switches", nil, tablet_mode .. " on", { locked = true })
 o.bind("switch:off:Intel HID switches", nil, tablet_mode .. " off", { locked = true })
 
+-- Stay Awake should ignore the lid, not just the idle timer. Omarchy's stock
+-- bind locks (and, docked, reconciles monitors) the instant the lid shuts;
+-- omarchy-lid-close-stayaware skips that while the stay-awake state file is set,
+-- and omarchy-stayawake-lid-inhibit.path holds the matching logind suspend
+-- inhibitor off the same file, so the toggle covers the lid too. With stay-awake
+-- off it defers to omarchy-system-lid-close unchanged. Deploy the two units once
+-- per machine with `mise run install-services`. Spelled out as a path because
+-- ~/.local/bin is not on the PATH Hyprland hands a bind.
+o.rebind(
+	"switch:on:Lid Switch",
+	nil,
+	(os.getenv("HOME") or "") .. "/.local/bin/omarchy-lid-close-stayaware",
+	{ locked = true }
+) -- was: omarchy-system-lid-close
+
 -- Caps Lock as a leader modifier. hypr/input.lua puts Hyper_L on Caps Lock,
 -- which xkb maps to Mod3, so Hyprland sees it as MOD3. These mirror the
 -- SUPER + SHIFT app launchers onto the same letters, one key instead of three.
