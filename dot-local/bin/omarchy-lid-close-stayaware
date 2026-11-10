@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Omarchy's lid-close handler, taught to honor Stay Awake. When the stay-awake
+# state file is set, the lid is ignored: no lock and no clamshell reconcile.
+# The matching logind suspend inhibitor is held by
+# omarchy-stayawake-lid-inhibit.path while the same file exists, so the laptop
+# neither sleeps nor locks on a lid close. With stay-awake off this is the
+# stock behavior, deferring to omarchy-system-lid-close.
+
+[[ -f "$HOME/.local/state/omarchy/indicators/stay-awake" ]] && exit 0
+
+exec omarchy-system-lid-close

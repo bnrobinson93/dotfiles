@@ -1,0 +1,13 @@
+[Unit]
+Description=Inhibit lid-close suspend while the Stay Awake state file exists
+
+[Path]
+# omarchy-toggle-idle writes/removes this file; the idle shell plugin reads it
+# for the screensaver and lock. PathExists starts the inhibitor service when the
+# file is present and stops it when it is removed, so lid-ignore rides the same
+# toggle as the idle timer.
+PathExists=%h/.local/state/omarchy/indicators/stay-awake
+Unit=omarchy-stayawake-lid-inhibit.service
+
+[Install]
+WantedBy=default.target
