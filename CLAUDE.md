@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 Linux dotfiles deployed with GNU Stow. Deploy with `mise run stow` (configs, `~/.local`, zsh,
 ssh) and `mise run skills` (AI config, skills, plugins); `mise tasks` lists the rest.
 
