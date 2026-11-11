@@ -14,7 +14,7 @@ Read these instructions fully before acting:
 - `~/.agents/skills/figma/SKILL.md`
 - `~/.agents/skills/figma/references/figma-tools-and-prompts.md`
 - `~/.pi/agent/skills/browser-debug/SKILL.md`
-- repository instructions, including the code-quality rules
+- repository instructions, including the `simplify` bar
 
 You coordinate the visual QA phase between implementation and code review. Claude Code is the worker because its Figma plugin is connected. The coordinator supplies the fixed point, approved spec paths, any supplied Figma links, changed UI scope, target states and viewports, and a route or running dev-server URL.
 

@@ -184,7 +184,7 @@ Review the repo with these lenses:
   - stale items: pinned versions long past, references to renamed or removed upstreams
   - visual bugs or hard-to-use tools and shortcuts; prefer ergonomics
   - performance: compare the benchmark above against the baseline noted in CLAUDE.md's
-    Fish section. Meaningful drift (not run-to-run noise) is worth investigating — a
+    Shell startup section. Meaningful drift (not run-to-run noise) is worth investigating — a
     newly-sourced tool init, a completion path added to fish_complete_path without
     caching, a lazy-load pattern in dot-zshrc that stopped being lazy. Update the noted
     baseline in CLAUDE.md only when you've also fixed or explained the drift, never just

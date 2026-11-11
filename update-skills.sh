@@ -6,7 +6,7 @@ set -u
 # Pi is not a target: it reads ~/.agents/skills itself, where the CLI already installs.
 # caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
 # so it is not duplicated across ~/.agents and the plugin cache.
-# ponytail lives in the code-quality skill; ryan-review/sara-review carry their own self-contained instincts.
+# ponytail lives in the simplify skill; ryan-review/sara-review carry their own self-contained instincts.
 SKILLS=(
   "vercel-labs/skills#find-skills||shared"
   # hunk-review is no longer published by modem-dev/hunk; retain local install.
@@ -31,12 +31,10 @@ PI_PACKAGES=(
 # active. Profile comes from $DOTFILES_PROFILE, else ~/.config/dotfiles/profile,
 # else "personal".
 MARKETPLACES=(
-  "caveman=JuliusBrussee/caveman"
   "claude-plugins-official=anthropics/claude-plugins-official"
   "datadog-pup=datadog-labs/pup|work"
 )
 PLUGINS=(
-  "caveman@caveman"
   "gopls-lsp@claude-plugins-official"
   # ~3.1k always-on (11 skills, 50 agents), so it ships disabled. Reconcile does
   # not touch enabledPlugins in settings.json, so the toggle survives a re-run:
@@ -130,7 +128,6 @@ deploy_local_ai() {
     backup_conflicting_path "$root/AGENTS.md"
     backup_conflicting_path "$root/CLAUDE.md"
   done
-
   # Codex and Herdr own these mutable files; remove legacy Stow links only.
   try_quiet stow -D -d "$script_dir/ai" -t "$codex_home" dot-codex || true
 
@@ -144,6 +141,12 @@ deploy_local_ai() {
   # path segment, since stow places a package's contents directly into the target. The
   # plugin only reads that file, so the symlink is safe.
   try stow -R -d "$script_dir/ai" --no-folding -t "$xdg_config_home" dot-config || true
+  # stow -R only revisits files still in the package, so a skill deleted from ai/ leaves
+  # its links dangling in every root. Drop the ones that point back into ai/.
+  for root in "${roots[@]}"; do
+    find "$root/skills" -xtype l -lname '*/ai/*' -delete 2>/dev/null || true
+    find "$root/skills" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+  done
 }
 
 install_pi_packages() {
