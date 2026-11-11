@@ -49,12 +49,13 @@ set -g fish_complete_path $cache_dir/completions $fish_complete_path
 __cache_gen $cache_dir/completions/jj.fish jj env COMPLETE=fish jj
 __cache_gen $cache_dir/completions/mise.fish mise mise completion fish
 
-if test -d /opt/homebrew
-    __cache_gen $cache_dir/brew.fish /opt/homebrew/bin/brew /opt/homebrew/bin/brew shellenv
+# WARN: `brew shellenv` ends in `fish_add_path --move`, which prepends brew's bin and
+# sbin ahead of the shims `01-paths.fish` put first; re-applying that list restores it.
+set -l brew_prefix (path filter -t dir /opt/homebrew /home/linuxbrew/.linuxbrew)[1]
+if test -n "$brew_prefix"
+    __cache_gen $cache_dir/brew.fish $brew_prefix/bin/brew $brew_prefix/bin/brew shellenv
     and source $cache_dir/brew.fish
-else if test -d /home/linuxbrew/.linuxbrew
-    __cache_gen $cache_dir/brew.fish /home/linuxbrew/.linuxbrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew shellenv
-    and source $cache_dir/brew.fish
+    and fish_add_path --global --move --path $fish_user_paths
 end
 
 if test "$TERM_PROGRAM" = WezTerm
