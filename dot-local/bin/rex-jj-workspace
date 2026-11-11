@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2016
-# The jq programs intentionally use jq variables named $name, $path, and $window_id.
+# The jq programs intentionally use jq variables named $block, $name, $path, and $window_id.
 set -euo pipefail
 
 usage() {
@@ -54,6 +54,24 @@ jq_bin=${JQ_BIN:-$(command -v jq || true)}
 [[ -x $jw_bin ]] || fail 'jw was not found on PATH'
 [[ -x $jq_bin ]] || fail 'jq was not found on PATH'
 
+close_prompt_layer() {
+  local layer close_args
+
+  [[ -n ${REX_BLOCK:-} ]] || return 0
+  layer=$(
+    "$rex_bin" session inspect "$session" --json |
+      "$jq_bin" -er --arg block "$REX_BLOCK" \
+        '.windows[] | .layers[] | select(any(.blocks[]?; .block_id == $block)) | .layer_id'
+  ) || return 0
+
+  close_args=$(
+    "$jq_bin" -cn --arg layer_id "$layer" '{layer_id: $layer_id}'
+  )
+  # This is the last command in the prompt layer. Remove it after the
+  # workspace operation so it cannot keep the old tab active.
+  "$rex_bin" api call -s "$session" session.close_layer "$close_args" >/dev/null || true
+}
+
 open_workspace_window() {
   local name=$1
   local path=$2
@@ -68,14 +86,15 @@ open_workspace_window() {
 
   "$rex_bin" api call -s "$session" session.new_window "$layout" >/dev/null ||
     fail "created the JJ workspace, but could not open its Rex tab"
+  close_prompt_layer
 }
 
 new_workspace() {
   local name path
 
   printf 'New JJ workspace name: '
-  IFS= read -r name || exit 0
-  [[ -n $name ]] || exit 0
+  IFS= read -r name || { close_prompt_layer; exit 0; }
+  [[ -n $name ]] || { close_prompt_layer; exit 0; }
 
   if ! "$jw_bin" add "$name"; then
     fail "could not create JJ workspace $name"
@@ -96,10 +115,10 @@ remove_workspace() {
   [[ -n $name ]] || fail 'JJ returned an empty workspace name'
 
   printf 'Remove JJ workspace %s at %s? [y/N] ' "$name" "$root"
-  IFS= read -r answer || exit 0
+  IFS= read -r answer || { close_prompt_layer; exit 0; }
   case $answer in
     y|Y|yes|YES) ;;
-    *) exit 0 ;;
+    *) close_prompt_layer; exit 0 ;;
   esac
 
   # Leave the directory before jw removes it. The Rex tab closes immediately
@@ -118,14 +137,15 @@ close_tab() {
   local answer close_args
 
   printf 'Close this Rex tab and all its panes? [y/N] '
-  IFS= read -r answer || exit 0
+  IFS= read -r answer || { close_prompt_layer; exit 0; }
   case $answer in
     y|Y|yes|YES) ;;
-    *) exit 0 ;;
+    *) close_prompt_layer; exit 0 ;;
   esac
 
   close_args=$("$jq_bin" -cn --arg window_id "$window" '{window_id: $window_id}')
-  "$rex_bin" api call -s "$session" session.close_window "$close_args" >/dev/null
+  "$rex_bin" api call -s "$session" session.close_window "$close_args" >/dev/null ||
+    fail 'could not close this Rex tab'
 }
 
 case $command_name in
