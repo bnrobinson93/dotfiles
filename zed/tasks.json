@@ -1,7 +1,7 @@
 [
   {
     "label": "Open Project",
-    "command": "set proj (fd . ~/Documents/code -d1 -td | fzf); test -n \"$proj\"; and zed \"$proj\"",
+    "command": "set proj (fd . ~/Documents/code -d1 -td | fzf); or exit 0; test -n \"$proj\"; or exit 0; zed \"$proj\"",
     "shell": { "program": "fish" },
     "hide": "on_success"
   }

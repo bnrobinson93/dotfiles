@@ -190,7 +190,7 @@ end
 test -z "$pr_title" -a -z "$pr_body"
 ' "$repo_dir/fish/functions/ghpr.fish" 2>"$test_root/pi-error" || exit 1
 
-grep -qF -- '--model anthropic/claude-sonnet-5-5 --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print' "$model_args" || exit 1
+grep -qF -- '--model openai/gpt-5.6-luna --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print' "$model_args" || exit 1
 grep -qF 'pi: boom' "$test_root/pi-error" || exit 1
 
 commit_messages_line="$(grep -nF '## Commit Messages' "$repo_dir/fish/functions/ghpr.fish" | cut -d: -f1)"

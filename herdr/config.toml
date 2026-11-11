@@ -41,8 +41,10 @@ previous_workspace = "prefix+ctrl+p"
 # Sesh clone
 [[keys.command]]
 key = "ctrl+f"
-type = "pane"
+type = "popup"
 command = "herdr-select"
+width = "80%"
+height = "80%"
 [[keys.command]]
 key = "prefix+shift+c"
 type = "pane"

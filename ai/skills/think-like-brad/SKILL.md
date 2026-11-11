@@ -48,12 +48,16 @@ through the change; revisit it only when new facts invalidate it.
 
 ## Workflow and environment
 
+- Preserve a fast project switcher and parent-folder project finder in editor and terminal workflows; a two-project hotkey and the ability to open an unseen repo matter more than replacing them with a slower recent-project picker.
+- Let Obsidian manage frontmatter timestamps for vault notes; do not manually update them when editing note content.
 - Keep personal environment and workflow overrides in dotfiles or ignored local config. Machine-generated
   tool output belongs in ignored include files, not stowed tracked config. Shared repository behavior
   should be shaped by team needs, not one machine.
+- Put confirmation before destructive close actions when a persistent background session is the recovery path.
 - On macOS work machines, preserve the paid-model quality target for AI-assisted developer
-  workflows; when a paid model fails, switch to another paid model rather than falling back to a
-  free model.
+  workflows; prefer the configured default paid model and do not upgrade to a newer or more
+  expensive model without a task-specific reason. When a paid model fails, switch to another paid
+  model rather than falling back to a free model.
 - When a workflow names a provider and model to preserve, do not silently substitute another model
   because the named route fails; surface the routing problem and get approval for a fallback.
 - For local visual testing, use Helium. Prefer an already-open Helium window; otherwise launch
@@ -80,7 +84,9 @@ through the change; revisit it only when new facts invalidate it.
 
 ## Reviewing someone else's PR
 
-Default to Sara's frontend expertise on refactors, cleanup, readability, and design-system fit.
+Default to Sara's frontend expertise on refactors, cleanup, readability, design-system fit, and
+user-facing wording. Don't question her copy or branding choices just because the ticket text
+differs; she usually has product context the ticket lacks.
 Adopt her concrete recommendations unless product requirements, design evidence, or an external
 contract gives a specific reason not to; do not push back with generic implementation arguments.
 Treat a quick SME or author draft as design evidence, not a drop-in patch. Review its behavioral
@@ -102,7 +108,9 @@ from an API correctness cleanup with no current product caller; keep the latter 
 an external contract makes it release-critical. Keep a valid but domain-inapplicable edge case
 separate from a release blocker. Defer hypothetical edge-case fixes until they occur or product
 requirements make them worth the added complexity. Do not inflate small test gaps when the
-implementation appears correct. When cleanup is already planned in a separate bookmark, do not duplicate it in the
+implementation appears correct. A unit test that mocks a collaborator and asserts the call
+contract is fine at the unit level; proving the rendered end-to-end outcome is integration
+coverage, so don't flag the unit test for not doing it. When cleanup is already planned in a separate bookmark, do not duplicate it in the
 current PR unless leaving it out would make current behavior unsafe or broken.
 
 When drafting feedback for Brad to post, write each item as plain text. Start with the location

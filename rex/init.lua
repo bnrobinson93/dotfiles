@@ -1,5 +1,6 @@
 local home = os.getenv("HOME")
-local rex_cli = "/Users/brad.robinson/Library/Application Support/com.superlogical.rex/RexServer/Versions/1829/Rex Server.app/Contents/MacOS/rex"
+local rex_cli = "/Users/brad.robinson/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+local jj_workspace_helper = home .. "/.local/bin/rex-jj-workspace"
 local search_paths = home .. "/.config/search-paths.txt"
 local legacy_labels = {
   [home .. "/.dotfiles"] = "dotfiles",
@@ -67,6 +68,12 @@ rex.action{
 
 local picker_script = [[
 set -e
+close_layer=1
+layer_id=''
+trap 'if [ "$close_layer" -eq 1 ] && [ -n "$layer_id" ]; then
+  "]] .. rex_cli .. [[" api call -s "$REX_SESSION" session.close_layer "{\"layer_id\":\"$layer_id\"}" >/dev/null 2>&1 || true
+fi' EXIT
+layer_id=$("]] .. rex_cli .. [[" session inspect "$REX_SESSION" --json | jq -er --arg block "$REX_BLOCK" '.windows[] | .layers[] | select(any(.blocks[]?; .block_id == $block)) | .layer_id') || true
 selected="$({
   while IFS= read -r root || [ -n "$root" ]; do
     case "$root" in
@@ -83,7 +90,10 @@ selected="$({
   --height=100% --layout=reverse --border --prompt='Open folder> ')" || exit 0
 [ -n "$selected" ] || exit 0
 selected="${selected/#\~/$HOME}"
-exec "]] .. rex_cli .. [[" do open_search_path "path=$selected"
+if ! "]] .. rex_cli .. [[" do open_search_path "path=$selected"; then
+  close_layer=0
+  exit 1
+fi
 ]]
 
 rex.action{
@@ -105,6 +115,98 @@ rex.action{
       },
     }
     if err ~= nil then error(err, 0) end
+  end,
+}
+
+local function focused_block_cwd(ctx)
+  local process, err = rex.call("block.method", {
+    session_id = ctx.session_id,
+    block_id = ctx.block_id,
+    method = "process",
+  })
+  if err ~= nil then error(err, 0) end
+
+  local cwd = process and process.foreground and process.foreground.cwd
+  if cwd == nil then
+    local pwd
+    pwd, err = rex.call("block.method", {
+      session_id = ctx.session_id,
+      block_id = ctx.block_id,
+      method = "pwd",
+    })
+    if err ~= nil then error(err, 0) end
+    cwd = pwd and pwd.pwd
+    if cwd ~= nil and cwd:sub(1, 7) == "file://" then
+      cwd = cwd:sub(8)
+    end
+  end
+
+  if cwd == nil or cwd == "" then
+    error("the focused Rex pane has no working directory", 0)
+  end
+  return cwd
+end
+
+local function open_jj_workspace_action(ctx, operation)
+  local view, err = rex.session.view{ session_id = ctx.session_id }
+  if err ~= nil then error(err, 0) end
+  if view.active_window_id == nil then
+    error("the current Rex session has no active tab", 0)
+  end
+
+  local _, layer_err = rex.session.new_layer{
+    session_id = ctx.session_id,
+    bounds = { 0.2, 0.35, 0.6, 0.3 },
+    focus = true,
+    layout = rex.layout.block{
+      flavor = "com.superlogical.terminal.shell",
+      options = {
+        command = {
+          jj_workspace_helper,
+          operation,
+          "--session",
+          ctx.session_id,
+          "--window",
+          view.active_window_id,
+          "--rex-bin",
+          rex_cli,
+        },
+        shell = "none",
+        cwd = focused_block_cwd(ctx),
+        path_prepend = { home .. "/.local/bin", "/opt/homebrew/bin" },
+      },
+    },
+  }
+  if layer_err ~= nil then error(layer_err, 0) end
+end
+
+rex.action{
+  name = "jj_workspace_new",
+  title = "New JJ Workspace",
+  description = "Create a jw workspace and open a matching Rex tab.",
+  category = "JJ workspaces",
+  run = function(ctx)
+    open_jj_workspace_action(ctx, "new")
+  end,
+}
+
+rex.action{
+  name = "jj_workspace_remove",
+  title = "Remove JJ Workspace",
+  description = "Remove the current jw workspace and close its Rex tab.",
+  category = "JJ workspaces",
+  run = function(ctx)
+    open_jj_workspace_action(ctx, "remove")
+  end,
+}
+
+rex.action{
+  name = "confirm_close_tab",
+  title = "Close Tab with Confirmation",
+  description = "Ask before closing the current Rex tab and its panes.",
+  category = "Tabs",
+  run = function(ctx)
+    open_jj_workspace_action(ctx, "close-tab")
   end,
 }
 
@@ -169,6 +271,11 @@ rex.bind("ctrl+b>shift+\\", "pane.split", { direction = "right" })
 rex.bind("ctrl+b>-", "pane.split", { direction = "down" })
 rex.bind("ctrl+b>ctrl+n", "session.next")
 rex.bind("ctrl+b>ctrl+p", "session.previous")
+rex.bind("ctrl+b>a", "jj_workspace_new")
+rex.bind("ctrl+b>d", "jj_workspace_remove")
+rex.bind("ctrl+b>x", "confirm_close_tab")
+rex.bind("ctrl+shift+a", "jj_workspace_new")
+rex.bind("ctrl+shift+d", "jj_workspace_remove")
 
 rex.bind("shift+insert", "pane.paste")
 rex.bind("ctrl+insert", "pane.copy")

@@ -272,7 +272,7 @@ function __ghpr_generate_description --no-scope-shadowing
     set use_fill false
 
     set pr_title $custom_title
-    set -l pi_model anthropic/claude-sonnet-5-5
+    set -l pi_model openai/gpt-5.6-luna
 
     if type -q pi
         echo "✓ Generating PR title and body with Pi..."
