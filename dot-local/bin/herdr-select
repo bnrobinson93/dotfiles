@@ -51,6 +51,11 @@ if [[ "${1:-}" == "--preview" ]]; then
       ls -la "$target"
     fi
     ;;
+  remote)
+    IFS='|' read -r machine_id wid ssh_target <<<"$target"
+    printf 'remote workspace\n  machine: %s\n  target:  %s\n  id:      %s\n' \
+      "$machine_id" "$ssh_target" "$wid"
+    ;;
   esac
 
   exit 0
@@ -81,6 +86,42 @@ directory_rows() {
       [[ -d "$path" ]] || continue
       printf "📁\t%s\tfolder\t%s\n" "$name" "$path"
     done
+}
+
+REMOTE_CACHE_TTL=30
+
+remote_workspace_rows() {
+  local machines_json count i
+  machines_json=$(herdr machine list --json 2>/dev/null) || return 0
+  [[ -n "$machines_json" ]] || return 0
+  count=$(jq 'length' <<<"$machines_json" 2>/dev/null || echo 0)
+
+  for ((i = 0; i < count; i++)); do
+    local enabled id label target cache now mtime
+    enabled=$(jq -r ".[$i].enabled" <<<"$machines_json")
+    [[ "$enabled" == "true" ]] || continue
+    id=$(jq -r ".[$i].id" <<<"$machines_json")
+    label=$(jq -r ".[$i].label" <<<"$machines_json")
+    target=$(jq -r ".[$i].target" <<<"$machines_json")
+
+    cache="${TMPDIR:-/tmp}/herdr-select-remote-$id.json"
+    now=$(date +%s)
+    mtime=$(stat -c %Y "$cache" 2>/dev/null || echo 0)
+    if [[ ! -f "$cache" || $((now - mtime)) -ge $REMOTE_CACHE_TTL ]]; then
+      if herdr --machine "$id" workspace list >"$cache.tmp" 2>/dev/null; then
+        mv "$cache.tmp" "$cache"
+      else
+        rm -f "$cache.tmp"
+      fi
+    fi
+    [[ -f "$cache" ]] || continue
+
+    jq -r --arg id "$id" --arg label "$label" --arg target "$target" '
+      .result.workspaces[]
+      | ["󰛳", (.label + " @" + $label), "remote", ($id + "|" + .workspace_id + "|" + $target)]
+      | @tsv
+    ' "$cache"
+  done
 }
 
 folder_rows() {
@@ -122,6 +163,7 @@ case "${1:-}" in
   ;;
 --workspaces)
   workspace_rows
+  remote_workspace_rows
   exit 0
   ;;
 --folders)
@@ -136,12 +178,16 @@ case "${1:-}" in
   ;;
 esac
 
+# Title this popup pane when launched from the herdr keybinding.
+[[ -n "${HERDR_PANE_ID:-}" ]] && herdr pane rename "$HERDR_PANE_ID" Workspaces >/dev/null 2>&1 || true
+
 selection=$(
   {
     workspace_rows
     directory_rows
   } |
     fzf --no-sort --ansi \
+      --height=100% \
       --delimiter '\t' --with-nth '1,2' \
       --border rounded --border-label ' herdr ' \
       --header '  ^a all ^w workspaces ^d close workspace ^p projects' \
@@ -149,7 +195,7 @@ selection=$(
       --bind "ctrl-w:change-prompt(󰆍  )+reload($workspace_reload_cmd)" \
       --bind "ctrl-d:execute-silent($close_workspace_cmd)+reload($default_reload_cmd)" \
       --bind "ctrl-p:change-prompt(📁  )+reload($folder_reload_cmd)" \
-      --preview-window 'right:55%' \
+      --preview-window 'down:45%' \
       --preview "$script_path --preview {3} {4}"
 )
 
@@ -161,6 +207,11 @@ target=$(cut -f4- <<<"$selection")
 case "$type" in
 workspace)
   herdr workspace focus "$target" >/dev/null
+  ;;
+remote)
+  IFS='|' read -r machine_id wid ssh_target <<<"$target"
+  herdr --machine "$machine_id" workspace focus "$wid" >/dev/null 2>&1 || true
+  exec herdr --remote "$ssh_target"
   ;;
 folder)
   herdr-workspace-at "$target"
