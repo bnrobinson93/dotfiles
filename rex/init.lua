@@ -68,6 +68,12 @@ rex.action{
 
 local picker_script = [[
 set -e
+close_layer=1
+layer_id=''
+trap 'if [ "$close_layer" -eq 1 ] && [ -n "$layer_id" ]; then
+  "]] .. rex_cli .. [[" api call -s "$REX_SESSION" session.close_layer "{\"layer_id\":\"$layer_id\"}" >/dev/null 2>&1 || true
+fi' EXIT
+layer_id=$("]] .. rex_cli .. [[" session inspect "$REX_SESSION" --json | jq -er --arg block "$REX_BLOCK" '.windows[] | .layers[] | select(any(.blocks[]?; .block_id == $block)) | .layer_id') || true
 selected="$({
   while IFS= read -r root || [ -n "$root" ]; do
     case "$root" in
@@ -84,7 +90,10 @@ selected="$({
   --height=100% --layout=reverse --border --prompt='Open folder> ')" || exit 0
 [ -n "$selected" ] || exit 0
 selected="${selected/#\~/$HOME}"
-exec "]] .. rex_cli .. [[" do open_search_path "path=$selected"
+if ! "]] .. rex_cli .. [[" do open_search_path "path=$selected"; then
+  close_layer=0
+  exit 1
+fi
 ]]
 
 rex.action{
