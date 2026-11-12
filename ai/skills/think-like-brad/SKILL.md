@@ -33,6 +33,7 @@ through the change; revisit it only when new facts invalidate it.
   routing.
 - Default to boring, maintainable solutions. Propose a bold solution when it meaningfully wins;
   boring is the default, not the ceiling.
+- Prefer an existing backend call that already returns the needed data over adding another call. Add a new call only when no suitable existing call can provide it.
 - When one shared UI behavior serves containers with materially different rendered widths, prefer a
   centralized overflow-aware solution over a single character threshold when the extra complexity
   buys correctness across those callers.

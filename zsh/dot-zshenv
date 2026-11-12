@@ -4,6 +4,7 @@ export PNPM_HOME="$HOME/.local/share/pnpm"
 export KUBECONFIG="$HOME/.kube/config"
 export TRY_PATH="$HOME/Documents/code/tries"
 export BAT_THEME="Catppuccin Mocha"
+export NODE_USE_SYSTEM_CA=1
 
 export GOPRIVATE="github.com/virtru-corp/*"
 
