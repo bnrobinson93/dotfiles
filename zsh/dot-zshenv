@@ -16,10 +16,14 @@ do
 done
 unset onepassword_ssh_sock
 
+# WARN: reach ~/.atuin/bin through this list, never by sourcing ~/.atuin/bin/env —
+# that prepends it ahead of the shims, so a curl-installed atuin shadows mise's
+# pinned one here while fish still resolves mise's: two binaries, one history DB.
 zshenv_path_dirs=()
 for dir in \
   "$HOME/.local/bin" \
   "$HOME/.local/share/mise/shims" \
+  "$HOME/.atuin/bin" \
   /opt/homebrew/bin \
   /home/linuxbrew/.linuxbrew/bin \
   "$PNPM_HOME/bin" \

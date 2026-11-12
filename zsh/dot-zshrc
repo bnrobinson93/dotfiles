@@ -67,7 +67,6 @@ __cache_gen() {
 }
 
 if type atuin >/dev/null 2>&1; then
-  [[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
   # atuin's init mints the session id with `atuin uuid`, a 2.3ms exec. atuin treats
   # the id as an opaque string and skips minting when one is set for this SHLVL, so
   # mirror its condition and hand it the kernel's. Darwin has no /proc and still execs.
