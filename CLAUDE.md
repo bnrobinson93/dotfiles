@@ -194,7 +194,8 @@ Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
 - **UI**: Noice, which-key, Catppuccin colorscheme
 - **Version Control**: hunk.nvim for interactive diff editing
 - **Note-taking**: obsidian.nvim (vault at `~/Documents/Vault`)
-- **AI**: Copilot + Copilot Chat
+- **AI**: ThePrimeagen/99 (`99.lua`). Copilot and Copilot Chat are off; `copilot-chat.lua`
+  keeps their opts so re-enabling is one `enabled` flag each
 - **Markdown**: render-markdown.nvim with checkbox support
 
 ### Wezterm Configuration
