@@ -16,7 +16,7 @@
 --ignore=systemd
 --ignore=shell.*\.json
 --ignore=.github
---ignore=.jj
+--ignore=^\.jj$
 --ignore=.vscode
 --ignore=docs
 --ignore=reference
