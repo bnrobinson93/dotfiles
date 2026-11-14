@@ -8,7 +8,8 @@
 #   5. verify Claude settings  (read-only; alerts if a hook/statusLine target is missing)
 #   6. shell startup benchmark (fish vs zsh under hyperfine, fed into the review)
 #   7. claude -p               (review the tree in a throwaway workspace, make changes)
-#   8. jj git push + gh pr     (only when step 7 actually changed something)
+#   8. jj git push + gh pr     (only when step 7 actually changed something; the PR body
+#                               must follow the commit-and-pr skill plus a Why and a before/after)
 #
 # This script is tracked in the dotfiles repo (dot-local/bin/) and stowed to
 # ~/.local/bin, which is on cron's PATH ahead of the system dirs. That means it can
@@ -244,10 +245,23 @@ echo "--- changes ---"
 jj diff --no-pager -s
 
 echo "--- describe ---"
+# Same guidance `ghpr` feeds its model, read from the skill so the two stay one voice.
+read_skill() { awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}' "$1" 2>/dev/null; }
+pr_guidance=$(read_skill "$WORKTREE/ai/skills/commit-and-pr/SKILL.md")
 summary=$(jj diff --no-pager --git | head -c 60000 | claude -p \
-  "Read this diff to a dotfiles repo. Reply with a commit message: a Conventional Commits
-   subject line under 60 chars starting with 'ai: ', then a blank line, then 2-5 bullets
-   saying what changed and why. No preamble, no code fences." 2>/dev/null)
+  "Read this diff to a dotfiles repo and write its PR description for the owner, who has not
+   read the diff. Output a Conventional Commits title under 60 chars starting with 'ai: ', a
+   blank line, then the description. The title and description follow this guidance:
+
+   $pr_guidance
+
+   Open the description with the problem in plain words, then the fix, then short
+   behavior-level bullets. Then add a '## Why' section (1-3 plain sentences naming the
+   concrete failure, cost, or confusion this removes) and a '## Before / after' section
+   showing the change in real terms: a fenced before/after (path order, resolved command,
+   line count, startup time) or a fenced mermaid flowchart when the point is ordering or control flow. Use only
+   facts visible in the diff; if the gain is not demonstrable, say so instead of inventing
+   one. No preamble." 2>/dev/null)
 if [ -z "$summary" ]; then
   summary="ai: nightly dotfiles review"
 fi
