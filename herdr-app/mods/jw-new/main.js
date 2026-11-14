@@ -1,10 +1,10 @@
-// New JJ workspace — jj-waltz's `jw add`, then open the workspace as a space.
+// New JJ workspace — `jj git fetch`, then jj-waltz's `jw add --at trunk()`, then open it as a space.
 // Mirrors the Rex jj_workspace_new flow. Opened with a key via `mod.open:jw-new`.
 // Runs jw in the focused terminal's repo. Type a name, Enter to create, Esc to cancel.
 
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { exec, run, spaces, focused, theme, props, closeOverlay } from "herdr";
+import { exec, run, spaces, focused, theme, props, closeOverlay, notify } from "herdr";
 
 export default class JwNew extends View {
   init(_props, cx) {
@@ -30,7 +30,15 @@ export default class JwNew extends View {
     cx.notify();
     cx.spawn(async (cx) => {
       const cwd = this.cwd();
-      const add = await exec("jw", ["add", name], { cwd });
+      // Fetch first so trunk() is the remote's latest; offline still creates from the local one.
+      this.fetching = true;
+      cx.notify();
+      const fetch = await exec("jj", ["git", "fetch"], { cwd, timeout: 120000 }).catch((e) => ({ code: 1, stderr: String(e) }));
+      if (fetch.code !== 0)
+        notify({ title: "jj git fetch failed", body: `${(fetch.stderr || "").trim()}\nCreating ${name} from the local trunk().`, level: "warning" });
+      this.fetching = false;
+      cx.notify();
+      const add = await exec("jw", ["add", name, "--at", "trunk()"], { cwd });
       if (add.code !== 0) { this.busy = false; this.msg = add.stderr.trim() || "jw add failed"; return cx.notify(); }
       const p = await exec("jw", ["path", name], { cwd });
       const path = p.stdout.trim();
@@ -56,6 +64,6 @@ export default class JwNew extends View {
       .child(h_flex().h(36).flex_none().px(10).items_center().rounded(9).border_1().border_color(t.accent).bg(t.background)
         .child(Input.new(this.input).flex_1().h_full().text_size(12.8).text_color(t.foreground)))
       .child(div().text_size(11).text_color(this.msg ? t.blocked : t.dim)
-        .child(this.msg || (this.busy ? "creating…" : "Enter to create in the current repo")));
+        .child(this.msg || (this.busy ? (this.fetching ? "fetching…" : "creating…") : "Enter to fetch and create on trunk() in the current repo")));
   }
 }
