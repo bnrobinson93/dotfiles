@@ -1,0 +1,11 @@
+[Unit]
+Description=Track Herdr app spaces in last-used order
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/herdr-space-mru
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

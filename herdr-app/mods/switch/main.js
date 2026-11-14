@@ -9,8 +9,8 @@ import { v_flex, h_flex, InputState, Input } from "gpui-base";
 import { spaces, run, exec, home, theme, props, closeOverlay } from "herdr";
 
 const PINNED = [".dotfiles", "Documents/Vault", "Documents/code"];
-// Suffixes jj hands an agent workspace, plus the bare "code" umbrella dir.
-const BLACKLIST = [/^code$/, /-(ai[0-9]*|orch.*|exp|explore)$/];
+// Suffixes jj hands an agent workspace.
+const BLACKLIST = [/-(ai[0-9]*|orch.*|exp|explore)$/];
 const blacklisted = (name) => BLACKLIST.some((re) => re.test(name));
 const base = (p) => p.replace(/\/+$/, "").split("/").pop();
 
@@ -22,7 +22,6 @@ export default class Switch extends View {
     this.handle = cx.focus_handle();
     this.input = InputState.new({ placeholder: "Go to a space or folder…" });
     this.input.on("change", (_e, cx) => { this.filter = this.input.value(); this.at = 0; cx.notify(); });
-    this.input.on("submit", () => this.go(this.pickable()[this.at]));
     this.input.focus();
     cx.timer.after(400, () => this.input.focus());
     this.load(cx);
