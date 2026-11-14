@@ -135,6 +135,14 @@ OSD, polkit agent, and idle daemon all run inside one Quickshell process
   over `omarchy plugin clone`, which forks the whole plugin and drifts on every update.
 - Apply the **`omarchy` skill** for any `~/.config/hypr/` or `~/.config/omarchy/` edit.
 
+### Herdr App (`herdr-app/`)
+
+`herdr-app/mods/` holds only Brad's own single-file mods, stowed per file. Borrowed mods
+and the `main-jj` layout come from `mise run herdr-app-setup` (`resources/herdr-app/`):
+pinned upstream commits plus jj patches, copied into `~/.config/herdr-app`. Herdr refuses a
+mod's `./x.js` import through a symlink, and rewrites layout files itself. A fix to a
+borrowed mod goes in its `.patch`; an edit only in `~/.config` is lost on the next run.
+
 ### Shared AI Config (`ai/`)
 
 `update-skills.sh` (`mise run skills`) stows `ai/` into four harness roots: `~/.claude`,

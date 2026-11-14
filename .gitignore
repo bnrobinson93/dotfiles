@@ -73,3 +73,7 @@ kitty/__pycache__/
 # herdr rewrites these on its own
 herdr/session-snapshots/
 herdr/herdr-client.log
+
+# herdr-app regenerates editor type stubs beside every mod on start
+herdr-app/mods/*/gpui-kit.d.ts
+herdr-app/mods/*/jsconfig.json
