@@ -1,0 +1,222 @@
+diff -ruN a/better-changes/git/reads.js b/better-changes/git/reads.js
+--- a/better-changes/git/reads.js
++++ b/better-changes/git/reads.js
+@@ -29,6 +29,57 @@
+   };
+ }
+ 
++// jj (colocated): the working copy @ against its parent, which is git's HEAD. `diff HEAD`
++// compares the files with HEAD directly, so whatever git's index holds (jj doesn't keep
++// it, and a git merge can leave it half-staged) never shows. Every file is one group.
++export async function readJjStatus(git) {
++  const numstat = await git(["diff", "HEAD", "--numstat", "-z", ...NO_HELPERS]);
++  const names = await git(["diff", "HEAD", "--name-status", "-z", ...NO_HELPERS]);
++  const fresh = await git(["ls-files", "--others", "--exclude-standard", "-z"]);
++  if (numstat.code !== 0 || names.code !== 0 || fresh.code !== 0)
++    throw Error(numstat.stderr || names.stderr || fresh.stderr || "Cannot read changes");
++  const none = { add: 0, del: 0 };
++  const file = (path, status, stats, isFresh) => ({
++    path,
++    fresh: isFresh,
++    conflict: false,
++    conflictKind: null,
++    staged: false,
++    unstaged: true,
++    status,
++    stagedStatus: " ",
++    unstagedStatus: status,
++    stagedStats: none,
++    unstagedStats: stats,
++    add: stats.add,
++    del: stats.del,
++    binary: Boolean(stats.binary),
++  });
++  const tracked = commitFiles(numstat.stdout, names.stdout).map((f) =>
++    file(f.path, f.status, { add: f.add, del: f.del, binary: f.binary }, false),
++  );
++  const known = new Set(tracked.map((f) => f.path));
++  const added = fresh.stdout
++    .split("\0")
++    .filter((path) => path && !known.has(path))
++    .map((path) => file(path, "A", none, true));
++  return {
++    files: [...tracked, ...added].sort((a, b) => a.path.localeCompare(b.path)),
++    hasHead: true,
++  };
++}
++
++// jj: the nearest local bookmark at or below @, else @'s change id. No snapshot.
++export async function readJjBookmark(jj) {
++  const T = 'change_id.shortest(8) ++ "\\t" ++ local_bookmarks.map(|b| b.name()).join(" ") ++ "\\n"';
++  const near = await jj(["log", "-r", "heads(::@ & bookmarks())", "--no-graph", "-T", T]);
++  const bookmark = near?.code === 0 ? near.stdout.split("\n")[0]?.split("\t")[1]?.split(" ")[0] : null;
++  if (bookmark) return bookmark;
++  const at = await jj(["log", "-r", "@", "--no-graph", "-T", T]);
++  const id = at?.code === 0 ? at.stdout.split("\t")[0].trim() : "";
++  return id ? `@${id}` : null;
++}
++
+ // The current branch, and "owner/repo" when origin is on GitHub.
+ export async function readBranchAndRepo(git) {
+   const branch = await git(["rev-parse", "--abbrev-ref", "HEAD"]);
+diff -ruN a/better-changes/git/repository.js b/better-changes/git/repository.js
+--- a/better-changes/git/repository.js
++++ b/better-changes/git/repository.js
+@@ -9,6 +9,8 @@
+   readBehind,
+   readLog,
+   readCommitFiles,
++  readJjStatus,
++  readJjBookmark,
+ } from "./reads.js";
+ 
+ // Reads must not take optional index locks or start fsmonitor helpers.
+@@ -63,6 +65,12 @@
+     return exec("git", [...READ_ONLY, ...args], { cwd: root, on });
+   },
+ 
++  // jj, for a colocated repo. Reads pass --ignore-working-copy: a snapshot writes
++  // under .jj/ and .git/, which the folder watch would answer with another refresh.
++  jjRun(args, root = this.root, on = this.on) {
++    return exec("jj", ["--no-pager", "--color=never", ...args], { cwd: root, on }).catch(() => null);
++  },
++
+   // A slow read may finish after the person moved to another repository.
+   isCurrent(context) {
+     return context === this.contextKey();
+@@ -93,6 +101,7 @@
+   startNewContext(context) {
+     this.context = context;
+     this.root = null;
++    this.jj = false;
+     this.files = [];
+     this.committed = null;
+     this.path = null;
+@@ -127,8 +136,12 @@
+ 
+     const root = top.stdout.trim();
+     const git = (args) => this.git(args, root, on);
+-    const status = await readStatus(git);
++    // A colocated jj repo: git's HEAD is @'s parent, and git's index means nothing.
++    const jjRoot = await this.jjRun(["--ignore-working-copy", "root"], root, on);
++    const jj = jjRoot?.code === 0;
++    const status = jj ? await readJjStatus(git) : await readStatus(git);
+     if (!this.isCurrent(context)) return;
++    this.jj = jj;
+     this.storeStatus(root, on, status);
+     this.watch(root, cx);
+ 
+@@ -156,9 +169,12 @@
+   async readSidebarState(git, context, cx) {
+     const committed = await readCommitted(git, this.committed, this.settings.limits.files);
+     const { branch, repo } = await readBranchAndRepo(git);
++    const bookmark = this.jj
++      ? await readJjBookmark((args) => this.jjRun(["--ignore-working-copy", ...args]))
++      : null;
+     if (!this.isCurrent(context)) return;
+     this.committed = committed;
+-    this.branch = branch;
++    this.branch = this.jj ? bookmark : branch;
+     this.repo = repo;
+     if (this.tab === "commit") this.loadCommits(cx);
+   },
+@@ -370,7 +386,9 @@
+     return Boolean(
+       this.commitMode === "amend"
+         ? this.hasHead && this.amendHead && !this.amendLoading
+-        : this.stagedCount,
++        : this.jj
++          ? this.files.length
++          : this.stagedCount,
+     );
+   },
+ 
+@@ -395,11 +413,12 @@
+           if (head.code !== 0 || head.stdout.trim() !== expected)
+             throw Error("The latest commit changed. Choose Amend again before retrying.");
+         }
+-        const result = await this.git(
+-          ["commit", ...(amend ? ["--amend"] : []), "-m", draft.trim()],
+-          root,
+-          on,
+-        );
++        // jj: commit describes @ and starts a new change; amend squashes @ into its
++        // parent (git's HEAD) with this message. Neither looks at git's index.
++        const result = this.jj
++          ? await this.jjRun([amend ? "squash" : "commit", "-m", draft.trim()], root, on)
++          : await this.git(["commit", ...(amend ? ["--amend"] : []), "-m", draft.trim()], root, on);
++        if (!result) throw Error("jj could not be run");
+         if (result.code !== 0) throw Error((result.stderr || result.stdout).trim());
+         this.reload = Date.now();
+         setShared("better-changes.reload", { root, on: on ?? null, at: this.reload });
+diff -ruN a/better-changes/mod.json b/better-changes/mod.json
+--- a/better-changes/mod.json
++++ b/better-changes/mod.json
+@@ -1,7 +1,7 @@
+ {
+   "$schema": "./mod.schema.json",
+   "version": "2.5.0",
+-  "place": "right",
++  "place": "none",
+   "size": 368,
+   "title": "Better Changes",
+   "overlay": {
+diff -ruN a/better-changes/views/diff.js b/better-changes/views/diff.js
+--- a/better-changes/views/diff.js
++++ b/better-changes/views/diff.js
+@@ -165,6 +165,8 @@
+     if (this.scope === "commit")
+       return ["show", "--diff-merges=first-parent", "--format=", this.commitRef.hash];
+     if (this.scope === "committed") return ["diff", this.commitRef.base, "HEAD"];
++    // jj: the working copy against @'s parent, never git's index.
++    if (this.jj) return ["diff", "HEAD"];
+     return ["diff", ...(this.scope === "staged" ? ["--cached"] : [])];
+   },
+ 
+diff -ruN a/better-changes/views/sidebar.js b/better-changes/views/sidebar.js
+--- a/better-changes/views/sidebar.js
++++ b/better-changes/views/sidebar.js
+@@ -192,7 +192,7 @@
+     this.groupsDrawn = 0;
+     this.addGroup(list, "conflict", "Conflicts", conflicts);
+     this.addGroup(list, "staged", "Staged", staged);
+-    this.addGroup(list, "unstaged", "Unstaged", unstaged);
++    this.addGroup(list, "unstaged", this.jj ? "Working copy @" : "Unstaged", unstaged);
+     if (committed)
+       this.addGroup(
+         list,
+@@ -251,6 +251,7 @@
+     if (this.amendLoading) return "Loading the latest commit…";
+     if (this.conflicts) return "Resolve conflicts and stage the files before committing.";
+     if (this.commitMode === "amend") {
++      if (this.jj) return "Amend squashes @ into its parent and rewrites its message.";
+       return "Amend rewrites the latest commit. Unstaged changes stay untouched.";
+     }
+     return null;
+@@ -315,10 +316,13 @@
+   addGroup(list, scope, label, files, detail, count = files.length) {
+     if (!files.length) return;
+     const collapsed = this.collapsed.has(scope);
+-    const bulk = {
+-      unstaged: { action: "stage", icon: "plus", label: "Stage all" },
+-      staged: { action: "unstage", icon: "minus", label: "Unstage all" },
+-    }[scope];
++    // jj has no index: nothing to stage.
++    const bulk = this.jj
++      ? null
++      : {
++          unstaged: { action: "stage", icon: "plus", label: "Stage all" },
++          staged: { action: "unstage", icon: "minus", label: "Unstage all" },
++        }[scope];
+     list.child(
+       GroupHeader({
+         id: `group-${scope}`,
+@@ -426,7 +430,7 @@
+         div().flex_none().text_size(TEXT.caption).text_color(t.ansi1).child(file.conflictKind),
+       );
+     else row.child(DiffStat(stats)).child(StatusLetter(status));
+-    if (scope === "unstaged")
++    if (scope === "unstaged" && !this.jj)
+       row.child(
+         IconButton({
+           id: `stage-${file.path}`,

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# herdr-omarchy-theme — mirror Omarchy's current terminal palette into a Herdr-app theme.
+# Omarchy writes the live theme's ghostty.conf under its state dir; Herdr reads themes/<name>.json.
+# Wired to run on every omarchy theme switch from hooks/theme-set.d, and once at login.
+set -euo pipefail
+
+src="${1:-$HOME/.local/state/omarchy/current/theme/ghostty.conf}"
+out="${HERDR_APP_HOME:-$HOME/.config/herdr-app}/themes/omarchy.json"
+
+[[ -f $src ]] || { echo "no omarchy ghostty theme at $src" >&2; exit 0; }
+[[ -d ${out%/*} ]] || exit 0   # herdr-app not installed; nothing to do
+
+python3 - "$src" "$out" <<'PY'
+import re, json, sys
+src, out = sys.argv[1], sys.argv[2]
+g = {}
+pal = {}
+for line in open(src):
+    line = line.strip()
+    m = re.match(r'palette\s*=\s*(\d+)\s*=\s*(#[0-9a-fA-F]{6})', line)
+    if m:
+        pal[int(m.group(1))] = m.group(2).lower()
+        continue
+    m = re.match(r'([a-z-]+)\s*=\s*(#[0-9a-fA-F]{6})', line)
+    if m:
+        g[m.group(1)] = m.group(2).lower()
+
+theme = {
+    "background": g.get("background", "#1e1e2e"),
+    "foreground": g.get("foreground", "#cdd6f4"),
+    "selection": g.get("selection-background", g.get("foreground", "#45475a")),
+    "cursor": g.get("cursor-color", g.get("foreground", "#cdd6f4")),
+    "ansi": [pal.get(i, "#000000") for i in range(16)],
+}
+json.dump(theme, open(out, "w"), indent=2)
+open(out, "a").write("\n")
+PY
