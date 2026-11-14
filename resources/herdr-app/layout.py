@@ -33,6 +33,10 @@ def rewrite(node):
 
 
 layout = rewrite(json.load(open(src)))
+# space-mru's tracker: it draws nothing, but must be in the layout to see every space change.
+layout.setdefault("floating", []).append(
+    {"id": "space-mru-track", "content": {"mod": "space-mru", "props": {"role": "track"}}}
+)
 try:
     theme = json.load(open(dest)).get("theme")
     if theme:
