@@ -58,6 +58,11 @@ run = [
   "systemctl --user enable --now omarchy-stayawake-lid-inhibit.path",
 ]
 
+[tasks.herdr-app-setup]
+description = "Install the Herdr app's borrowed mods with their jj patches, and the main-jj layout"
+dir = "~/.dotfiles"
+run = "bash resources/herdr-app/setup.sh"
+
 [tasks.skills]
 description = "Deploy AI config and install/update skills and plugins"
 dir = "~/.dotfiles"
