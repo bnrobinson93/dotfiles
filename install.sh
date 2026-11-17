@@ -35,12 +35,29 @@ brew install lazygit asciinema agg jj mise jq topgrade bat zoxide sesh dlvhdr/fo
 echo "Installing neovim via brew (you will likely want to change this)"
 brew install neovim
 
-# ~/.config/omarchy must exist before stow runs, or stow folds the whole directory
-# into a symlink and Omarchy's generated state (themed/, defaults/, current) lands
-# in the repo. Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created:
-# Omarchy upgrades drop their own files into env.d.
-mkdir -p ~/.local ~/.config ~/.ssh ~/.config/hypr ~/.config/omarchy ~/.config/uwsm/env.d
+# These config directories must exist before stow runs, or stow folds the whole
+# package directory into a symlink. Omarchy's generated state (themed/, defaults,
+# current) would land in the repo, Herdr's installed plugins would land in
+# herdr/plugins/github/, and Herdr app state would land in herdr-app/.
+# Same reason ~/.config/hypr and ~/.config/uwsm/env.d are pre-created: Omarchy
+# upgrades drop their own files into env.d.
+for path in ~/.config/herdr ~/.config/herdr-app; do
+  if [[ -L "$path" ]]; then
+    echo "$path is a symlink; move its generated state out before running install.sh" >&2
+    exit 1
+  fi
+done
+mkdir -p ~/.local ~/.config ~/.ssh ~/.config/herdr ~/.config/herdr-app ~/.config/hypr ~/.config/omarchy ~/.config/uwsm/env.d
 pushd "$(dirname -- "$0")" || exit
+mkdir -p ~/.config/herdr/plugins ~/.config/herdr/plugins/config ~/.config/herdr-app/mods
+for mod in herdr-app/mods/*/; do
+  [[ -d "$mod" ]] || continue
+  mkdir -p "$HOME/.config/herdr-app/mods/$(basename "$mod")"
+done
+for config in herdr/plugins/config/*/; do
+  [[ -d "$config" ]] || continue
+  mkdir -p "$HOME/.config/herdr/plugins/config/$(basename "$config")"
+done
 
 echo Clearing install files to avoid stow conflicts...
 for path in fish ghostty git kitty nvim mise tmux starship.toml; do
