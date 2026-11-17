@@ -1,3 +1,15 @@
+diff -ruN a/better-changes/git/model.js b/better-changes/git/model.js
+--- a/better-changes/git/model.js
++++ b/better-changes/git/model.js
+@@ -42,6 +42,8 @@
+   return status
+     .split("\0")
+     .filter(Boolean)
++    // Git reports nested repositories as directory paths; there is no parent diff to show.
++    .filter((entry) => !entry.slice(3).endsWith("/"))
+     .map((entry) => {
+       // Porcelain's X column describes the index; Y describes the working tree.
+       const xy = entry.slice(0, 2);
 diff -ruN a/better-changes/git/reads.js b/better-changes/git/reads.js
 --- a/better-changes/git/reads.js
 +++ b/better-changes/git/reads.js
@@ -37,7 +49,7 @@ diff -ruN a/better-changes/git/reads.js b/better-changes/git/reads.js
 +  const known = new Set(tracked.map((f) => f.path));
 +  const added = fresh.stdout
 +    .split("\0")
-+    .filter((path) => path && !known.has(path))
++    .filter((path) => path && !path.endsWith("/") && !known.has(path))
 +    .map((path) => file(path, "A", none, true));
 +  return {
 +    files: [...tracked, ...added].sort((a, b) => a.path.localeCompare(b.path)),
