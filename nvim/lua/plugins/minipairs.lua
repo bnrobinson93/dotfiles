@@ -4,8 +4,4 @@ return {
     event = "InsertEnter",
     opts = {},
   },
-  {
-    "nvim-mini/mini.pairs",
-    enabled = false,
-  },
 }
