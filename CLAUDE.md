@@ -183,10 +183,9 @@ Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
 **Structure**:
 - `init.lua` - Entry point that loads `lua/config/lazy.lua`
 - `lua/config/` - Core configuration (lazy.nvim setup, options, keymaps, autocmds)
-- `lua/plugins/` - One file per plugin, each returning a lazy.nvim spec table
+- `lua/plugins/` - Plugin specs, generally one file per plugin; disabled plugins go in `disabled.lua`
   - Plugins are lazy-loaded by default
   - Custom configs override LazyVim defaults
-  - Use `enabled = false` to disable LazyVim plugins
 - `lua/utils/project.lua` - Walks up for a tool's config file, a `package.json` key
   included, so `conform.lua` and `linting.lua` can pick the formatter/linter a project
   actually uses. `lua/plugins/fallback-config/` is what markdownlint falls back to when a
@@ -203,7 +202,7 @@ Apply the **`writing-for-agents` skill** when editing anything under `ai/`.
 - **Version Control**: hunk.nvim for interactive diff editing
 - **Note-taking**: obsidian.nvim (vault at `~/Documents/Vault`)
 - **AI**: ThePrimeagen/99 (`99.lua`). Copilot and Copilot Chat are off; `copilot-chat.lua`
-  keeps their opts so re-enabling is one `enabled` flag each
+  keeps their opts, and `disabled.lua` holds their disable switches
 - **Markdown**: render-markdown.nvim with checkbox support
 
 ### Wezterm Configuration
@@ -321,7 +320,6 @@ sudo update-locale LANG=en_US.UTF8
 ## File Editing Conventions
 
 ### Neovim Plugins
-- Each plugin goes in a separate file under `lua/plugins/`
 - Return a table with plugin spec (compatible with lazy.nvim)
 - Use `opts = {}` for simple config, `config = function()` for complex setup
 - Add `event`, `ft`, or `cmd` for lazy loading

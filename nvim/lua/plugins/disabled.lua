@@ -1,7 +1,9 @@
--- Only plugins with no file of their own; the rest disable themselves next to
--- the opts you'd flip back on.
+-- Keep all intentionally disabled plugin specs here.
 return {
   { "nvimdev/dashboard-nvim", enabled = false },
   { "folke/flash.nvim", enabled = false },
   { "akinsho/bufferline.nvim", enabled = false },
+  { "nvim-mini/mini.pairs", enabled = false },
+  { "zbirenbaum/copilot.lua", enabled = false },
+  { "CopilotC-Nvim/CopilotChat.nvim", enabled = false },
 }

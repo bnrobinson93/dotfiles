@@ -4,7 +4,6 @@ local copilot_timers = {}
 return {
   {
     "zbirenbaum/copilot.lua",
-    enabled = false,
     opts = {
       filetypes = {
         markdown = false,
@@ -124,7 +123,6 @@ return {
   },
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = false,
     opts = {
       -- For markdown rendering
       highlight_headers = false,
