@@ -1,3 +1,4 @@
+-- Keep all intentionally disabled plugin specs here.
 return {
   { "nvimdev/dashboard-nvim", enabled = false },
   { "folke/flash.nvim", enabled = false },

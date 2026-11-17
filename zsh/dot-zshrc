@@ -12,7 +12,6 @@ fi
 export ZETTELKASTEN=$HOME/Documents/Vault
 export HOMEBREW_AUTO_UPDATE_SECS=$((4*60*60))
 
-set -o emacs
 unsetopt no_match
 
 # Nerd-font glyphs sit in private-use ranges; less escapes them without this.
