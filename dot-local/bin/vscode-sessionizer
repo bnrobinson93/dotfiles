@@ -16,7 +16,11 @@ if ((${#SEARCH_PATHS[@]})); then
   fi
 fi
 
-selected_folder=$(printf '%s\n%s\n' "$HOME/.dotfiles" "$found_dirs" | fzf)
+# Agent workspaces, same exclusions as tmux-sessionizer / sesh.toml / kitty-select.
+# WARN: fd ends a directory with a slash, so the strip has to come first, or the
+# anchored exclusions match nothing.
+selected_folder=$(printf '%s\n%s\n' "$HOME/.dotfiles" "$found_dirs" |
+  sed -E 's:/*$::; /^$/d; /-(ai[0-9]*|orch[^/]*|exp|explore)$/d' | fzf)
 
 if [[ -n $selected_folder ]]; then
   code -r "$selected_folder"
