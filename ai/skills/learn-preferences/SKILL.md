@@ -13,9 +13,8 @@ exactly one of four homes:
 
 | Home | Holds |
 | --- | --- |
-| `~/.dotfiles/ai/skills/code-quality/references/` | The standing bar: comments, tests, laziness |
-| `~/.dotfiles/ai/skills/simplify/SKILL.md` | Learned cross-project code preferences |
-| `~/.dotfiles/ai/skills/think-like-brad/SKILL.md` | Cross-project judgment outside the code-quality bar: review feedback, communication, workflow |
+| `~/.dotfiles/ai/skills/simplify/` | The standing bar and every learned cross-project code preference: laziness, naming, comments, tests |
+| `~/.dotfiles/ai/skills/think-like-brad/SKILL.md` | Cross-project judgment outside the `simplify` bar: review feedback, communication, workflow |
 | Project memory, via `remember-context` | Repository and domain knowledge |
 
 This skill owns capture and routing. The preference list itself lives in those homes.
@@ -43,7 +42,7 @@ This skill owns capture and routing. The preference list itself lives in those h
      repositories after replacing the current product, SDK, service, and domain nouns.
    - Cross-project style includes naming, code shape, abstraction, readability, comments,
      testing style, and complexity choices.
-   - Cross-project judgment outside the code-quality bar includes how Brad reviews other people's
+   - Cross-project judgment outside the `simplify` bar includes how Brad reviews other people's
      work, communicates feedback, makes workflow decisions, and chooses among valid approaches.
      Route it to `think-like-brad`.
    - Repository or domain knowledge includes SDK and API contracts, schemas, architecture,
@@ -66,11 +65,10 @@ This skill owns capture and routing. The preference list itself lives in those h
    Complete when every reusable lesson is a standalone rule with a reason.
 
 4. Update each lesson's canonical home once.
-   - For cross-project style, read simplify and the matching `code-quality` reference file,
-     then search both for equivalent or conflicting guidance. Comment, test, and
-     over-engineering rules belong in the reference file; other code preferences go in
-     simplify's learned preferences.
-   - For cross-project judgment outside the code-quality bar, read `think-like-brad`, strengthen
+   - For cross-project style, read `simplify`, then search it for equivalent or conflicting
+     guidance. Test rules belong in `references/tests.md`; every other code rule goes under the
+     matching heading in `SKILL.md`. the short bar in `ai/AGENTS.md` only points at it.
+   - For cross-project judgment outside the `simplify` bar, read `think-like-brad`, strengthen
      an existing rule or add one under the matching task heading. Strengthen an existing rule
      before adding another, and replace superseded guidance when newer explicit feedback conflicts,
      so the rule keeps one home.
