@@ -185,7 +185,7 @@ Review the repo with these lenses:
   - stale items: pinned versions long past, references to renamed or removed upstreams
   - visual bugs or hard-to-use tools and shortcuts; prefer ergonomics
   - performance: compare the benchmark above against the baseline noted in CLAUDE.md's
-    Fish section. Meaningful drift (not run-to-run noise) is worth investigating — a
+    Shell startup section. Meaningful drift (not run-to-run noise) is worth investigating — a
     newly-sourced tool init, a completion path added to fish_complete_path without
     caching, a lazy-load pattern in dot-zshrc that stopped being lazy. Update the noted
     baseline in CLAUDE.md only when you've also fixed or explained the drift, never just
@@ -224,7 +224,7 @@ outcome and is preferred over churn.
 
 If multiple, completely different things are worth doing, create separate bookmarks and PRs against main.
 
-Before finalizing, invoke the simplify skill and apply it to every diff you are leaving behind.
+Before finalizing, reread every diff you are leaving behind against the Code section of AGENTS.md.
 It is a gate, not a judgment call, and its comments pass matters most: these nightly PRs keep
 arriving full of comments that narrate the change instead of earning their place.
 PROMPT
