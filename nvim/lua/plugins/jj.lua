@@ -1,15 +1,7 @@
 local exeExists = vim.fn.executable("jj") ~= 0
 
 function JJ_exists()
-  if not exeExists then
-    return false
-  end
-
-  local root = vim.fn.system({ "jj", "root" })
-  if vim.v.shell_error ~= 0 or root == "" then
-    return false
-  end
-  return true
+  return exeExists and vim.fs.root(vim.fn.getcwd(), ".jj") ~= nil
 end
 
 return {
@@ -28,9 +20,10 @@ return {
       opts.on_attach = function(bufnr)
         local filepath = vim.api.nvim_buf_get_name(bufnr)
         if filepath ~= "" then
-          local dir = vim.fn.fnamemodify(filepath, ":h")
-          local result = vim.system({ "jj", "root" }, { cwd = dir }):wait()
-          if result.code == 0 then
+          -- Walk up for the .jj marker instead of blocking on a `jj root`
+          -- fork+exec per buffer attach (7.8ms here), the same trade dot-zshrc
+          -- and fish/conf.d/04-jj-workspace.fish already made.
+          if vim.fs.root(vim.fs.dirname(filepath), ".jj") then
             return false -- JJ repo: let jj-signs handle it
           end
         end
