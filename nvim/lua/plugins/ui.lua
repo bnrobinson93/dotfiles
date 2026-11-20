@@ -76,7 +76,9 @@ return {
 
   {
     "preservim/vim-pencil",
-    ft = { "text", "markdown" },
+    -- Must cover every filetype config/autocmds.lua calls pencil#init() for: one
+    -- missing here never loads the plugin, and the call raises E117 instead.
+    ft = { "text", "markdown", "mkd", "git", "gitcommit", "gitsendemail", "mail", "html", "xml" },
     init = function()
       vim.g["pencil#wrapModeDefault"] = "soft"
       vim.g["pencil#textwidth"] = 120
