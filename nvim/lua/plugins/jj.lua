@@ -1,33 +1,47 @@
 local exeExists = vim.fn.executable("jj") ~= 0
 
+local function start_path()
+  local arg = vim.fn.argv(0)
+  if type(arg) == "string" and arg ~= "" then
+    return vim.fn.fnamemodify(arg, ":p")
+  end
+  return vim.fn.getcwd()
+end
+
+local function detect_vcs(path)
+  if exeExists and vim.fs.root(path, ".jj") then
+    return "jj"
+  end
+  if vim.fs.root(path, ".git") then
+    return "git"
+  end
+  return nil
+end
+
 function JJ_exists()
-  return exeExists and vim.fs.root(vim.fn.getcwd(), ".jj") ~= nil
+  return detect_vcs(start_path()) == "jj"
 end
 
 return {
   {
     "bnrobinson93/jj-signs.nvim",
     event = "LazyFile",
+    cond = JJ_exists,
     opts = {},
   },
 
-  -- Prevent gitsigns from attaching in JJ repos — jj-signs handles signs there.
-  -- Wraps LazyVim's on_attach so keymaps still apply for pure-git repos.
   {
     "lewis6991/gitsigns.nvim",
+    cond = function()
+      return detect_vcs(start_path()) == "git"
+    end,
     opts = function(_, opts)
       local lazyvim_on_attach = opts.on_attach
       opts.on_attach = function(bufnr)
         local filepath = vim.api.nvim_buf_get_name(bufnr)
-        if filepath ~= "" then
-          -- Walk up for the .jj marker instead of blocking on a `jj root`
-          -- fork+exec per buffer attach (7.8ms here), the same trade dot-zshrc
-          -- and fish/conf.d/04-jj-workspace.fish already made.
-          if vim.fs.root(vim.fs.dirname(filepath), ".jj") then
-            return false -- JJ repo: let jj-signs handle it
-          end
+        if filepath ~= "" and detect_vcs(filepath) ~= "git" then
+          return false
         end
-        -- Pure git repo: run LazyVim's on_attach (sets keymaps etc.)
         if lazyvim_on_attach then
           return lazyvim_on_attach(bufnr)
         end

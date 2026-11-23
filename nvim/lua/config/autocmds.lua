@@ -3,21 +3,19 @@
 
 local autocmd = vim.api.nvim_create_autocmd
 
--- Spell checking for text files + PencilSoft
 if not vim.g.vscode then
-  vim.cmd([[
-augroup pencil
-  autocmd!
-  autocmd FileType markdown,mkd,text
-                            \   call pencil#init({'wrap': 'soft'})
-                            \ | setl spell spl=en_us fdl=4 
-                            \ | setl fdo+=search
-  autocmd Filetype git,gitsendemail,*commit*,*COMMIT*
-                            \   call pencil#init({'wrap': 'hard', 'textwidth': 72})
-  autocmd Filetype mail         call pencil#init({'wrap': 'hard', 'textwidth': 60})
-  autocmd Filetype html,xml     call pencil#init({'wrap': 'soft'})
-augroup END
-]])
+  autocmd("FileType", {
+    group = vim.api.nvim_create_augroup("ProseWrap", { clear = true }),
+    pattern = { "markdown", "text" },
+    callback = function()
+      vim.opt_local.textwidth = 0
+      vim.opt_local.colorcolumn = ""
+      vim.opt_local.breakindent = true
+      vim.opt_local.conceallevel = 1
+      vim.opt_local.spelllang = "en_us"
+      vim.opt_local.foldlevel = 4
+    end,
+  })
 
   -- YAML: Per-buffer timer tracking to prevent leaks
   local yaml_timers = {}
