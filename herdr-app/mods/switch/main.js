@@ -11,8 +11,85 @@ import { spaces, run, exec, home, theme, props, closeOverlay } from "herdr";
 const PINNED = [".dotfiles", "Documents/Vault", "Documents/code"];
 // Suffixes jj hands an agent workspace.
 const BLACKLIST = [/-(ai[0-9]*|orch.*|exp|explore)$/];
+const IGNORED_SEPS = /[-_.]+/g;
+const BOUNDARY_CHARS = "/-_. ";
+
 const blacklisted = (name) => BLACKLIST.some((re) => re.test(name));
 const base = (p) => p.replace(/\/+$/, "").split("/").pop();
+
+function shortPath(p, h) {
+  if (!p) return "";
+  if (p === h) return "~";
+  return p.startsWith(`${h}/`) ? `~${p.slice(h.length)}` : p;
+}
+
+function fuzzyScore(q, target, tl) {
+  const m = q.length;
+  const n = target.length;
+  if (!m || m > n) return null;
+
+  let qi = 0;
+  for (let i = 0; i < n && qi < m; i++) {
+    if (tl[i] === q[qi]) qi++;
+  }
+  if (qi < m) return null;
+
+  const bonus = new Float64Array(n);
+  for (let j = 0; j < n; j++) {
+    if (j === 0 || BOUNDARY_CHARS.includes(target[j - 1])) bonus[j] = 10;
+    else if (target[j] >= "A" && target[j] <= "Z" && target[j - 1] >= "a" && target[j - 1] <= "z") bonus[j] = 8;
+  }
+
+  let prev = new Float64Array(n).fill(-Infinity);
+  let curr = new Float64Array(n);
+  for (let j = 0; j < n; j++) {
+    if (tl[j] === q[0]) prev[j] = j * -0.1 + bonus[j];
+  }
+
+  for (let i = 1; i < m; i++) {
+    const ch = q[i];
+    curr.fill(-Infinity, 0, i);
+    let bestGap = -Infinity;
+    for (let j = i; j < n; j++) {
+      if (j >= 2) bestGap = Math.max(bestGap - 1, prev[j - 2] - 3);
+      curr[j] = tl[j] === ch ? Math.max(prev[j - 1] + 15, bestGap + bonus[j]) : -Infinity;
+    }
+    [prev, curr] = [curr, prev];
+  }
+
+  let best = -Infinity;
+  for (let j = m - 1; j < n; j++) {
+    const s = prev[j] + (n - 1 - j) * -0.1;
+    if (s > best) best = s;
+  }
+  return best;
+}
+
+function scoreToken(tok, target) {
+  const core = tok.replace(IGNORED_SEPS, "") || tok;
+  const tl = target.toLowerCase();
+  const score = fuzzyScore(core, target, tl);
+  if (score === null) return null;
+  if (tl.includes(tok)) return score + 10 + 8 * (tok.length - core.length);
+  return score;
+}
+
+function scoreRow(tokens, r, h) {
+  const name = r.name ?? "";
+  const path = shortPath(r.folder ?? r.path ?? "", h);
+  let total = r.kind === "space" ? 6 : 0;
+  for (const tok of tokens) {
+    const nameScore = scoreToken(tok, name);
+    if (nameScore !== null) { total += nameScore + 40; continue; }
+    const pathScore = path ? scoreToken(tok, path) : null;
+    if (pathScore !== null) { total += pathScore; continue; }
+    const combinedScore = r.kind === "space" && path ? scoreToken(tok, `${name} ${path}`) : null;
+    if (combinedScore === null) return null;
+    total += combinedScore - 10;
+  }
+  if (tokens.length === 1 && name.toLowerCase() === tokens[0]) total += 10;
+  return total;
+}
 
 export default class Switch extends View {
   init(_props, cx) {
@@ -52,13 +129,20 @@ export default class Switch extends View {
   }
 
   rows() {
-    const f = this.filter.toLowerCase();
+    const tokens = this.filter.trim().toLowerCase().split(/\s+/).filter(Boolean);
     const sp = spaces().map((p) => ({ kind: "space", id: p.id, name: p.name, folder: p.folder, status: p.status, active: p.active }));
     const spaceFolders = new Set(sp.map((s) => s.folder).filter(Boolean));
     const fo = this.folders
       .filter((d) => !spaceFolders.has(d.path))
       .map((d) => ({ kind: "folder", ...d }));
-    return [...sp, ...fo].filter((r) => !f || `${r.name} ${r.folder ?? r.path}`.toLowerCase().includes(f));
+    const all = [...sp, ...fo];
+    if (!tokens.length) return all;
+    const h = home();
+    return all
+      .map((r) => ({ r, score: scoreRow(tokens, r, h) }))
+      .filter((x) => x.score !== null)
+      .sort((a, b) => b.score - a.score)
+      .map((x) => x.r);
   }
 
   pickable() { return this.rows(); }
@@ -83,6 +167,7 @@ export default class Switch extends View {
 
   render() {
     const t = theme();
+    const h = home();
     const rows = this.pickable();
     this.at = Math.max(0, Math.min(this.at, rows.length - 1));
     const sel = rows[this.at];
@@ -97,7 +182,7 @@ export default class Switch extends View {
         .on_click(() => this.go(r))
         .child(this.glyph(t, r))
         .child(div().flex_1().truncate().text_color(t.foreground).when(r.active, (d) => d.font_semibold()).child(r.name))
-        .child(div().text_size(11).text_color(t.dim).truncate().child(r.kind === "space" ? "space" : (r.path.startsWith(home()) ? "~" + r.path.slice(home().length) : r.path)));
+        .child(div().text_size(11).text_color(t.dim).truncate().child(r.kind === "space" ? "space" : shortPath(r.path, h)));
     };
 
     return v_flex()
