@@ -6,10 +6,6 @@ vim.opt.confirm = false
 
 local opt = vim.opt
 
--- Your custom options from sets/set.lua
--- opt.conceallevel = 1 -- For Obsidian
-vim.cmd([[let g:pencil#conceallevel = 1]])
-
 opt.spell = true
 vim.cmd([[set spelloptions+=camel]])
 -- Pin where `zg`/`zw` write additions (also harper-ls userDictPath) so it's

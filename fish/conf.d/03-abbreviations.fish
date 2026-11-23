@@ -1,6 +1,5 @@
 abbr -a vi $EDITOR
 
-# command -v, not type -q: type -q is measurably slower at startup.
 command -v kubectl >/dev/null 2>&1 && begin
     abbr -a k kubectl
     abbr -a kgp 'kubectl get pods'
