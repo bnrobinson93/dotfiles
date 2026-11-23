@@ -4,8 +4,6 @@ set -u
 # source[@ref][#skill]|ownership(default: managed)|harnesses(default: shared)
 # shared = Claude Code, Codex, and OpenCode. manual entries are inventory-only.
 # Pi is not a target: it reads ~/.agents/skills itself, where the CLI already installs.
-# caveman is installed as a Claude Code plugin (JuliusBrussee/caveman), not here,
-# so it is not duplicated across ~/.agents and the plugin cache.
 # ponytail lives in the simplify skill; ryan-review/sara-review carry their own self-contained instincts.
 SKILLS=(
   "vercel-labs/skills#find-skills||shared"
@@ -85,17 +83,6 @@ try_quiet() {
   "$@" >/dev/null 2>&1
 }
 
-backup_conflicting_path() {
-  local target="$1"
-  if [[ ! -e "$target" && ! -L "$target" ]] || [[ -L "$target" ]]; then
-    return 0
-  fi
-
-  local backup_target="${target}.pre-dotfiles.$(date +%Y%m%d%H%M%S).bak"
-  printf 'Backing up existing %s to %s\n' "$(basename "$target")" "$backup_target"
-  mv "$target" "$backup_target"
-}
-
 verify_prerequisites() {
   local tool
   for tool in stow jq npx; do
@@ -107,9 +94,20 @@ verify_prerequisites() {
   [[ "$failures" -eq 0 ]]
 }
 
+# stow -R only revisits files still in the package, so anything deleted from ai/ leaves
+# dangling links in every root. Check via readlink rather than GNU-only `find -xtype`.
+prune_dangling_ai_link() {
+  local candidate="$1"
+  local target
+  if [[ -L "$candidate" && ! -e "$candidate" ]]; then
+    target=$(readlink "$candidate")
+    [[ "$target" == */ai/* ]] && rm -f "$candidate"
+  fi
+}
+
 deploy_local_ai() {
-  # Pi reads ~/.pi/agent/AGENTS.md and ~/.pi/agent/skills, so it takes the same
-  # shared payload as the others; its agents then need no cross-harness paths.
+  # Pi reads ~/.pi/agent/skills, so it takes the same shared payload as the others;
+  # its agents then need no cross-harness paths.
   local roots=("$claude_home" "$codex_home" "$opencode_home" "$pi_agent_home")
   # --no-folding keeps <root>/skills a real directory. Folded, it is one symlink back
   # into ai/skills, and every managed skill the skills CLI installs for Claude Code
@@ -118,16 +116,11 @@ deploy_local_ai() {
     --no-folding
     --ignore=dot-codex
     --ignore=dot-claude
-    --ignore=dot-config
     --ignore=dot-pi
   )
-  local root
+  local root link
 
   try mkdir -p "${roots[@]}" || true
-  for root in "${roots[@]}"; do
-    backup_conflicting_path "$root/AGENTS.md"
-    backup_conflicting_path "$root/CLAUDE.md"
-  done
   # Codex and Herdr own these mutable files; remove legacy Stow links only.
   try_quiet stow -D -d "$script_dir/ai" -t "$codex_home" dot-codex || true
 
@@ -136,17 +129,19 @@ deploy_local_ai() {
   done
   try stow -R -d "$script_dir/ai" -t "$claude_home" dot-claude || true
   try stow -R -d "$script_dir/ai" -t "$pi_agent_home" dot-pi || true
-  # dot-config carries ~/.config/caveman/config.json, which sets defaultMode off and makes
-  # the compressed register opt-in per session. The wrapper package supplies the caveman/
-  # path segment, since stow places a package's contents directly into the target. The
-  # plugin only reads that file, so the symlink is safe.
-  try stow -R -d "$script_dir/ai" --no-folding -t "$xdg_config_home" dot-config || true
-  # stow -R only revisits files still in the package, so a skill deleted from ai/ leaves
-  # its links dangling in every root. Drop the ones that point back into ai/.
+
   for root in "${roots[@]}"; do
-    find "$root/skills" -xtype l -lname '*/ai/*' -delete 2>/dev/null || true
+    for link in "$root/AGENTS.md" "$root/CLAUDE.md"; do
+      prune_dangling_ai_link "$link"
+    done
+    [[ -d "$root/skills" ]] || continue
+    while IFS= read -r -d '' link; do
+      prune_dangling_ai_link "$link"
+    done < <(find "$root/skills" -type l -print0 2>/dev/null)
     find "$root/skills" -mindepth 1 -type d -empty -delete 2>/dev/null || true
   done
+  prune_dangling_ai_link "$xdg_config_home/caveman/config.json"
+  rmdir "$xdg_config_home/caveman" 2>/dev/null || true
 }
 
 install_pi_packages() {

@@ -9,7 +9,7 @@ description: >-
 # Learn Preferences
 
 Turn user-authored feedback into one durable lesson with its rationale. Each lesson lands in
-exactly one of four homes:
+exactly one of three homes:
 
 | Home | Holds |
 | --- | --- |
@@ -67,7 +67,7 @@ This skill owns capture and routing. The preference list itself lives in those h
 4. Update each lesson's canonical home once.
    - For cross-project style, read `simplify`, then search it for equivalent or conflicting
      guidance. Test rules belong in `references/tests.md`; every other code rule goes under the
-     matching heading in `SKILL.md`. the short bar in `ai/AGENTS.md` only points at it.
+     matching heading in `SKILL.md`.
    - For cross-project judgment outside the `simplify` bar, read `think-like-brad`, strengthen
      an existing rule or add one under the matching task heading. Strengthen an existing rule
      before adding another, and replace superseded guidance when newer explicit feedback conflicts,

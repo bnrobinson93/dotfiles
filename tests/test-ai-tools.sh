@@ -88,8 +88,9 @@ EOF
 
   run_updater "$case_dir"
 
-  assert_contains "$case_dir/commands" "claude plugin marketplace add JuliusBrussee/caveman"
-  assert_contains "$case_dir/commands" "claude plugin install caveman@caveman --scope user"
+  assert_contains "$case_dir/commands" "claude plugin marketplace add anthropics/claude-plugins-official"
+  assert_contains "$case_dir/commands" "claude plugin install gopls-lsp@claude-plugins-official --scope user"
+  assert_not_contains "$case_dir/commands" "caveman"
   assert_contains "$case_dir/commands" "npx -y skills add mattpocock/skills"
   assert_contains "$case_dir/commands" "pi install npm:@mjakl/pi-subagent"
   assert_contains "$case_dir/commands" "stow -R -d $repo_dir/ai -t $case_dir/home/.pi/agent dot-pi"
@@ -100,14 +101,24 @@ EOF
 
 test_rerun_removes_only_stale_resolved_skills() {
   local case_dir="$test_root/rerun"
-  mkdir -p "$case_dir/state/skills" "$case_dir/state/dotfiles"
+  mkdir -p \
+    "$case_dir/state/skills" \
+    "$case_dir/state/dotfiles" \
+    "$case_dir/home/.claude/skills/code-quality/references" \
+    "$case_dir/home/.claude/skills/other" \
+    "$case_dir/home/.config/caveman"
+  ln -s "../../.dotfiles/ai/AGENTS.md" "$case_dir/home/.claude/AGENTS.md"
+  ln -s "../../.dotfiles/ai/CLAUDE.md" "$case_dir/home/.claude/CLAUDE.md"
+  ln -s "../../../../.dotfiles/ai/skills/code-quality/references/tests.md" \
+    "$case_dir/home/.claude/skills/code-quality/references/tests.md"
+  ln -s "/nonexistent/external/SKILL.md" "$case_dir/home/.claude/skills/other/SKILL.md"
+  ln -s "../../.dotfiles/ai/dot-config/caveman/config.json" \
+    "$case_dir/home/.config/caveman/config.json"
   cat >"$case_dir/state/skills/.skill-lock.json" <<'EOF'
 {
   "skills": {
-    "caveman": {"source": "JuliusBrussee/caveman"},
     "find-skills": {"source": "vercel-labs/skills"},
     "figma": {"source": "openai/skills"},
-    "ponytail": {"source": "DietrichGebert/ponytail"},
     "hunk-review": {"source": "modem-dev/hunk"},
     "teach": {"source": "mattpocock/skills"},
     "tuicr": {"source": "agavra/tuicr"}
@@ -126,6 +137,11 @@ EOF
   assert_contains "$case_dir/commands" "npx -y skills remove retired-skill -g -a opencode -y"
   assert_not_contains "$case_dir/commands" "skills remove teach"
   assert_not_contains "$case_dir/state/dotfiles/managed-skills.tsv" "retired-skill"
+  [[ ! -L "$case_dir/home/.claude/AGENTS.md" ]] || fail "dangling AGENTS.md link remained"
+  [[ ! -L "$case_dir/home/.claude/CLAUDE.md" ]] || fail "dangling CLAUDE.md link remained"
+  [[ ! -e "$case_dir/home/.claude/skills/code-quality" ]] || fail "empty code-quality dir remained"
+  [[ ! -e "$case_dir/home/.config/caveman" ]] || fail "empty caveman config dir remained"
+  [[ -L "$case_dir/home/.claude/skills/other/SKILL.md" ]] || fail "non-ai dangling link was removed"
 }
 
 test_failed_update_preserves_snapshot_and_skips_removal() {

@@ -7,7 +7,7 @@ ssh) and `mise run skills` (AI config, skills, plugins); `mise tasks` lists the 
   `~`, both with `--dotfiles`. Dry-run with `stow -v2 -n <pkg>`.
 - `.stowrc` is a denylist and `stow .` walks the whole repo root, so anything new at the root
   that is not a config package lands in `~/.config` until it gets an `--ignore` line. Each
-  pattern must match a single basename and must never match `CLAUDE.md` or `AGENTS.md`:
+  pattern must match a single basename and must not match anything inside `ai/`:
   `update-skills.sh` stows `ai/` with the repo root as cwd, so these ignores reach that run too.
 - Persistent fish functions live in `fish/functions/`. `install.sh` deletes `~/.config/fish`
   before restowing, so a file only there is lost.

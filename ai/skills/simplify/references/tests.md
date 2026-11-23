@@ -45,6 +45,9 @@ holds.
 - Exercise ordinary user gestures as behavior. When Enter, Space, click, Escape, or a native form
   gesture is part of the supported path, cover that gesture through the user-facing flow and assert
   the resulting visible state and side effect, not only the handler or submit function.
+- When asserting that a delayed UI affordance stays absent after hover or focus, wait longer than
+  its open delay before asserting; an immediate absence check can pass before the affordance has had
+  a chance to appear.
 - When removing visual styling during review, preserve the existing behavior unless the requirement
   changed; keep a focused behavior test so style cleanup cannot delete the check.
 - Do not keep or extract a production function solely to unit-test it. Prefer readable inline logic
