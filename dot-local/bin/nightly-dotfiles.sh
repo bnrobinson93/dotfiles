@@ -171,8 +171,8 @@ echo "--- claude review ---"
 jj new 'trunk()' -m "ai: nightly dotfiles review" 2>&1 | grep -v '^Hint:'
 
 PROMPT_TEMPLATE=$(cat <<'PROMPT'
-You are doing an unattended nightly review of this dotfiles repository. Follow AGENTS.md
-and CLAUDE.md. The working copy is a fresh commit on top of trunk; make your changes
+You are doing an unattended nightly review of this dotfiles repository. Follow AGENTS.md.
+The working copy is a fresh commit on top of trunk; make your changes
 directly in the tree.
 
 Shell startup benchmark measured with hyperfine just before this run:
@@ -184,11 +184,11 @@ Review the repo with these lenses:
   - simplification: hand-rolled logic a tool already does, redundant layers of indirection
   - stale items: pinned versions long past, references to renamed or removed upstreams
   - visual bugs or hard-to-use tools and shortcuts; prefer ergonomics
-  - performance: compare the benchmark above against the baseline noted in CLAUDE.md's
-    Fish section. Meaningful drift (not run-to-run noise) is worth investigating — a
+  - performance: compare the benchmark above against the baseline noted in AGENTS.md's
+    Shell startup section. Meaningful drift (not run-to-run noise) is worth investigating — a
     newly-sourced tool init, a completion path added to fish_complete_path without
     caching, a lazy-load pattern in dot-zshrc that stopped being lazy. Update the noted
-    baseline in CLAUDE.md only when you've also fixed or explained the drift, never just
+    baseline in AGENTS.md only when you've also fixed or explained the drift, never just
     to make the number match.
   - fish/zsh alignment: this user drives fish day-to-day and keeps zsh maintained as a
     fallback, and prefers POSIX-compliant shell constructs where the two must share
