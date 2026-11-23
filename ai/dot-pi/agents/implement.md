@@ -1,8 +1,8 @@
 ---
 name: implement
 description: Implement an approved Matt-style spec in an independent writable context.
-model: openai/gpt-5.6-luna
-thinking: xhigh
+model: virtru-vertex/gemini-4-neon
+thinking: high
 tools: read,bash,edit,write,grep,find,ls
 inactivityTimeout: 900
 sessionPreference: ephemeral
