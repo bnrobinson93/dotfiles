@@ -1,8 +1,8 @@
 ---
 name: grill-me-with-docs
 description: Persistent Matt-style interview that sharpens an effort and writes its domain docs.
-model: anthropic/claude-opus-5-5
-thinking: medium
+model: virtru-vertex/gemini-4-neon
+thinking: high
 tools: read,bash,edit,write,grep,find,ls
 inactivityTimeout: 600
 sessionPreference: persistent

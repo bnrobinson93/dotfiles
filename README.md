@@ -163,7 +163,7 @@ chsh -s /bin/zsh
 # Install fisher plugin manager:
 curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
 # Install fish plugins (node/go/etc come from mise, not nvm):
-fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish bnrobinson93/jj-agent
+fisher install PatrickF1/fzf.fish edc/bass catppuccin/fish
 # Set as default shell:
 chsh -s $(which fish)
 

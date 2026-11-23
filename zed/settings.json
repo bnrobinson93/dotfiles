@@ -16,8 +16,8 @@
   "agent_servers": {
     "pi-acp": {
       "default_config_options": {
-        "thought_level": "medium",
-        "model": "anthropic/claude-sonnet-5-5"
+        "thought_level": "xhigh",
+        "model": "openai/gpt-6-luna"
       },
       "type": "registry"
     }
