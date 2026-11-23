@@ -73,8 +73,8 @@ Apply every rule below to the diff.
 - When a disabled state already communicates that an action is unavailable, do not add a spinner
   unless the user needs progress information beyond the disabled state.
 
-- When wrapping a design-system component, intersect its props instead of duplicating them, and
-  let documented defaults do the work. Keep only behavior-specific props and overrides.
+- When wrapping a design-system component, intersect its props instead of duplicating them; keep
+  only behavior-specific props and overrides.
 
 - Keep security fixes focused on the requested behavior. Do not add logger injection, logging-only
   tests, or other observability seams unless the logging behavior is part of the contract; they

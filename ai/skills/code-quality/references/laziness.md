@@ -31,6 +31,7 @@ patching only the path the ticket names leaves every sibling caller broken.
 - Build the abstraction when it was asked for, and not before.
 - Solve it with what the project already depends on.
 - Deletion over addition. Boring over clever. Fewest files possible.
+- Omit options, props, and settings that already match the active default; keep only explicit overrides so every configured line marks an intentional divergence.
 - Keep pagination bounded in the database. Do not replace a count plus `LIMIT`/`OFFSET` with an unbounded fetch and in-memory slice just to save a query; the extra read is less safe.
 - Question a complex request: "Do you actually need X, or does Y cover it?"
 - When two stdlib approaches are the same size, take the edge-case-correct one. Lazy means less

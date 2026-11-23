@@ -73,13 +73,4 @@ return {
   { "smjonas/inc-rename.nvim", opts = {
     input_buffer_type = "noice",
   } },
-
-  {
-    "preservim/vim-pencil",
-    ft = { "text", "markdown" },
-    init = function()
-      vim.g["pencil#wrapModeDefault"] = "soft"
-      vim.g["pencil#textwidth"] = 120
-    end,
-  },
 }
