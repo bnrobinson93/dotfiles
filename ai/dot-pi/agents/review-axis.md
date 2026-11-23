@@ -1,8 +1,8 @@
 ---
 name: review-axis
 description: One axis of a two-axis code review, run in isolation from the other axis.
-model: anthropic/claude-opus-5-5
-thinking: medium
+model: virtru-vertex/gemini-4-neon
+thinking: high
 tools: read,bash,grep,find,ls
 inactivityTimeout: 600
 sessionPreference: ephemeral
