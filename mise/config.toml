@@ -1,4 +1,7 @@
 
+[env]
+NODE_OPTIONS = "--use-system-ca"
+
 [settings]
 idiomatic_version_file_enable_tools = ["node", "ruby", "terraform"]
 
@@ -32,7 +35,7 @@ pi = "latest"
 opencode = "latest"
 herdr = "latest"
 atuin = "18.23.0"
-pnpm = "latest"
+"npm:pnpm" = "latest"
 
 # Dotfiles tasks — runnable from anywhere: `mise run stow`, `mise run skills`, ...
 # install.sh should shrink into these over time.
