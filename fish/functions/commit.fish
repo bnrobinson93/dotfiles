@@ -42,8 +42,6 @@ function commit --description 'AI-generated commit message'
     if test -n "$custom_message"
         set commit_message $custom_message
     else if type -q pi
-        set -l pi_model openai/gpt-5.6-luna
-
         echo "✓ Generating commit message..."
 
         set -l max_diff_bytes 20000
@@ -70,7 +68,7 @@ Rules:
 ## Diff
 $truncated_diff"
 
-        set commit_message (printf "%s" "$prompt" | pi --model $pi_model --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print 2>/dev/null | string collect)
+        set commit_message (printf "%s" "$prompt" | __pi_oneshot 2>/dev/null | string collect)
 
         # Extract the first Conventional Commit subject; models sometimes add analysis or markdown.
         set commit_message (printf "%s" "$commit_message" | awk '
