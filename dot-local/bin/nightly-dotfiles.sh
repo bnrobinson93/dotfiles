@@ -32,7 +32,7 @@ set -uo pipefail
 
 # Shims last: the names ahead of them must keep resolving to the same binary, and the
 # review's --allowed-tools below assumes mise-managed hyperfine and shellcheck resolve.
-export PATH="$HOME/.local/bin:$HOME/opt/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.local/share/mise/shims"
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/home/linuxbrew/.linuxbrew/bin:$HOME/.local/share/mise/shims"
 export GH_REPO="${GH_REPO:-bnrobinson93/dotfiles}"
 # Cron skips the shell rc that exports this, and gh's keyring token is stale, so
 # every gh call 401s without it.
