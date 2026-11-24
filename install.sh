@@ -121,8 +121,7 @@ brew install dust eza fd uutils-coreutils danielgatis/imgcat/imgcat
 echo "Deploying AI config and updating skills/plugins..."
 "$PWD/update-skills.sh" || true
 
-# WARN: mise owns herdr; the installer at herdr.dev writes ~/.local/bin/herdr,
-# which stow may have folded into a symlink back at dot-local/bin.
+# WARN: mise owns herdr; the herdr.dev installer writes a second copy to ~/.local/bin/herdr.
 echo Setting up Herdr integrations...
 if command -v herdr >/dev/null 2>&1; then
   herdr integration install claude
