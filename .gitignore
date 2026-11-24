@@ -9,9 +9,6 @@ Code/User/mcp.json
 Code/User/snippets/
 Code/User/sync/
 Code/User/workspaceStorage/
-dot-local/bin/claude
-dot-local/bin/fabric
-dot-local/bin/mise
 fish/completions/*
 !fish/completions/ghpr.fish
 fish/conf.d/fish_frozen_key_bindings.fish
@@ -43,7 +40,6 @@ herdr/session-history.json
 herdr/plugins.json
 herdr/.plugins.lock
 herdr/plugins/github/
-dot-local/bin/herdr
 
 # herdr rewrites this on every integration update; managed there, not here.
 ai/dot-claude/hooks/herdr-agent-state.sh

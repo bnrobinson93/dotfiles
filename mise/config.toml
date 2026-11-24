@@ -50,7 +50,7 @@ run = [
   "for config in herdr/plugins/config/*/; do if [ -d \"$config\" ]; then mkdir -p \"$HOME/.config/herdr/plugins/config/$(basename \"$config\")\"; fi; done",
   "stow -v2 .",
   "stow -v2 starship",
-  "stow -v2 -t ~/.local -R dot-local --dotfiles",
+  "stow -v2 --no-folding -t ~/.local -R dot-local --dotfiles",
   "stow -v2 -t ~ -R zsh --dotfiles",
   "stow -v2 -t ~/.ssh -R dot-ssh --dotfiles",
   "$HOME/.local/bin/herdr-omarchy-theme || true",

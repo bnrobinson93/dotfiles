@@ -149,7 +149,7 @@ stow -v2 .
 stow -v2 starship
 
 # Deploy local scripts to ~/.local/bin
-stow -v2 -t ~/.local -S dot-local --dotfiles
+stow -v2 --no-folding -t ~/.local -S dot-local --dotfiles
 
 # Deploy shell config (choose one):
 
