@@ -17,7 +17,6 @@ set -l bin_dirs \
     $HOME/.rd/bin \
     $HOME/.docker/bin \
     $HOME/.cargo/bin \
-    $HOME/.atuin/bin \
     $HOME/go/bin \
     $HOME/.bun/bin \
     $HOME/.opencode/bin
