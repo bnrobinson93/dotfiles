@@ -19,8 +19,6 @@
 --ignore=.github
 --ignore=^\.jj$
 --ignore=.vscode
---ignore=docs
---ignore=reference
 --ignore=ai-cleanup.sh
 --ignore=colortest.sh
 --ignore=install.sh

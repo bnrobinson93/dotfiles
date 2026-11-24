@@ -1,7 +1,7 @@
 ---
 name: grill-me-with-docs
 description: Persistent Matt-style interview that sharpens an effort and writes its domain docs.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: high
 tools: read,bash,edit,write,grep,find,ls
 inactivityTimeout: 600
