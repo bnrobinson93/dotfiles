@@ -55,6 +55,11 @@ skill_lock="${skill_lock:-$HOME/.agents}/.skill-lock.json"
 known_marketplaces="$claude_home/plugins/known_marketplaces.json"
 installed_plugins="$claude_home/plugins/installed_plugins.json"
 profile_marker="$xdg_config_home/dotfiles/profile"
+vault_skills_dir="${VAULT_SKILLS_DIR:-$HOME/Documents/Vault/.agents/skills}"
+home_repo_dir="${HOME_REPO_DIR:-$HOME/Documents/code/home}"
+home_skills_dir="$home_repo_dir/.agents/skills"
+home_local_dir="$home_repo_dir/.agents/local"
+ai_local_dir="$xdg_config_home/ai-local"
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -94,54 +99,97 @@ verify_prerequisites() {
   [[ "$failures" -eq 0 ]]
 }
 
-# stow -R only revisits files still in the package, so anything deleted from ai/ leaves
-# dangling links in every root. Check via readlink rather than GNU-only `find -xtype`.
-prune_dangling_ai_link() {
+# Remove dangling links owned by our managed skill and addendum roots.
+prune_managed_ai_link() {
   local candidate="$1"
   local target
-  if [[ -L "$candidate" && ! -e "$candidate" ]]; then
-    target=$(readlink "$candidate")
-    [[ "$target" == */ai/* ]] && rm -f "$candidate"
+  [[ -L "$candidate" && ! -e "$candidate" ]] || return 0
+  target=$(readlink "$candidate")
+  case "$target" in
+    */ai/* | "$vault_skills_dir/"* | "$home_repo_dir/.agents/"*)
+      rm -f "$candidate"
+      ;;
+  esac
+}
+
+link_skill_source() {
+  local source_dir="$1"
+  shift
+  local root skill_dir skill_name dest
+
+  for skill_dir in "$source_dir"/*/; do
+    [[ -f "${skill_dir}SKILL.md" ]] || continue
+    skill_name=$(basename "$skill_dir")
+    for root in "$@"; do
+      mkdir -p "$root/skills"
+      dest="$root/skills/$skill_name"
+      if [[ -e "$dest" && ! -L "$dest" ]]; then
+        warn "refusing to replace non-symlink skill dir: $dest"
+        continue
+      fi
+      ln -sfn "${skill_dir%/}" "$dest"
+    done
+  done
+}
+
+sync_local_addenda() {
+  local link file
+
+  if [[ -d "$ai_local_dir" ]]; then
+    while IFS= read -r -d '' link; do
+      prune_managed_ai_link "$link"
+    done < <(find "$ai_local_dir" -maxdepth 1 -type l -print0 2>/dev/null)
   fi
+
+  if [[ ! -d "$home_local_dir" ]]; then
+    rmdir "$ai_local_dir" 2>/dev/null || true
+    return 0
+  fi
+
+  mkdir -p "$ai_local_dir"
+  for file in "$home_local_dir"/*.md; do
+    [[ -f "$file" ]] || continue
+    ln -sfn "$file" "$ai_local_dir/$(basename "$file")"
+  done
 }
 
 deploy_local_ai() {
-  # Pi reads ~/.pi/agent/skills, so it takes the same shared payload as the others;
-  # its agents then need no cross-harness paths.
   local roots=("$claude_home" "$codex_home" "$opencode_home" "$pi_agent_home")
-  # --no-folding keeps <root>/skills a real directory. Folded, it is one symlink back
-  # into ai/skills, and every managed skill the skills CLI installs for Claude Code
-  # lands inside this repo.
-  local shared_stow_args=(
-    --no-folding
-    --ignore=dot-codex
-    --ignore=dot-claude
-    --ignore=dot-pi
-  )
   local root link
 
   try mkdir -p "${roots[@]}" || true
   # Codex and Herdr own these mutable files; remove legacy Stow links only.
   try_quiet stow -D -d "$script_dir/ai" -t "$codex_home" dot-codex || true
 
-  for root in "${roots[@]}"; do
-    try stow -R -d "$script_dir" "${shared_stow_args[@]}" -t "$root" ai || true
-  done
   try stow -R -d "$script_dir/ai" -t "$claude_home" dot-claude || true
   try stow -R -d "$script_dir/ai" -t "$pi_agent_home" dot-pi || true
 
+  # Prune legacy stowed ai/ links and empty skill dirs before linking directory symlinks.
   for root in "${roots[@]}"; do
     for link in "$root/AGENTS.md" "$root/CLAUDE.md"; do
-      prune_dangling_ai_link "$link"
+      prune_managed_ai_link "$link"
     done
     [[ -d "$root/skills" ]] || continue
     while IFS= read -r -d '' link; do
-      prune_dangling_ai_link "$link"
+      prune_managed_ai_link "$link"
     done < <(find "$root/skills" -type l -print0 2>/dev/null)
     find "$root/skills" -mindepth 1 -type d -empty -delete 2>/dev/null || true
   done
-  prune_dangling_ai_link "$xdg_config_home/caveman/config.json"
+  prune_managed_ai_link "$xdg_config_home/caveman/config.json"
   rmdir "$xdg_config_home/caveman" 2>/dev/null || true
+
+  if [[ -d "$vault_skills_dir" ]]; then
+    step "link personal skills from $vault_skills_dir"
+    link_skill_source "$vault_skills_dir" "${roots[@]}"
+  else
+    warn "skill source missing; skipping: $vault_skills_dir"
+  fi
+
+  if [[ -d "$home_skills_dir" ]]; then
+    step "link local home skills from $home_skills_dir"
+    link_skill_source "$home_skills_dir" "${roots[@]}"
+  fi
+  sync_local_addenda
 }
 
 install_pi_packages() {

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Unslop"
-  short_description: "Strip AI tells from human-facing text"
-  default_prompt: "Use $unslop on this text before it goes out."

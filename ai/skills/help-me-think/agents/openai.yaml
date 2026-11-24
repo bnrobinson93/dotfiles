@@ -1,4 +1,0 @@
-interface:
-  display_name: "Help Me Think"
-  short_description: "Explore a spike or ADR with a decision tree, then emit a decision doc and follow-up tickets"
-  default_prompt: "Use $help-me-think to explore options, land a decision doc, and slice follow-up tickets."

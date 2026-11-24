@@ -41,20 +41,25 @@ borrowed mod goes in its `.patch`; an edit only in `~/.config` is lost on the ne
 
 ## Shared AI config (`ai/`)
 
-`update-skills.sh` stows `ai/` into `~/.claude`, `~/.codex`, `~/.config/opencode`, and
-`~/.pi/agent`, so everything here must work without harness-specific paths. Apply the
-`writing-for-agents` skill for any edit under `ai/`.
+`~/.dotfiles/ai/` holds harness bootstrap plumbing (`dot-claude/`, `dot-codex/`, `dot-pi/`).
+Personal cross-machine skills live in `~/Documents/Vault/.agents/skills/` (Syncthing-synced);
+machine-local skills and additive rule files live in `~/Documents/code/home/.agents/`
+(local-only, never synced to the Vault). `update-skills.sh` symlinks both skill layers into
+`~/.claude/skills`, `~/.codex/skills`, `~/.config/opencode/skills`, and `~/.pi/agent/skills`,
+and symlinks local addenda into `~/.config/ai-local/` when present. Apply
+the `writing-for-agents` skill for any edit under `ai/` or in personal skills.
 
 - The code bar loads only through the `simplify` skill description. Anything always-loaded
   (`AGENTS.md`) is paid on every prompt, coding or not.
 - A skill's frontmatter `name` equals its directory name; Claude keys off the directory, the
   others off the frontmatter.
-- Point at reference material as `~/.dotfiles/ai/...`, the one path every harness resolves.
+- Point at personal skill reference material as `~/Documents/Vault/.agents/skills/...` (or
+  `~/.pi/agent/skills/...` inside Pi-specific agents).
 - One rule, one home: `simplify` owns the full bar and every learned code preference,
-  `think-like-brad` owns judgment outside code, project memory owns repo facts.
-  `learn-preferences` routes new rules.
-- A skill its upstream publishes goes in `SKILLS` in `update-skills.sh`, not `ai/skills/`.
-- `ai` stows with `--no-folding`; folded, every skill the skills CLI installs lands in this repo.
+  `think-like-brad` owns judgment outside code, `~/.config/ai-local/` owns work-only addenda,
+  and project memory owns repo facts. `learn-preferences` routes new rules.
+- A skill its upstream publishes goes in `SKILLS` in `update-skills.sh`, not personal or work
+  skill directories.
 - `ai/dot-codex/` files are hand-copied seeds; Codex and Herdr rewrite them in place.
 
 ## Shell startup

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Browser Debug"
-  short_description: "Debug Helium with precise evidence"
-  default_prompt: "Use $browser-debug to reproduce this browser issue and collect precise evidence."

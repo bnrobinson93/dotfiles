@@ -40,14 +40,16 @@ jobs:
 
       - name: Stow ignores do not reach the ai/ payload
         # stow reads .stowrc from the cwd, so the ignore list written for `stow .` also
-        # applies to update-skills.sh's `stow -d . ai`. A pattern matching a name inside
-        # ai/ silently drops what every harness reads, and the smoke job never stows ai/.
+        # applies to update-skills.sh's `stow -d ai dot-claude|dot-pi`. A pattern matching
+        # a name inside ai/ silently drops harness plumbing, and the smoke job skips ai/.
         run: |
           sudo apt-get install -y -q stow
-          mkdir -p /tmp/harness-root
-          stow -n -v3 --no-folding -t /tmp/harness-root ai >/tmp/ai-stow.log 2>&1
-          for entry in 'MKDIR: skills' 'LINK: skills/simplify/SKILL.md'; do
-            grep -qF "$entry" /tmp/ai-stow.log || { echo "ai/ would not deploy: $entry"; exit 1; }
+          mkdir -p /tmp/claude-root /tmp/pi-root
+          stow -n -v3 -d ai -t /tmp/claude-root dot-claude >/tmp/claude-stow.log 2>&1
+          grep -qF 'LINK: hooks' /tmp/claude-stow.log || { echo "ai/dot-claude would not deploy: LINK: hooks"; exit 1; }
+          stow -n -v3 -d ai -t /tmp/pi-root dot-pi >/tmp/pi-stow.log 2>&1
+          for entry in 'LINK: agents' 'LINK: extensions' 'LINK: prompts' 'LINK: skills'; do
+            grep -qF "$entry" /tmp/pi-stow.log || { echo "ai/dot-pi would not deploy: $entry"; exit 1; }
           done
 
   smoke:
