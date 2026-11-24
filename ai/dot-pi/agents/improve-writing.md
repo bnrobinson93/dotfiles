@@ -1,7 +1,7 @@
 ---
 name: improve-writing
 description: Strips AI-generated phrasing, bold-caption bullet walls, and synthetic contrasts from LLM-drafted docs, reshaping them into plain human prose.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: medium
 tools: read,edit,write
 sessionPreference: ephemeral

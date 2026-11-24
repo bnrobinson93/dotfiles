@@ -1,7 +1,7 @@
 ---
 name: writing-coach
 description: Improves Brad's own writing for clarity, natural spoken flow, and readability while preserving voice and structure.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: medium
 tools: read,edit,write
 sessionPreference: ephemeral

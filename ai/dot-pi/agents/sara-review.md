@@ -1,7 +1,7 @@
 ---
 name: sara-review
 description: Independent frontend review; applies the `sara-review` skill, whose description defines its scope.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: medium
 tools: read,bash,grep,find,ls
 inactivityTimeout: 600

@@ -1,7 +1,7 @@
 ---
 name: code-review
 description: Matt two-axis Standards and Spec review in an independent coordinator context.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: high
 tools: read,bash,grep,find,ls,subagent
 inactivityTimeout: 900

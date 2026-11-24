@@ -1,7 +1,7 @@
 ---
 name: implement
 description: Implement an approved Matt-style spec in an independent writable context.
-model: virtru-vertex/gemini-4-neon
+model: google/gemini-4-neon
 thinking: high
 tools: read,bash,edit,write,grep,find,ls
 inactivityTimeout: 900
