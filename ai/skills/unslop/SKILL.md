@@ -52,7 +52,7 @@ Caveman soul comes from exact word choice, rhythm, and specificity. Keep its len
 
 1. **AI vocabulary.** Additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape (abstract), pivotal, showcase, tapestry (abstract), testament, underscore, vibrant. Replace with plain words.
 2. **Fancy ways to say "is".** "serves as", "stands as", "boasts", "features". Just say "is" or "has".
-3. **"Not just X, but Y."** State the point directly instead.
+3. **"Not just X, but Y" and stacked "X, not Y" contrasts.** State the point directly instead ("this is necessary, not desirable", "matching mounts, gating doesn't", "this is direction, not commitment"). Reserve a punchy reframe for at most one ~6-word upfront summary or one closing line that drives the point home; turn the rest into plain statements.
 4. **Rule of three.** Forcing ideas into groups of three. Use the natural number.
 5. **Synonym cycling.** Protagonist, main character, central figure, hero all in one paragraph. Pick one, repeat it.
 6. **False ranges.** "from X to Y" where X and Y aren't on a meaningful scale. List topics directly.
@@ -62,7 +62,7 @@ Caveman soul comes from exact word choice, rhythm, and specificity. Keep its len
 1. **Em dash overuse.** Avoid em dashes entirely. Use periods or commas only (no parentheses, no en dashes, no hyphen-as-dash substitutes). Em dashes are an AI tell, and reaching for parentheses instead just trades one tell for another. If a thought needs separation, end the sentence or use a comma.
 2. **Colon overuse.** Colons are fine before a list or example. Not as mid-sentence connectors. "If you're coming from traditional automation: instead of registering event handlers, you describe conditions" adds nothing with the colon. Rewrite to let the point stand on its own without comparison framing. "Describing when the scheduler should fire works best as plain English." Same meaning, no crutch punctuation.
 3. **Boldface overuse.** Don't bold every proper noun or acronym.
-4. **Inline-header lists.** The tell is a bold label and colon that restates the line: "**Performance:** Performance improved...". Convert those to prose. A bold lead-in that ends in a period, names the item, and is followed by genuinely new detail ("**Schema in TypeScript.** Tables live in one file.") is fine, not a tell.
+4. **Inline-header lists and bold-caption bullets.** Do not caption every bullet or paragraph with a bold slogan or full sentence (`**Share-only users pay nothing while browsing.** ...`, `**Incremental opt-in:** ...`). Use plain `###` subheadings and write normal sentences in bullets. Reserve bold lead-ins strictly for short scan keys (a field name, flag, or option label), never multi-word headlines.
 5. **Title case headings.** Use sentence case.
 6. **Decorative emojis.** Remove from headings and bullets.
 7. **Curly quotes.** Replace with straight quotes.

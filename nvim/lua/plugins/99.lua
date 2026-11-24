@@ -6,7 +6,7 @@ return {
     local basename = vim.fs.basename(cwd)
 
     _99.setup({
-      model = "anthropic/claude-sonnet-4-5",
+      model = "openai/gpt-6-luna#xhigh",
       logger = {
         level = _99.INFO,
         path = "/tmp/" .. basename .. ".99.debug",
