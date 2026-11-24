@@ -479,8 +479,9 @@ end
 
 -- For hover preview doc
 local function resolve_embed()
-  local util = require("obsidian.util")
   local search = require("obsidian.search")
+  local refs = require("obsidian.parse.refs")
+  local header_parser = require("obsidian.parse.header")
 
   local line = vim.api.nvim_get_current_line()
   local col = vim.api.nvim_win_get_cursor(0)[2] + 1
@@ -491,7 +492,7 @@ local function resolve_embed()
       break
     end
     if col >= s and col <= e then
-      embed = line:sub(s + 1, e)
+      embed = line:sub(s, e)
       break
     end
     pos = e + 1
@@ -500,21 +501,13 @@ local function resolve_embed()
     return nil
   end
 
-  local location = util.parse_link(embed)
-  if not location then
+  local ref = refs.parse(embed)
+  if not ref then
     return nil
   end
-  location = vim.uri_decode(location)
-
-  -- A "#^id" suffix is a block reference, not a header anchor. strip_anchor_links
-  -- would mangle it into a header anchor that never resolves, so peel it first.
-  local bare, anchor, block_id
-  block_id = location:match("#(%^[%w%-]+)$")
-  if block_id then
-    bare = location:sub(1, #location - #block_id - 1)
-  else
-    bare, anchor = util.strip_anchor_links(location)
-  end
+  local bare = vim.uri_decode(ref.target)
+  local anchor = ref.anchor
+  local block_id = ref.block
 
   local notes = search.resolve_note(bare, {
     notes = { collect_anchor_links = true, collect_blocks = true, load_contents = true },
@@ -551,7 +544,7 @@ local function resolve_embed()
       start_row = from
       for i = from, to do
         -- Drop the trailing "^id" marker from the block's own lines.
-        section[#section + 1] = (util.strip_block_links(lines[i]))
+        section[#section + 1] = (lines[i]:gsub("%s*%^[%w%d][%w%d-]*%s*$", ""))
       end
     elseif anchor then
       local anchor_obj = note:resolve_anchor_link(anchor)
@@ -561,7 +554,7 @@ local function resolve_embed()
       local header_level = anchor_obj.level
       start_row = anchor_obj.line + 1
       for i = anchor_obj.line + 1, #lines do
-        local parsed = util.parse_header(lines[i])
+        local parsed = header_parser.parse(lines[i])
         if parsed and parsed.level <= header_level then
           break
         end
@@ -607,7 +600,8 @@ local function resolve_embed()
   for _, note in ipairs(notes) do
     local section, start_row = build_section(note)
     if section then
-      local title = " " .. bare .. (anchor or (block_id and "#" .. block_id) or "") .. " "
+      local fragment = anchor and ("#" .. anchor) or block_id and ("#^" .. block_id) or ""
+      local title = " " .. bare .. fragment .. " "
       return section, title, tostring(note.path), start_row
     end
   end
