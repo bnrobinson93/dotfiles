@@ -272,7 +272,6 @@ function __ghpr_generate_description --no-scope-shadowing
     set use_fill false
 
     set pr_title $custom_title
-    set -l pi_model openai/gpt-5.6-luna
 
     if type -q pi
         echo "✓ Generating PR title and body with Pi..."
@@ -335,7 +334,7 @@ Output format (required - do not deviate):
 
 Do not wrap the output in a code fence. The `---` line is the only separator."
 
-        set -l ai_output (printf "%s" $prompt | pi --model $pi_model --no-session --no-tools --no-context-files --no-skills --no-prompt-templates --no-extensions --print | string collect)
+        set -l ai_output (printf "%s" $prompt | __pi_oneshot | string collect)
         set -l ai_status $pipestatus[2]
 
         if test $ai_status -eq 0 -a -n "$ai_output"

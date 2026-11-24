@@ -1,8 +1,7 @@
-# Fast-path reimplementation of jj-agent's _jj_workspace_sync_git_env: that
-# plugin function shells out to `jj workspace root` unconditionally, which
-# cost ~40ms per fork+exec on the zsh side (see dot-zshrc's own copy of this
-# function) and runs here on every shell start AND every cd. Walk up for the
-# nearest .jj marker with builtins instead, mirroring dot-zshrc's fix.
+# PERF: this runs on every shell start AND every cd, so the workspace root is a
+# builtin walk-up to the nearest .jj marker rather than `jj workspace root` —
+# that fork+exec cost ~40ms a call. dot-zshrc carries the same logic; a fix here
+# needs the same fix there.
 function __jj_workspace_sync_git_env_fast
     set -l dir $PWD
     while test "$dir" != /; and not test -e "$dir/.jj"
