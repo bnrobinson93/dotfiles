@@ -191,6 +191,38 @@ local function alias_title(ctx)
   return stripped
 end
 
+-- A bare first name (and its possessive) is an alias only while no other note
+-- is named it or lists it, so the second Christy gets "Christy W" alone and
+-- [[Christy]] keeps meaning the first.
+local function first_name_claimed(first)
+  local word = vim.fn.escape(first, "\\.^$*+?()[]{}|") .. "('s)?"
+  local listed = vim
+    .system({
+      "rg",
+      "-il",
+      "--glob",
+      "*.md",
+      "-e",
+      "^\\s*- [\"']?" .. word .. "[\"']?\\s*$",
+      "-e",
+      "^aliases:.*[\\[, \"']" .. word .. "[\"',\\]]",
+      vault_path,
+    })
+    :wait().stdout
+  local named = vim
+    .system({
+      "rg",
+      "--files",
+      "--iglob",
+      "**/" .. first .. ".md",
+      "--iglob",
+      "**/" .. first .. "'s.md",
+      vault_path,
+    })
+    :wait().stdout
+  return listed ~= "" or named ~= ""
+end
+
 local function person_aliases(ctx)
   local title = template_title(ctx)
   local first, last = title:match("^(%S+)%s+(%S+)")
@@ -200,8 +232,7 @@ local function person_aliases(ctx)
     return "[]"
   end
 
-  -- Possessive form so "[[Christy's]]" style links resolve.
-  local aliases = { first, first .. "'s" }
+  local aliases = first_name_claimed(first) and {} or { first, first .. "'s" }
   if last then
     aliases[#aliases + 1] = first .. " " .. last:sub(1, 1)
   end
