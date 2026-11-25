@@ -477,8 +477,207 @@ local function insert_footnote()
   vim.cmd("startinsert")
 end
 
+-- Previews plain [[links]]; obsidian.nvim renders ![[embeds]] inline itself.
+local function resolve_link()
+  local search = require("obsidian.search")
+  local header_parser = require("obsidian.parse.header")
+
+  local ref = select(4, require("obsidian.api").cursor_link())
+  if not ref or ref.kind ~= "wiki" or ref.embed then
+    return nil
+  end
+  local bare = vim.uri_decode(ref.target)
+  local anchor = ref.anchor
+  local block_id = ref.block
+
+  local notes = search.resolve_note(bare, {
+    notes = { collect_anchor_links = true, collect_blocks = true, load_contents = true },
+  })
+  if vim.tbl_isempty(notes) then
+    return nil
+  end
+
+  -- Case-insensitive filesystems (macOS) resolve the linked note via direct
+  -- path lookup, so notes[1] is always the right note. Case-sensitive ones
+  -- (Linux) fall back to fuzzy ripgrep matching when the link case differs
+  -- from the filename, and notes[1] may be the wrong candidate. Try each note
+  -- and keep the first that actually yields a section.
+  local function build_section(note)
+    local lines = note.contents
+    if not lines then
+      return nil
+    end
+    local section = {}
+    local start_row = 1
+    if block_id then
+      local block = note:resolve_block(block_id)
+      if not block then
+        return nil
+      end
+      local sec = block.section
+      local from, to
+      if sec and sec.content_range then
+        from = sec.content_range.start_row + 1
+        to = sec.content_range.end_row
+      else
+        from, to = block.line, block.line
+      end
+      start_row = from
+      for i = from, to do
+        -- Drop the trailing "^id" marker from the block's own lines.
+        section[#section + 1] = (lines[i]:gsub("%s*%^[%w%d][%w%d-]*%s*$", ""))
+      end
+    elseif anchor then
+      local anchor_obj = note:resolve_anchor_link(anchor)
+      if not anchor_obj then
+        return nil
+      end
+      local header_level = anchor_obj.level
+      start_row = anchor_obj.line + 1
+      for i = anchor_obj.line + 1, #lines do
+        local parsed = header_parser.parse(lines[i])
+        if parsed and parsed.level <= header_level then
+          break
+        end
+        section[#section + 1] = lines[i]
+      end
+    else
+      start_row = 2
+      for i = 2, #lines do
+        section[#section + 1] = lines[i]
+      end
+    end
+
+    -- Peel only while every non-blank line is quoted, so a nested quote keeps
+    -- its own marker.
+    local function all_quoted()
+      local any = false
+      for _, line in ipairs(section) do
+        if not line:match("^%s*$") then
+          if not line:match("^%s*>") then
+            return false
+          end
+          any = true
+        end
+      end
+      return any
+    end
+
+    while all_quoted() do
+      for i, line in ipairs(section) do
+        section[i] = (line:gsub("^%s*>%s?", ""))
+      end
+    end
+
+    while #section > 0 and section[#section]:match("^%s*$") do
+      section[#section] = nil
+    end
+    if #section == 0 then
+      return nil
+    end
+    return section, start_row
+  end
+
+  for _, note in ipairs(notes) do
+    local section, start_row = build_section(note)
+    if section then
+      local fragment = anchor and ("#" .. anchor) or block_id and ("#^" .. block_id) or ""
+      local title = " " .. bare .. fragment .. " "
+      return section, title, tostring(note.path), start_row
+    end
+  end
+
+  return nil
+end
+
+local link_hover_win = nil
+local link_hover_buf = nil
+
+local function hover_config(section, title)
+  local width = math.min(80, vim.o.columns - 4)
+  local height = 0
+  for _, line in ipairs(section) do
+    height = height + math.max(1, math.ceil(vim.fn.strdisplaywidth(line) / width))
+  end
+  return {
+    relative = "cursor",
+    row = 1,
+    col = 0,
+    width = width,
+    height = math.min(math.max(height, 1), 20),
+    style = "minimal",
+    border = "rounded",
+    title = title,
+    focusable = false,
+  }
+end
+
+local function enable_wrapping(win)
+  vim.wo[win].wrap = true
+  vim.wo[win].linebreak = true
+  vim.wo[win].breakindent = true
+end
+
+local function close_link_hover()
+  if link_hover_win and vim.api.nvim_win_is_valid(link_hover_win) then
+    vim.api.nvim_win_close(link_hover_win, true)
+  end
+  if link_hover_buf and vim.api.nvim_buf_is_valid(link_hover_buf) then
+    vim.api.nvim_buf_delete(link_hover_buf, { force = true })
+  end
+  link_hover_win = nil
+  link_hover_buf = nil
+end
+
+-- Opens the linked note's own buffer, so `:w` and `:q` behave normally.
+local function edit_link()
+  local name = vim.api.nvim_buf_get_name(0)
+  local section, title, path, start_row
+  if vim.startswith(name, vault_path) and name:match("%.md$") then
+    section, title, path, start_row = resolve_link()
+  end
+  if not path then
+    return vim.lsp.buf.hover()
+  end
+
+  local buf = vim.fn.bufadd(path)
+  vim.fn.bufload(buf)
+
+  local win = link_hover_win
+  if win and vim.api.nvim_win_is_valid(win) then
+    local scratch = link_hover_buf
+    -- Drop the handles before swapping: close_link_hover force-deletes
+    -- link_hover_buf, and that is the note's own buffer from here on.
+    link_hover_win, link_hover_buf = nil, nil
+    vim.api.nvim_win_set_buf(win, buf)
+    if scratch and vim.api.nvim_buf_is_valid(scratch) then
+      vim.api.nvim_buf_delete(scratch, { force = true })
+    end
+  else
+    win = vim.api.nvim_open_win(buf, false, hover_config(section, title))
+  end
+
+  enable_wrapping(win)
+  vim.api.nvim_set_current_win(win)
+  vim.api.nvim_win_set_cursor(win, { math.min(start_row, vim.api.nvim_buf_line_count(buf)), 0 })
+  vim.cmd("normal! zt")
+end
 
 return {
+  {
+    -- LazyVim binds K on LSP attach, after any autocmd of ours can, so take
+    -- over its keymap entry rather than racing it.
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        ["*"] = {
+          keys = {
+            { "K", edit_link, desc = "Hover" },
+          },
+        },
+      },
+    },
+  },
   {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
@@ -492,6 +691,32 @@ return {
         end,
       })
 
+      vim.api.nvim_create_autocmd("CursorHold", {
+        pattern = vault_path .. "/**/*.md",
+        callback = function()
+          close_link_hover()
+          local section, title = resolve_link()
+          if not section then
+            return
+          end
+
+          link_hover_buf = vim.api.nvim_create_buf(false, true)
+          vim.api.nvim_buf_set_lines(link_hover_buf, 0, -1, false, section)
+
+          link_hover_win = vim.api.nvim_open_win(link_hover_buf, false, hover_config(section, title))
+          enable_wrapping(link_hover_win)
+
+          -- Must follow nvim_open_win: render-markdown attaches on FileType and
+          -- only decorates windows already showing the buffer.
+          vim.bo[link_hover_buf].filetype = "markdown"
+          vim.treesitter.start(link_hover_buf, "markdown")
+        end,
+      })
+
+      vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
+        pattern = vault_path .. "/**/*.md",
+        callback = close_link_hover,
+      })
     end,
     opts = {
       attachments = {
