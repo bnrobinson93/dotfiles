@@ -372,6 +372,8 @@ if [[ -d /opt/homebrew || -d /home/linuxbrew/.linuxbrew ]]; then
     if [[ -z $BREW_COMPLETE ]]; then
       test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       test -d /opt/homebrew && eval "$(/opt/homebrew/bin/brew shellenv)"
+      # WARN: shellenv prepends brew's bin, so without this brew's tools shadow mise's.
+      path=("$HOME/.local/bin" "$HOME/.local/share/mise/shims" $path)
       export HOMEBREW_AUTO_UPDATE_SECS=$((60 * 60 * 24))
       BREW_COMPLETE=1
     fi
@@ -386,24 +388,6 @@ if type go >/dev/null 2>&1; then
       GO_ADDED=1
     fi
     command go "$@"
-  }
-fi
-
-if [[ -d "$HOME/.cargo" ]]; then
-  cargo() {
-    if [[ -z $CARGO_ADDED ]]; then
-      source "$HOME/.cargo/env"
-      CARGO_ADDED=1
-    fi
-    command cargo "$@"
-  }
-
-  rustc() {
-    if [[ -z $CARGO_ADDED ]]; then
-      source "$HOME/.cargo/env"
-      CARGO_ADDED=1
-    fi
-    command rustc "$@"
   }
 fi
 
