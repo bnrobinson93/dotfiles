@@ -508,7 +508,6 @@ local function resolve_link()
       return nil
     end
     local section = {}
-    local start_row = 1
     if block_id then
       local block = note:resolve_block(block_id)
       if not block then
@@ -522,7 +521,6 @@ local function resolve_link()
       else
         from, to = block.line, block.line
       end
-      start_row = from
       for i = from, to do
         -- Drop the trailing "^id" marker from the block's own lines.
         section[#section + 1] = (lines[i]:gsub("%s*%^[%w%d][%w%d-]*%s*$", ""))
@@ -533,7 +531,6 @@ local function resolve_link()
         return nil
       end
       local header_level = anchor_obj.level
-      start_row = anchor_obj.line + 1
       for i = anchor_obj.line + 1, #lines do
         local parsed = header_parser.parse(lines[i])
         if parsed and parsed.level <= header_level then
@@ -542,7 +539,6 @@ local function resolve_link()
         section[#section + 1] = lines[i]
       end
     else
-      start_row = 2
       for i = 2, #lines do
         section[#section + 1] = lines[i]
       end
@@ -575,92 +571,45 @@ local function resolve_link()
     if #section == 0 then
       return nil
     end
-    return section, start_row
+    return section
   end
 
   for _, note in ipairs(notes) do
-    local section, start_row = build_section(note)
+    local section = build_section(note)
     if section then
       local fragment = anchor and ("#" .. anchor) or block_id and ("#^" .. block_id) or ""
-      local title = " " .. bare .. fragment .. " "
-      return section, title, tostring(note.path), start_row
+      return section, " " .. bare .. fragment .. " "
     end
   end
 
   return nil
 end
 
-local link_hover_win = nil
-local link_hover_buf = nil
-
-local function hover_config(section, title)
-  local width = math.min(80, vim.o.columns - 4)
-  local height = 0
-  for _, line in ipairs(section) do
-    height = height + math.max(1, math.ceil(vim.fn.strdisplaywidth(line) / width))
+-- First K previews the link under the cursor read-only; a second K focuses the
+-- preview, the same contract as LSP hover. q or <Esc> closes it.
+local function link_hover()
+  local preview = vim.b.lsp_floating_preview
+  if preview and vim.api.nvim_win_is_valid(preview) then
+    return vim.api.nvim_set_current_win(preview)
   end
-  return {
-    relative = "cursor",
-    row = 1,
-    col = 0,
-    width = width,
-    height = math.min(math.max(height, 1), 20),
-    style = "minimal",
-    border = "rounded",
-    title = title,
-    focusable = false,
-  }
-end
 
-local function enable_wrapping(win)
-  vim.wo[win].wrap = true
-  vim.wo[win].linebreak = true
-  vim.wo[win].breakindent = true
-end
-
-local function close_link_hover()
-  if link_hover_win and vim.api.nvim_win_is_valid(link_hover_win) then
-    vim.api.nvim_win_close(link_hover_win, true)
-  end
-  if link_hover_buf and vim.api.nvim_buf_is_valid(link_hover_buf) then
-    vim.api.nvim_buf_delete(link_hover_buf, { force = true })
-  end
-  link_hover_win = nil
-  link_hover_buf = nil
-end
-
--- Opens the linked note's own buffer, so `:w` and `:q` behave normally.
-local function edit_link()
   local name = vim.api.nvim_buf_get_name(0)
-  local section, title, path, start_row
+  local section, title
   if vim.startswith(name, vault_path) and name:match("%.md$") then
-    section, title, path, start_row = resolve_link()
+    section, title = resolve_link()
   end
-  if not path then
+  if not section then
     return vim.lsp.buf.hover()
   end
 
-  local buf = vim.fn.bufadd(path)
-  vim.fn.bufload(buf)
-
-  local win = link_hover_win
-  if win and vim.api.nvim_win_is_valid(win) then
-    local scratch = link_hover_buf
-    -- Drop the handles before swapping: close_link_hover force-deletes
-    -- link_hover_buf, and that is the note's own buffer from here on.
-    link_hover_win, link_hover_buf = nil, nil
-    vim.api.nvim_win_set_buf(win, buf)
-    if scratch and vim.api.nvim_buf_is_valid(scratch) then
-      vim.api.nvim_buf_delete(scratch, { force = true })
-    end
-  else
-    win = vim.api.nvim_open_win(buf, false, hover_config(section, title))
-  end
-
-  enable_wrapping(win)
-  vim.api.nvim_set_current_win(win)
-  vim.api.nvim_win_set_cursor(win, { math.min(start_row, vim.api.nvim_buf_line_count(buf)), 0 })
-  vim.cmd("normal! zt")
+  local buf = vim.lsp.util.open_floating_preview(section, "markdown", {
+    focus_id = "obsidian_link",
+    border = "rounded",
+    title = title,
+    max_width = 80,
+    max_height = 20,
+  })
+  vim.keymap.set("n", "<Esc>", "<cmd>bdelete<cr>", { buffer = buf, nowait = true, silent = true })
 end
 
 return {
@@ -672,7 +621,7 @@ return {
       servers = {
         ["*"] = {
           keys = {
-            { "K", edit_link, desc = "Hover" },
+            { "K", link_hover, desc = "Hover" },
           },
         },
       },
@@ -691,32 +640,6 @@ return {
         end,
       })
 
-      vim.api.nvim_create_autocmd("CursorHold", {
-        pattern = vault_path .. "/**/*.md",
-        callback = function()
-          close_link_hover()
-          local section, title = resolve_link()
-          if not section then
-            return
-          end
-
-          link_hover_buf = vim.api.nvim_create_buf(false, true)
-          vim.api.nvim_buf_set_lines(link_hover_buf, 0, -1, false, section)
-
-          link_hover_win = vim.api.nvim_open_win(link_hover_buf, false, hover_config(section, title))
-          enable_wrapping(link_hover_win)
-
-          -- Must follow nvim_open_win: render-markdown attaches on FileType and
-          -- only decorates windows already showing the buffer.
-          vim.bo[link_hover_buf].filetype = "markdown"
-          vim.treesitter.start(link_hover_buf, "markdown")
-        end,
-      })
-
-      vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
-        pattern = vault_path .. "/**/*.md",
-        callback = close_link_hover,
-      })
     end,
     opts = {
       attachments = {
