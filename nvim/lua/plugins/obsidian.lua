@@ -480,7 +480,6 @@ end
 -- Previews plain [[links]]; obsidian.nvim renders ![[embeds]] inline itself.
 local function resolve_link()
   local search = require("obsidian.search")
-  local header_parser = require("obsidian.parse.header")
 
   local ref = select(4, require("obsidian.api").cursor_link())
   if not ref or ref.kind ~= "wiki" or ref.embed then
@@ -532,8 +531,8 @@ local function resolve_link()
       end
       local header_level = anchor_obj.level
       for i = anchor_obj.line + 1, #lines do
-        local parsed = header_parser.parse(lines[i])
-        if parsed and parsed.level <= header_level then
+        local hashes = lines[i]:match("^(#+)%s")
+        if hashes and #hashes <= header_level then
           break
         end
         section[#section + 1] = lines[i]
@@ -587,10 +586,11 @@ end
 
 -- First K previews the link under the cursor read-only; a second K focuses the
 -- preview, the same contract as LSP hover. q or <Esc> closes it.
+local link_preview_win = nil
+
 local function link_hover()
-  local preview = vim.b.lsp_floating_preview
-  if preview and vim.api.nvim_win_is_valid(preview) then
-    return vim.api.nvim_set_current_win(preview)
+  if link_preview_win and vim.api.nvim_win_is_valid(link_preview_win) then
+    return vim.api.nvim_set_current_win(link_preview_win)
   end
 
   local name = vim.api.nvim_buf_get_name(0)
@@ -602,13 +602,14 @@ local function link_hover()
     return vim.lsp.buf.hover()
   end
 
-  local buf = vim.lsp.util.open_floating_preview(section, "markdown", {
+  local buf, win = vim.lsp.util.open_floating_preview(section, "markdown", {
     focus_id = "obsidian_link",
     border = "rounded",
     title = title,
     max_width = 80,
     max_height = 20,
   })
+  link_preview_win = win
   vim.keymap.set("n", "<Esc>", "<cmd>bdelete<cr>", { buffer = buf, nowait = true, silent = true })
 end
 
