@@ -477,30 +477,52 @@ local function insert_footnote()
   vim.cmd("startinsert")
 end
 
--- Previews plain [[links]]; obsidian.nvim renders ![[embeds]] inline itself.
+-- The [[target]] under the cursor; ![[embeds]] are left to obsidian.nvim.
+local function link_under_cursor()
+  local line = vim.api.nvim_get_current_line()
+  local col = vim.api.nvim_win_get_cursor(0)[2] + 1
+  for s, inner, e in line:gmatch("()%[%[(.-)%]%]()") do
+    if s <= col and col < e and line:sub(s - 1, s - 1) ~= "!" then
+      -- A "\|" alias escape is how a link survives inside a Markdown table.
+      return (inner:match("^[^|]*"):gsub("\\$", ""))
+    end
+  end
+end
+
+-- Obsidian resolves a link by file name anywhere in the vault, ignoring case.
+local function find_note_path(target)
+  if target == "" then
+    return vim.api.nvim_buf_get_name(0)
+  end
+  if target:find("/", 1, true) then
+    local path = vault_path .. "/" .. target .. ".md"
+    return vim.uv.fs_stat(path) and path or nil
+  end
+  local want = (target .. ".md"):lower()
+  return vim.fs.find(function(name)
+    return name:lower() == want
+  end, { path = vault_path, type = "file", limit = 1 })[1]
+end
+
 local function resolve_link()
-  local search = require("obsidian.search")
-
-  local ref = select(4, require("obsidian.api").cursor_link())
-  if not ref or ref.kind ~= "wiki" or ref.embed then
+  local link = link_under_cursor()
+  if not link then
     return nil
   end
-  local bare = vim.uri_decode(ref.target)
-  local anchor = ref.anchor
-  local block_id = ref.block
+  local bare, fragment = link:match("^([^#]*)#?(.*)$")
+  local block_id = fragment:match("^%^(.+)")
+  local anchor = not block_id and fragment ~= "" and fragment or nil
 
-  local notes = search.resolve_note(bare, {
-    notes = { collect_anchor_links = true, collect_blocks = true, load_contents = true },
+  local path = find_note_path(bare)
+  if not path then
+    return nil
+  end
+  local note = require("obsidian.note").from_file(path, {
+    collect_anchor_links = true,
+    collect_blocks = true,
+    load_contents = true,
   })
-  if vim.tbl_isempty(notes) then
-    return nil
-  end
 
-  -- Case-insensitive filesystems (macOS) resolve the linked note via direct
-  -- path lookup, so notes[1] is always the right note. Case-sensitive ones
-  -- (Linux) fall back to fuzzy ripgrep matching when the link case differs
-  -- from the filename, and notes[1] may be the wrong candidate. Try each note
-  -- and keep the first that actually yields a section.
   local function build_section(note)
     local lines = note.contents
     if not lines then
@@ -538,9 +560,7 @@ local function resolve_link()
         section[#section + 1] = lines[i]
       end
     else
-      for i = 2, #lines do
-        section[#section + 1] = lines[i]
-      end
+      section = note:body_lines()
     end
 
     -- Peel only while every non-blank line is quoted, so a nested quote keeps
@@ -573,15 +593,10 @@ local function resolve_link()
     return section
   end
 
-  for _, note in ipairs(notes) do
-    local section = build_section(note)
-    if section then
-      local fragment = anchor and ("#" .. anchor) or block_id and ("#^" .. block_id) or ""
-      return section, " " .. bare .. fragment .. " "
-    end
+  local section = build_section(note)
+  if section then
+    return section, " " .. link .. " "
   end
-
-  return nil
 end
 
 -- First K previews the link under the cursor read-only; a second K focuses the
