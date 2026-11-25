@@ -737,6 +737,13 @@ return {
         callback = close_embed_hover,
       })
     end,
+    config = function(_, opts)
+      require("obsidian").setup(opts)
+      -- HACK: v3.16's inline embed renderer has no opt-out. It duplicates the
+      -- hover above and resolves every embed with a blocking vault search on
+      -- BufEnter, which stalls K for seconds and raises E1312 on :q.
+      require("obsidian.embed").attach = function() end
+    end,
     opts = {
       attachments = {
         confirm_img_paste = true,
