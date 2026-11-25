@@ -44,6 +44,7 @@ local drop_marker = "__DROP_LINE__"
 -- Frontmatter keys that really are lists. Everything else is a scalar, and a
 -- list value there is merge damage rather than intent.
 local list_metadata_keys = {
+  aliases = true,
   attendies = true,
   author = true,
   categories = true,
@@ -53,6 +54,7 @@ local list_metadata_keys = {
   format = true,
   informed = true,
   location = true,
+  tags = true,
   type = true,
 }
 
@@ -784,11 +786,16 @@ return {
         end,
         func = function(note)
           local now = os.date("%Y-%m-%dT%H:%M")
-          -- NOTE: the `note.metadata` object contains ONLY:
-          -- created, updated, and author
-
-          -- Start by cloning that object
           local out = vim.tbl_deep_extend("force", {}, note.metadata or {})
+          -- obsidian.nvim 3.16 put id, aliases, and tags in metadata. The vault
+          -- names notes by file name, so an id only repeats it, and an empty
+          -- list is noise (no `tags: []`).
+          out.id = nil
+          for _, key in ipairs({ "aliases", "tags" }) do
+            if out[key] and #out[key] == 0 then
+              out[key] = nil
+            end
+          end
 
           -- Add things I may want
           if note.url then
@@ -797,14 +804,6 @@ return {
 
           -- Update the modified time
           out.updated = now
-
-          -- More things I may want (skip empties: no `tags: []` noise)
-          if note.tags and #note.tags > 0 then
-            out.tags = note.tags
-          end
-          if note.aliases and #note.aliases > 0 then
-            out.aliases = note.aliases
-          end
 
           -- Applying a template over an existing note runs obsidian.nvim's
           -- Note:merge, which list-extends every metadata key present in both.
