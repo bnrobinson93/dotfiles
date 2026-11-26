@@ -247,7 +247,9 @@ jj diff --no-pager -s
 echo "--- describe ---"
 # Same guidance `ghpr` feeds its model, read from the skill so the two stay one voice.
 read_skill() { awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}' "$1" 2>/dev/null; }
-pr_guidance=$(read_skill "$WORKTREE/ai/skills/commit-and-pr/SKILL.md")
+pr_skill="$HOME/Documents/Vault/.agents/skills/commit-and-pr/SKILL.md"
+pr_guidance=$(read_skill "$pr_skill")
+[ -n "$pr_guidance" ] || alert "PR guidance missing at $pr_skill"
 summary=$(jj diff --no-pager --git | head -c 60000 | claude -p \
   "Read this diff to a dotfiles repo and write its PR description for the owner, who has not
    read the diff. Output a Conventional Commits title under 60 chars starting with 'ai: ', a
