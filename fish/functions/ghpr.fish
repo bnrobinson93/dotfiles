@@ -252,7 +252,7 @@ function __ghpr_generate_description --no-scope-shadowing
     end
 
     set -l pr_guidance ""
-    set -l pr_skill ~/.dotfiles/ai/skills/commit-and-pr/SKILL.md
+    set -l pr_skill ~/Documents/Vault/.agents/skills/commit-and-pr/SKILL.md
     if not test -f $pr_skill
         echo "Error: commit-and-pr skill not found at $pr_skill"
         return 1
@@ -260,7 +260,7 @@ function __ghpr_generate_description --no-scope-shadowing
     set pr_guidance (__ghpr_read_skill_body $pr_skill | string collect)
 
     set -l writing_voice ""
-    set -l voice_skill ~/.dotfiles/ai/skills/writing-voice/SKILL.md
+    set -l voice_skill ~/Documents/Vault/.agents/skills/writing-voice/SKILL.md
     if test -f $voice_skill
         set writing_voice (__ghpr_read_skill_body $voice_skill | string collect)
     end

@@ -146,7 +146,7 @@ convert_mcp() {
   read -r mcp
   [[ -n "$mcp" ]] || return 1
 
-  prompt="Inspect MCP '$mcp' configured for this workspace. Use \$find-skills to prefer an existing skill. If none fits, use \$skill-creator and \$writing-for-agents to create a shared skill under this dotfiles repo's ai/skills directory. Preserve only useful workflows; avoid recreating native harness features. Validate the skill, then show the exact MCP removal command. Do not remove it until I approve."
+  prompt="Inspect MCP '$mcp' configured for this workspace. Use \$find-skills to prefer an existing skill. If none fits, use \$skill-creator and \$writing-for-agents to create a shared skill in ~/Documents/Vault/.agents/skills. Preserve only useful workflows; avoid recreating native harness features. Validate the skill, then show the exact MCP removal command. Do not remove it until I approve."
   launch_agent "$prompt"
 }
 
@@ -186,7 +186,7 @@ choose_instruction_file() {
 extract_instructions() {
   local prompt
   choose_instruction_file || return 1
-  prompt="Read '$chosen_file'. Use \$skill-creator and \$writing-for-agents to identify reusable, on-demand workflows that should become shared skills under this dotfiles repo's ai/skills directory. Keep always-on project facts in the instructions file. Propose the split before editing; validate every created skill."
+  prompt="Read '$chosen_file'. Use \$skill-creator and \$writing-for-agents to identify reusable, on-demand workflows that should become shared skills in ~/Documents/Vault/.agents/skills. Keep always-on project facts in the instructions file. Propose the split before editing; validate every created skill."
   launch_agent "$prompt"
 }
 
